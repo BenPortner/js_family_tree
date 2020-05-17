@@ -80,14 +80,8 @@
         }
 
         // Set the dimensions and margins of the diagram
-        var margin = {
-            top: document.documentElement.clientHeight / 10,
-            right: 0,
-            bottom: document.documentElement.clientHeight / 10,
-            left: document.body.offsetWidth / 5
-        },
-            width = document.body.offsetWidth * 10,
-            height = document.documentElement.clientHeight - margin.top - margin.bottom;
+        var screen_width = document.body.offsetWidth,
+            screen_height = document.documentElement.clientHeight;
 
 
         // initialize panning, zooming
@@ -120,8 +114,8 @@
         // assigns width and height
         // activates zoom/pan and tooltips
         const svg = d3.select("body").append("svg")
-            .attr("width", width + margin.right + margin.left)
-            .attr("height", height + margin.top + margin.bottom)
+            .attr("width", screen_width)
+            .attr("height", screen_height)
             .call(zoom)
             .call(tip)
 
@@ -164,8 +158,8 @@
         root = all_nodes.find(n => n.id == data.start);
         root.visible = true;
         root.neighbors = getNeighbors(root);
-        root.x0 = height / 2;
-        root.y0 = width / 2;
+        root.x0 = screen_height / 2;
+        root.y0 = screen_width / 2;
 
         // overwrite dag root nodes
         dag.children = [root];
@@ -173,9 +167,6 @@
 
         // draw dag
         update(root);
-
-        // center view around root node
-        svg.call(zoom.transform, d3.zoomIdentity.translate(+(root.x), -(root.y + height / 2)))
 
 
         // collapse a node
@@ -554,7 +545,7 @@
                 .duration(duration)
                 .call(
                     zoom.transform,
-                    d3.zoomTransform(g.node()).translate(0, -(source.x - source.x0)),
+                    d3.zoomTransform(g.node()).translate(-(source.y - source.y0), -(source.x - source.x0)),
                 );
 
             // Store the old positions for transition.
