@@ -1,4 +1,5 @@
 data = {
+    "start":"id4",
     "persons": {
         "id1": { "id": "id1", "name": "Adam", "birthyear": 1900, "deathyear": 1980, "own_unions": ["u1"] },
         "id2": { "id": "id2", "name": "Berta", "birthyear": 1901, "deathyear": 1985, "own_unions": ["u1"] },
