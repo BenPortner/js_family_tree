@@ -79,67 +79,23 @@
             data.persons[k].isUnion = false
         }
 
-        // // Set the dimensions and margins of the diagram
+        // Set the dimensions and margins of the diagram
         var margin = {
             top: document.documentElement.clientHeight / 10,
             right: 0,
             bottom: document.documentElement.clientHeight / 10,
             left: document.body.offsetWidth / 5
         },
-            width = document.body.offsetWidth * 10;
-        height = document.documentElement.clientHeight - margin.top - margin.bottom;
+            width = document.body.offsetWidth * 10,
+            height = document.documentElement.clientHeight - margin.top - margin.bottom;
 
-        // append the svg object to the body of the page
-        // appends a 'group' element to 'svg'
-        // moves the 'group' element to the top left margin
-        var svg = d3.select("body").append("svg")
-            .attr("width", width + margin.right + margin.left)
-            .attr("height", height + margin.top + margin.bottom)
-            .call(d3.zoom().on("zoom", function () {
-                svg.attr("transform", d3.event.transform)
-            }))
-            .append("g")
-            .attr("transform", "translate("
-                + margin.left + "," + margin.top + ")");
 
-        var i = 0,
-            duration = 750,
-            root;
+        // initialize panning, zooming
+        var zoom = d3.zoom()
+            .on("zoom", _ => g.attr("transform", d3.event.transform));
 
-        // declares a tree layout and assigns the size
-        var tree = d3.sugiyama()
-            .size([height, width])
-            .layering(d3.layeringSimplex())
-            .decross(d3.decrossTwoLayer())
-            .coord(d3.coordVert())
-            .separation((a, b) => { return 1 });
 
-        // make dag from link list
-        dag = d3.dagConnect()(data.links);
-
-        // prepare node data
-        var nodes = dag.descendants()
-        nodes.forEach(n => {
-            n.data = data.persons[n.id] ? data.persons[n.id] : data.unions[n.id];
-            n._children = n.children; // all nodes collapsed by default
-            n.children = [];
-            n.inserted_nodes = [];
-            n.inserted_roots = [];
-            n.neighbors = [];
-            n.visible = false;
-        });
-
-        // find root node and assign data
-        root = nodes.find(n => n.id == "id4");
-        root.visible = true;
-        root.neighbors = getNeighbors(root);
-        root.x0 = height / 2;
-        root.y0 = width / 2;
-
-        // declare root node
-        dag.children = [root];
-
-        // add tooltips
+        // initialize tooltips
         var tip = d3.tip()
             .attr('class', 'd3-tip')
             .direction('e')
@@ -149,22 +105,98 @@
                     if (d.data.isUnion) return;
                     var content = `
                     <span style='margin-left: 2.5px;'><b>` + d.data.name + `</b></span><br>
-                    <span style='margin-left: 2.5px;'>` + d.data.birthyear + ` - ` + d.data.deathyear + `</span>
+                    <table style="margin-top: 2.5px;">
+                            <tr><td>born</td><td>` + d.data.birth_date + ` in ` + d.data.birth_place + `</td></tr>
+                            <tr><td>died</td><td>` + d.data.death_date + ` in ` + d.data.death_place + `</td></tr>
+                            <tr><td>source</td><td>` + d.data.link + `</td></tr>
+                    </table>
                     `
                     return content.replace(new RegExp("null", "g"), "?")
                 }
             );
-        svg.call(tip);
 
-        // draw root node
+
+        // append the svg object to the body of the page
+        // assigns width and height
+        // activates zoom/pan and tooltips
+        const svg = d3.select("body").append("svg")
+            .attr("width", width + margin.right + margin.left)
+            .attr("height", height + margin.top + margin.bottom)
+            .call(zoom)
+            .call(tip)
+
+        // append group element
+        const g = svg.append("g");
+
+        // helper variables
+        var i = 0,
+            duration = 750,
+            x_sep = 140,
+            y_sep = 30;
+
+        // declare a dag layout
+        var tree = d3.sugiyama()
+            .nodeSize([y_sep, x_sep])
+            .layering(d3.layeringSimplex())
+            .decross(d3.decrossOpt)
+            .coord(d3.coordVert())
+            .separation(
+                (a, b) => { return 1 }
+            );
+
+        // make dag from edge list
+        dag = d3.dagConnect()(data.links);
+
+        // prepare node data
+        var all_nodes = dag.descendants()
+        all_nodes.forEach(n => {
+            n.data = data.persons[n.id] ? data.persons[n.id] : data.unions[n.id];
+            n._children = n.children; // all nodes collapsed by default
+            n.children = [];
+            n.inserted_nodes = [];
+            n.inserted_roots = [];
+            n.neighbors = [];
+            n.visible = false;
+            n.inserted_connections = [];
+        });
+
+        // find root node and assign data
+        root = nodes.find(n => n.id == "id4");
+        root.visible = true;
+        root.neighbors = getNeighbors(root);
+        root.x0 = height / 2;
+        root.y0 = width / 2;
+
+        // overwrite dag root nodes
+        dag.children = [root];
+
+
+        // draw dag
         update(root);
 
-        // Collapse a node
+        // center view around root node
+        svg.call(zoom.transform, d3.zoomIdentity.translate(+(root.x), -(root.y + height / 2)))
+
+
+        // collapse a node
         function collapse(d) {
 
-            // remove all inserted root nodes
+            // remove root nodes and circle-connections
             var remove_inserted_root_nodes = n => {
+                // remove all inserted root nodes
                 dag.children = dag.children.filter(c => !n.inserted_roots.includes(c));
+                // remove inserted connections
+                n.inserted_connections.forEach(
+                    arr => {
+                        // check existence to prevent double entries
+                        // which will cause crashes
+                        if (arr[0].children.includes(arr[1])) {
+                            arr[0]._children.push(arr[1]);
+                            arr[0].children.remove(arr[1]);
+                        }
+                    }
+                )
+                // repeat for all inserted nodes
                 n.inserted_nodes.forEach(remove_inserted_root_nodes);
             };
             remove_inserted_root_nodes(d);
@@ -189,7 +221,7 @@
                     if (n.data.isUnion) {
                         collapse(n);
                     }
-                    // save neighbor handle in clicked node
+                    // remove neighbor handle from clicked node
                     d.inserted_nodes.remove(n);
                 }
             );
@@ -200,7 +232,25 @@
 
             if (d == undefined) return;
 
-            // make collapsed neighbors visible and find connections
+            // neighbor nodes that are already visible (happens when 
+            // circles occur): make connections, save them to
+            // destroy / rebuild on collapse
+            var extended_neighbors = d.neighbors.filter(n => n.visible)
+            extended_neighbors.forEach(
+                n => {
+                    // if child, make connection
+                    if (d._children.includes(n)) {
+                        d.inserted_connections.push([d, n]);
+                    }
+                    // if parent, make connection
+                    if (n._children.includes(d)) {
+                        d.inserted_connections.push([n, d]);
+                    }
+                }
+            )
+
+            // neighbor nodes that are invisible: make visible, make connections, 
+            // add root nodes, add to inserted_nodes
             var collapsed_neighbors = d.neighbors.filter(n => !n.visible);
             collapsed_neighbors.forEach(
                 n => {
@@ -232,14 +282,26 @@
             )
 
             // make sure this step is done only once
-            if (!make_roots) {// add previously inserted partners and parents to root nodes
+            if (!make_roots) {
                 var add_root_nodes = n => {
+                    // add previously inserted root nodes (partners, parents)
                     n.inserted_roots.forEach(p => dag.children.push(p));
+                    // add previously inserted connections (circles)
+                    n.inserted_connections.forEach(
+                        arr => {
+                            // check existence to prevent double entries
+                            // which will cause crashes
+                            if (arr[0]._children.includes(arr[1])) {
+                                arr[0].children.push(arr[1]);
+                                arr[0]._children.remove(arr[1]);
+                            }
+                        }
+                    )
+                    // repeat with all inserted nodes
                     n.inserted_nodes.forEach(add_root_nodes)
                 };
                 add_root_nodes(d);
             }
-
         }
 
         function is_extendable(node) {
@@ -262,7 +324,7 @@
             if (node.data.isUnion) return [];
             var u_id = node.data.parent_union;
             if (u_id) {
-                var union = nodes.find(n => n.id == u_id);
+                var union = all_nodes.find(n => n.id == u_id);
                 return [union].filter(u => u != undefined);
             }
             else return [];
@@ -272,7 +334,7 @@
             var parents = [];
             if (node.data.isUnion) {
                 node.data.partner.forEach(
-                    p_id => parents.push(nodes.find(n => n.id == p_id))
+                    p_id => parents.push(all_nodes.find(n => n.id == p_id))
                 );
             }
             else {
@@ -288,7 +350,7 @@
             var partner_id = union_data.partner.find(
                 p_id => p_id != node.id & p_id != undefined
             );
-            return nodes.find(n => n.id == partner_id)
+            return all_nodes.find(n => n.id == partner_id)
         }
 
         function getPartners(node) {
@@ -296,7 +358,7 @@
             // return both partners if node argument is a union
             if (node.data.isUnion) {
                 node.data.partner.forEach(
-                    p_id => partners.push(nodes.find(n => n.id == p_id))
+                    p_id => partners.push(all_nodes.find(n => n.id == p_id))
                 )
             }
             // return other partner of all unions if node argument is a person
@@ -315,7 +377,7 @@
             if (node.data.isUnion) return [];
             unions = [];
             node.data.own_unions.forEach(
-                u_id => unions.push(nodes.find(n => n.id == u_id))
+                u_id => unions.push(all_nodes.find(n => n.id == u_id))
             );
             return unions.filter(u => u != undefined)
         }
@@ -334,25 +396,50 @@
             // sort children by birth year, filter undefined
             children = children
                 .filter(c => c != undefined)
-                .sort((a, b) => Math.sign((a.birthyear || 0) - (b.birthyear || 0)));
+                .sort((a, b) => Math.sign((getBirthYear(a) || 0) - (getBirthYear(b) || 0)));
             return children
         }
 
+        function getBirthYear(node) {
+            return new Date(node.data.birth_date || NaN).getFullYear()
+        }
+
+        function find_path(n) {
+            var parents = getParents(n);
+            var found = false;
+            var result = null;
+            parents.forEach(
+                p => {
+                    if (p && !found) {
+                        if (p.id == "profile-89285291") {
+                            found = true;
+                            result = [p, n];
+                        }
+                        else {
+                            result = find_path(p);
+                            if (result) {
+                                found = true;
+                                result.push(n)
+                            }
+                        }
+                    }
+                }
+            )
+            return result
+        }
 
         function update(source) {
 
             // Assigns the x and y position for the nodes
-            var data = tree(dag),
+            var dag_tree = tree(dag),
                 nodes = dag.descendants(),
                 links = dag.links();
 
-            // Normalize for fixed-depth.
-            nodes.forEach(d => d.y = d.depth().layer * 280 / 2);
 
             // ****************** Nodes section ***************************
 
             // Update the nodes...
-            var node = svg.selectAll('g.node')
+            var node = g.selectAll('g.node')
                 .data(nodes, function (d) { return d.id || (d.id = ++i); })
 
             // Enter any new nodes at the parent's previous position.
@@ -363,7 +450,8 @@
                 })
                 .on('click', click)
                 .on('mouseover', tip.show)
-                .on('mouseout', tip.hide);
+                .on('mouseout', tip.hide)
+                .attr('visible', true);
 
             // Add Circle for the nodes
             nodeEnter.append('circle')
@@ -387,9 +475,9 @@
                 .text(
                     function (d) {
                         if (d.data.isUnion) return;
-                        return (d.data.birthyear || "?").toString() +
+                        return (getBirthYear(d) || "?").toString() +
                             " - " +
-                            (d.data.deathyear || "?").toString()
+                            (new Date(d.data.death_date || NaN).getFullYear() || "?").toString()
                     }
                 );
 
@@ -418,6 +506,7 @@
                 .attr("transform", function (d) {
                     return "translate(" + source.y + "," + source.x + ")";
                 })
+                .attr('visible', false)
                 .remove();
 
             // On exit reduce the node circles size to 0
@@ -431,7 +520,7 @@
             // ****************** links section ***************************
 
             // Update the links...
-            var link = svg.selectAll('path.link')
+            var link = g.selectAll('path.link')
                 .data(links, function (d) { return d.source.id + d.target.id });
 
             // Enter any new links at the parent's previous position.
@@ -459,11 +548,21 @@
                 })
                 .remove();
 
+            // expanding a big subgraph moves the entire dag out of the window
+            // to prevent this, cancel any transformations in y-direction
+            svg.transition()
+                .duration(duration)
+                .call(
+                    zoom.transform,
+                    d3.zoomTransform(g.node()).translate(0, -(source.x - source.x0)),
+                );
+
             // Store the old positions for transition.
             nodes.forEach(function (d) {
                 d.x0 = d.x;
                 d.y0 = d.y;
             });
+
 
             // Creates a curved (diagonal) path from parent to the child nodes
             function diagonal(s, d) {
