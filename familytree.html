@@ -161,7 +161,7 @@
         });
 
         // find root node and assign data
-        root = nodes.find(n => n.id == "id4");
+        root = all_nodes.find(n => n.id == data.start);
         root.visible = true;
         root.neighbors = getNeighbors(root);
         root.x0 = height / 2;
