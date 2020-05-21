@@ -6,7 +6,7 @@ Author: Benjamin W. Portner
 
 License: GNU General Public License v3.0
 
-[Live example here.](https://rawcdn.githack.com/BenPortner/js_family_tree/ae1c33f1f9ad335c2c9a0c9d47b61541b6d6454f/familytree.html)  (Kudos to [Pavel Puchkin](https://neoascetic.me/) from [githack.com](https://raw.githack.com/) for prividing the chaching proxy!)
+[Live example here.](https://rawcdn.githack.com/BenPortner/js_family_tree/b29b76fb604ef2e51a9360819ca13f2ab0060cb6/familytree.html)  (Kudos to [Pavel Puchkin](https://neoascetic.me/) from [githack.com](https://raw.githack.com/) for prividing the chaching proxy!)
 
 ## Features
 The code is based on the [collapsible d3 tree example](https://bl.ocks.org/d3noob/43a860bc0024792f8803bba8ca0d5ecd) by d3noob.
