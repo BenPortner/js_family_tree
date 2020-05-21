@@ -21,4 +21,4 @@ New features:
 - introduces union nodes to connect parents and children via common way point
 - nodes are collapsible in all directions: children, parents, partners (nodes memorize their dependencies)
 - use [d3-tip](https://github.com/caged/d3-tip) to show metadata on hover
-- use d3-zoom o enable zooming and panning
+- use d3-zoom to enable zooming and panning
