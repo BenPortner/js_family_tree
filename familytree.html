@@ -100,9 +100,8 @@
                     var content = `
                     <span style='margin-left: 2.5px;'><b>` + d.data.name + `</b></span><br>
                     <table style="margin-top: 2.5px;">
-                            <tr><td>born</td><td>` + d.data.birth_date + ` in ` + d.data.birth_place + `</td></tr>
-                            <tr><td>died</td><td>` + d.data.death_date + ` in ` + d.data.death_place + `</td></tr>
-                            <tr><td>source</td><td>` + d.data.link + `</td></tr>
+                            <tr><td>born</td><td>` + (d.data.birthyear||"?") + ` in ` + (d.data.birthplace||"?") + `</td></tr>
+                            <tr><td>died</td><td>` + (d.data.deathyear||"?") + ` in ` + (d.data.deathplace||"?") + `</td></tr>
                     </table>
                     `
                     return content.replace(new RegExp("null", "g"), "?")
@@ -393,7 +392,11 @@
         }
 
         function getBirthYear(node) {
-            return new Date(node.data.birth_date || NaN).getFullYear()
+            return new Date(node.data.birthyear || NaN).getFullYear()
+        }
+
+        function getDeathYear(node) {
+            return new Date(node.data.deathyear || NaN).getFullYear()
         }
 
         function find_path(n) {
@@ -467,9 +470,9 @@
                 .text(
                     function (d) {
                         if (d.data.isUnion) return;
-                        return (getBirthYear(d) || "?").toString() +
+                        return (d.data.birthyear||"?") +
                             " - " +
-                            (new Date(d.data.death_date || NaN).getFullYear() || "?").toString()
+                            (d.data.deathyear||"?")
                     }
                 );
 
