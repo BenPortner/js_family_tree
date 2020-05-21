@@ -140,6 +140,7 @@
 
         // make dag from edge list
         dag = d3.dagConnect()(data.links);
+        dag.id = undefined;
 
         // prepare node data
         var all_nodes = dag.descendants()
