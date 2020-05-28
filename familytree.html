@@ -139,7 +139,16 @@
 
         // make dag from edge list
         dag = d3.dagConnect()(data.links);
-        dag.id = undefined;
+
+        // in order to make the family tree work, the dag
+        // must be a node with id undefined. create that node if
+        // not done automaticaly
+        if(dag.id !=undefined){
+            root = dag.copy();
+            root.id = undefined;
+            root.children = [dag];
+            dag = root;
+        }
 
         // prepare node data
         var all_nodes = dag.descendants()
