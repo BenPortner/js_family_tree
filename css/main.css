@@ -17,7 +17,7 @@ body {
     fill: #fff;
 }
 
-.node text {
+.node-label {
     font: 12px sans-serif;
 }
 
@@ -27,7 +27,7 @@ body {
     stroke-width: 2px;
 }
 
-.d3-tip {
+.tooltip {
     font: 12px sans-serif;
     padding: 12px;
     background: rgba(0, 0, 0, 0.8);

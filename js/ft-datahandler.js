@@ -1,6 +1,6 @@
-class FamilyTree {
+class FTDataHandler {
 
-    constructor(data, x0, y0) {
+    constructor(data, start_node_id = data.start) {
 
         // make dag from edge list
         this.dag = d3.dagConnect()(data.links);
@@ -19,16 +19,19 @@ class FamilyTree {
             else if (node.id in data.persons) return new Person(node, this);
         });
 
-        // relink children arrays: link to new family tree nodes instead of d3-dag nodes
+        // relink children arrays: use family tree nodes instead of d3-dag nodes
         this.nodes.forEach(n => n._children = n._children.map(c => c.ftnode));
 
-        // find root node and assign data
-        this.root = this.find_node_by_id(data.start);
-        this.root.visible = true;
-        this.root.x0 = x0;
-        this.root.y0 = y0;
+        // make sure each node has an id
+        this.number_nodes = 0;
+        this.nodes.forEach(node => {
+            node.id = node.id || this.number_nodes;
+            this.number_nodes++;
+        })
 
-        // overwrite dag root nodes
+        // set root node
+        this.root = this.find_node_by_id(start_node_id);
+        this.root.visible = true;
         this.dag.children = [this.root];
 
     };
@@ -80,7 +83,7 @@ class Union extends FTNode {
         this.children = [];
         this._childLinkData = dagNode._childLinkData;
         this.inserted_nodes = [];
-        this.inserted_connections = [];
+        this.inserted_links = [];
         this.visible = false;
     };
 
@@ -110,7 +113,7 @@ class Union extends FTNode {
         // sort children by birth year, filter undefined
         children = children
             .filter(c => c != undefined)
-            // .sort((a, b) => Math.sign((getBirthYear(a) || 0) - (getBirthYear(b) || 0)));
+        // .sort((a, b) => Math.sign((getBirthYear(a) || 0) - (getBirthYear(b) || 0)));
         return children
     };
 
@@ -130,7 +133,7 @@ class Union extends FTNode {
         this._children.remove(child);
         // if child is already visible, note a connection to destroy it later
         if (child.visible) {
-            this.inserted_connections.push([this, child]);
+            this.inserted_links.push([this, child]);
         }
         // if child is hidden, show it
         else {
@@ -150,7 +153,7 @@ class Union extends FTNode {
         parent._children.remove(this);
         // if parent is already visible, note a connection to destroy it later
         if (parent.visible) {
-            this.inserted_connections.push([parent, this]);
+            this.inserted_links.push([parent, this]);
         }
         // if parent is hidden, show it
         else {
@@ -222,7 +225,7 @@ class Union extends FTNode {
         });
 
         // hide only edge (not node) if not inserted by this node
-        this.inserted_connections.forEach(edge => {
+        this.inserted_links.forEach(edge => {
             const source = edge[0];
             const target = edge[1];
             if (this == source) {
@@ -233,7 +236,7 @@ class Union extends FTNode {
                 source.children.remove(this);
             };
         });
-        this.inserted_connections = [];
+        this.inserted_links = [];
 
     };
 
@@ -283,7 +286,7 @@ class Person extends FTNode {
         this.children = [];
         this._childLinkData = dagNode._childLinkData;
         this.inserted_nodes = [];
-        this.inserted_connections = [];
+        this.inserted_links = [];
         this.visible = false;
     };
 
@@ -387,12 +390,12 @@ class Person extends FTNode {
     get_children() {
         var children = [];
         this.get_own_unions().forEach(
-                u => children = children.concat(getChildren(u))
-            )
-            // sort children by birth year, filter undefined
+            u => children = children.concat(getChildren(u))
+        )
+        // sort children by birth year, filter undefined
         children = children
             .filter(c => c != undefined)
-            // .sort((a, b) => Math.sign((getBirthYear(a) || 0) - (getBirthYear(b) || 0)));
+        // .sort((a, b) => Math.sign((getBirthYear(a) || 0) - (getBirthYear(b) || 0)));
         return children
     };
 
@@ -424,8 +427,6 @@ class Person extends FTNode {
         else this.hide();
         // update dag roots
         this.family_tree.update_roots();
-        // re-draw tree
-        update(this);
     };
 
 };
