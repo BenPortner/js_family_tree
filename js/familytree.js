@@ -284,7 +284,6 @@ class Person extends FTNode {
         this._childLinkData = dagNode._childLinkData;
         this.inserted_nodes = [];
         this.inserted_connections = [];
-        this.neighbors = [];
         this.visible = false;
     };
 
@@ -293,7 +292,7 @@ class Person extends FTNode {
     };
 
     get_birth_year() {
-        return new Date(this.data.birthyear || NaN).getFullYear();
+        return this.data.birthyear;
     };
 
     get_birth_place() {
@@ -301,7 +300,7 @@ class Person extends FTNode {
     };
 
     get_death_year() {
-        return new Date(this.data.deathyear || NaN).getFullYear();
+        return this.data.deathyear;
     };
 
     get_death_place() {
