@@ -1,11 +1,11 @@
-    // Set the dimensions and margins of the diagram
+    // options
     var screen_width = document.body.offsetWidth,
-        screen_height = document.documentElement.clientHeight;
-
-
-    // initialize panning, zooming
-    var zoom = d3.zoom()
-        .on("zoom", _ => g.attr("transform", d3.event.transform));
+        screen_height = document.documentElement.clientHeight,
+        i = 0,
+        transition_duration = 750,
+        x_sep = 120,
+        y_sep = 50,
+        label_delimiter = "_";
 
 
     // tooltip function
@@ -21,6 +21,34 @@
         return content.replace(new RegExp("null", "g"), "?");
     }
 
+    function make_node_label(node) {
+        // node label function
+        // text will be split into multiple lines where `label_delimiter` is used
+        if (node.is_union()) return;
+        return node.get_name() +
+            label_delimiter +
+            (node.get_birth_year() || "?") + " - " + (node.get_death_year() || "?");
+    };
+
+    function make_node_class(node) {
+        // returns a stirng which determines a node's css class assignments
+        if (node.is_union()) return;
+        else {
+            if (node.is_extendable()) return "person extendable"
+            else return "person non-extendable"
+        };
+    }
+
+    function make_node_size(node) {
+        // returns an integer determining the node's size
+        if (node.is_union()) return 0;
+        else return 10;
+    }
+
+
+    // initialize panning, zooming
+    var zoom = d3.zoom()
+        .on("zoom", _ => g.attr("transform", d3.event.transform));
 
     // initialize tooltips
     var tip = d3.tip()
@@ -28,7 +56,6 @@
         .direction('e')
         .offset([0, 5])
         .html(make_tooltip);
-
 
     // append the svg object to the body of the page
     // assigns width and height
@@ -41,12 +68,6 @@
 
     // append group element
     const g = svg.append("g");
-
-    // helper variables
-    var i = 0,
-        transition_duration = 750,
-        x_sep = 120,
-        y_sep = 50;
 
     // declare a dag layout
     const assign_coords = d3.sugiyama()
@@ -79,7 +100,7 @@
         // Update the nodes...
         var node = g.selectAll('g.node')
             .data(nodes, function(d) {
-                return d.id || (d.id = ++i); // if node id is non-numeric, use i instead
+                return d.id || (d.id = ++i); // if node does not have an id, use global counter i instead
             })
 
         // Enter any new nodes at the parent's previous position.
@@ -93,31 +114,19 @@
             .on('mouseout', tip.hide)
             .attr('visible', true);
 
-        // Add Circle for the nodes
+        // add a circle for each node
         nodeEnter.append('circle')
-            .attr('class', 'node')
+            .attr('class', make_node_class)
             .attr('r', 1e-6)
-            .style("fill", function(d) {
-                return d.is_extendable() ? "lightsteelblue" : "#fff";
-            });
 
         // add node label
-        // no easy way to add linebreak -> make two labels with offset
-        // name
-        nodeEnter.append('text')
-            .attr("dy", "-2")
-            .attr("x", 13)
-            .attr("text-anchor", "start")
-            .text(d => d.get_name());
-        // birth and death date
-        nodeEnter.append('text')
-            .attr("dy", "10")
-            .attr("x", 13)
-            .attr("text-anchor", "start")
-            .text(node => {
-                if (node.is_union()) return;
-                else return (node.get_birth_year() || "?") + " - " + (node.get_death_year() || "?")
-            });
+        nodeEnter.each(function(node) {
+            d3_append_multiline_text(
+                d3.select(this),
+                make_node_label(node),
+                label_delimiter,
+            )
+        });
 
         // UPDATE
         var nodeUpdate = nodeEnter.merge(node);
@@ -130,13 +139,10 @@
             });
 
         // Update the node attributes and style
-        nodeUpdate.select('circle.node')
-            .attr('r', d => 10 * !d.is_union() + 0 * d.is_union())
-            .style("fill", function(d) {
-                return d.is_extendable() ? "lightsteelblue" : "#fff";
-            })
+        nodeUpdate.select('.node circle')
+            .attr('r', make_node_size)
+            .attr('class', make_node_class)
             .attr('cursor', 'pointer');
-
 
         // Remove any exiting nodes
         var nodeExit = node.exit().transition()

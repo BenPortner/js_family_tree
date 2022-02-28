@@ -4,10 +4,17 @@ body {
     overflow: hidden;
 }
 
-.node circle {
-    fill: #fff;
+.person {
     stroke: steelblue;
     stroke-width: 3px;
+}
+
+.extendable {
+    fill: lightsteelblue;
+}
+
+.non-extendable {
+    fill: #fff;
 }
 
 .node text {
