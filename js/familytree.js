@@ -547,7 +547,7 @@ class FTDrawer {
     };
 
     transition_duration(value) {
-        if (!value) return this._transition_duration;
+        if (value != 0 & !value) return this._transition_duration;
         else {
             this._transition_duration = value;
             return this;
