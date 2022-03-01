@@ -1,4 +1,9 @@
-// d3-dag Version 0.3.4. Copyright 2020 undefined.
+// d3-dag Version 0.3.4-edited. Copyright 2020 undefined.
+// Change compared to d3-dag Version 0.3.4:
+// - add exports.dagNode
+// change made by Benjamin W. Portner
+// original version by Erik Brinkman: https://github.com/erikbrinkman/d3-dag
+
 (function(global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
         typeof define === 'function' && define.amd ? define(['exports'], factory) :
