@@ -27,6 +27,13 @@ class FTDrawer {
         this.svg.call(this.tip);
         this.tooltip(FTDrawer.default_tooltip_func);
 
+        // initialize dag layout maker
+        this.layout = d3.sugiyama()
+            .nodeSize([50, 120])
+            .layering(d3.layeringSimplex())
+            .decross(d3.decrossOpt)
+            .coord(d3.coordVert());
+
         // defaults
         this.transition_duration(750);
         this.link_path(FTDrawer.default_link_path_func);
@@ -37,6 +44,38 @@ class FTDrawer {
         // set starting position for root node
         this.ft_datahandler.root.x0 = x0;
         this.ft_datahandler.root.y0 = y0;
+    };
+
+    node_separation(value) {
+        if (!value) return this.layout.nodeSize();
+        else {
+            this.layout.nodeSize(value);
+            return this;
+        }
+    };
+
+    layering(value) {
+        if (!value) return this.layout.layering();
+        else {
+            this.layout.layering(value);
+            return this;
+        }
+    };
+
+    decross(value) {
+        if (!value) return this.layout.decross();
+        else {
+            this.layout.decross(value);
+            return this;
+        }
+    };
+
+    coord(value) {
+        if (!value) return this.layout.coord();
+        else {
+            this.layout.coord(value);
+            return this;
+        }
     };
 
     transition_duration(value) {
@@ -62,8 +101,7 @@ class FTDrawer {
     tooltip(tooltip_func) {
         if (!tooltip_func) {
             this.show_tooltips = false;
-        }
-        else {
+        } else {
             this.show_tooltips = true;
             this.tip.html(tooltip_func);
         }
@@ -80,8 +118,7 @@ class FTDrawer {
     };
 
     node_label(node_label_func) {
-        if (!node_label_func) { }
-        else { this.node_label_func = node_label_func };
+        if (!node_label_func) {} else { this.node_label_func = node_label_func };
         return this;
     };
 
@@ -95,8 +132,7 @@ class FTDrawer {
     };
 
     node_class(node_class_func) {
-        if (!node_class_func) { }
-        else { this.node_class_func = node_class_func };
+        if (!node_class_func) {} else { this.node_class_func = node_class_func };
         return this;
     };
 
@@ -107,8 +143,7 @@ class FTDrawer {
     }
 
     node_size(node_size_func) {
-        if (!node_size_func) { }
-        else { this.node_size_func = node_size_func };
+        if (!node_size_func) {} else { this.node_size_func = node_size_func };
         return this;
     };
 
@@ -124,8 +159,7 @@ class FTDrawer {
     }
 
     link_path(link_path_func) {
-        if (!link_path_func) { }
-        else { this.link_path_func = link_path_func };
+        if (!link_path_func) {} else { this.link_path_func = link_path_func };
         return this;
     }
 
@@ -133,14 +167,14 @@ class FTDrawer {
         return link.id || link.source.id + "_" + link.target.id;
     }
 
-    draw(source) {
+    draw(source = this.ft_datahandler.root) {
 
         // get visible nodes and links
         const nodes = this.ft_datahandler.dag.descendants(),
             links = this.ft_datahandler.dag.links();
 
         // assign new x and y positions to all nodes
-        assign_coords(this.ft_datahandler.dag);
+        this.layout(this.ft_datahandler.dag);
 
         // ****************** Nodes section ***************************
 
@@ -168,7 +202,7 @@ class FTDrawer {
 
         // add node label
         const this_object = this;
-        nodeEnter.each(function (node) {
+        nodeEnter.each(function(node) {
             d3_append_multiline_text(
                 d3.select(this),
                 this_object.node_label_func(node),
@@ -253,10 +287,10 @@ class FTDrawer {
             );
 
         // store current node positions for next transition
-        nodes.forEach(function (d) {
+        nodes.forEach(function(d) {
             d.x0 = d.x;
             d.y0 = d.y;
         });
 
-    }
-}
+    };
+};

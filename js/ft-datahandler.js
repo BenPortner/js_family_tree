@@ -53,7 +53,7 @@ class FTDataHandler {
         return this.nodes.find(node => node.id == id);
     };
 
-}
+};
 
 class FTNode extends d3.dagNode {
 
@@ -113,7 +113,7 @@ class Union extends FTNode {
         // sort children by birth year, filter undefined
         children = children
             .filter(c => c != undefined)
-        // .sort((a, b) => Math.sign((getBirthYear(a) || 0) - (getBirthYear(b) || 0)));
+            // .sort((a, b) => Math.sign((getBirthYear(a) || 0) - (getBirthYear(b) || 0)));
         return children
     };
 
@@ -390,12 +390,12 @@ class Person extends FTNode {
     get_children() {
         var children = [];
         this.get_own_unions().forEach(
-            u => children = children.concat(getChildren(u))
-        )
-        // sort children by birth year, filter undefined
+                u => children = children.concat(getChildren(u))
+            )
+            // sort children by birth year, filter undefined
         children = children
             .filter(c => c != undefined)
-        // .sort((a, b) => Math.sign((getBirthYear(a) || 0) - (getBirthYear(b) || 0)));
+            // .sort((a, b) => Math.sign((getBirthYear(a) || 0) - (getBirthYear(b) || 0)));
         return children
     };
 
