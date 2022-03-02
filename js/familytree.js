@@ -37,38 +37,56 @@ class FTDataHandler {
 
     constructor(data, start_node_id = data.start) {
 
-        // make dag from edge list
-        this.dag = d3.dagConnect()(data.links);
+        // check if edge list defined
+        if (data.links.length > 0) {
 
-        // dag must be a node with id undefined. fix if necessary
-        if (this.dag.id != undefined) {
-            this.root = this.dag.copy();
-            this.root.id = undefined;
-            this.root.children = [this.dag];
-            this.dag = this.root;
+            // make dag from edge list
+            this.dag = d3.dagConnect()(data.links);
+
+            // dag must be a node with id undefined. fix if necessary
+            if (this.dag.id != undefined) {
+                this.root = this.dag.copy();
+                this.root.id = undefined;
+                this.root.children = [this.dag];
+                this.dag = this.root;
+            }
+
+            // get all d3-dag nodes and convert to family tree nodes
+            this.nodes = this.dag.descendants().map(node => {
+                if (node.id in data.unions) return new Union(node, this)
+                else if (node.id in data.persons) return new Person(node, this);
+            });
+
+            // relink children arrays: use family tree nodes instead of d3-dag nodes
+            this.nodes.forEach(n => n._children = n._children.map(c => c.ftnode));
+
+            // make sure each node has an id
+            this.number_nodes = 0;
+            this.nodes.forEach(node => {
+                node.id = node.id || this.number_nodes;
+                this.number_nodes++;
+            })
+
+            // set root node
+            this.root = this.find_node_by_id(start_node_id);
+            this.root.visible = true;
+            this.dag.children = [this.root];
+
         }
+        // if no edges but only nodes are defined: root = dag
+        else if (Object.values(data.persons).length > 0) {
 
-        // get all d3-dag nodes and convert to family tree nodes
-        this.nodes = this.dag.descendants().map(node => {
-            if (node.id in data.unions) return new Union(node, this)
-            else if (node.id in data.persons) return new Person(node, this);
-        });
+            const root_data = data.persons[start_node_id];
+            this.root = new d3.dagNode(start_node_id, root_data);
+            this.root = new Person(this.root, this);
+            this.root.visible = true;
+            this.number_nodes = 1;
+            this.nodes = [this.root];
 
-        // relink children arrays: use family tree nodes instead of d3-dag nodes
-        this.nodes.forEach(n => n._children = n._children.map(c => c.ftnode));
-
-        // make sure each node has an id
-        this.number_nodes = 0;
-        this.nodes.forEach(node => {
-            node.id = node.id || this.number_nodes;
-            this.number_nodes++;
-        })
-
-        // set root node
-        this.root = this.find_node_by_id(start_node_id);
-        this.root.visible = true;
-        this.dag.children = [this.root];
-
+            // dag must be a node with id undefined
+            this.dag = new d3.dagNode(undefined, {});
+            this.dag.children = this.root;
+        }
     };
 
     update_roots() {
@@ -863,5 +881,9 @@ class FamilyTree extends FTDrawer {
         const ft_datahandler = new FTDataHandler(data);
         super(ft_datahandler, svg);
     };
+
+    get root() {
+        return this.ft_datahandler.root;
+    }
 
 };
