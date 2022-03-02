@@ -48,7 +48,7 @@ class FTDataHandler {
             this.dag = this.root;
         }
 
-        // get all d3-dag nodes and create family tree nodes
+        // get all d3-dag nodes and convert to family tree nodes
         this.nodes = this.dag.descendants().map(node => {
             if (node.id in data.unions) return new Union(node, this)
             else if (node.id in data.persons) return new Person(node, this);
@@ -108,12 +108,12 @@ class FTNode extends d3.dagNode {
 
 class Union extends FTNode {
 
-    constructor(dagNode, family_tree) {
+    constructor(dagNode, ft_datahandler) {
         super(dagNode.id, data.unions[dagNode.id]);
         // link to new object
         dagNode.ftnode = this;
         // define additional family tree properties
-        this.family_tree = family_tree;
+        this.ft_datahandler = ft_datahandler;
         this._children = dagNode.children;
         this.children = [];
         this._childLinkData = dagNode._childLinkData;
@@ -128,7 +128,7 @@ class Union extends FTNode {
 
     get_parents() {
         var parents = this.data.partner
-            .map(id => this.family_tree.find_node_by_id(id))
+            .map(id => this.ft_datahandler.find_node_by_id(id))
             .filter(node => node != undefined);
         if (parents) return parents
         else return [];
@@ -307,16 +307,60 @@ class Union extends FTNode {
         return true;
     };
 
+    add_parent(person_data) {
+        // make person object
+        const id = person_data.id || "p" + ++this.ft_datahandler.number_nodes;
+        const dagNode = new d3.dagNode(id, person_data);
+        const person = new Person(dagNode, this.ft_datahandler);
+        if (!("parent_union" in person_data)) person_data.parent_union = undefined;
+        if (!("own_unions" in person_data)) {
+            person_data.own_unions = [this.id];
+            person._childLinkData = [
+                [person.id, this.id]
+            ];
+            person._children.push(this);
+        }
+        person.data = person_data;
+        this.ft_datahandler.nodes.push(person);
+        // make sure person lists this union as an own union
+        if (!person_data.own_unions.includes(this.id)) person_data.own_unions.push(this.id);
+        // make sure this union lists person as parent
+        if (!this.data.partner.includes(person.id)) this.data.partner.push(person.id);
+        // make union visible
+        this.show_parent(person);
+        this.ft_datahandler.update_roots();
+        return person;
+    };
+
+    add_child(person_data) {
+        // make person object
+        const id = person_data.id || "p" + ++this.ft_datahandler.number_nodes;
+        const dagNode = new d3.dagNode(id, person_data);
+        const person = new Person(dagNode, this.ft_datahandler);
+        if (!("parent_union" in person_data)) person_data.parent_union = this.id;
+        if (!("own_unions" in person_data)) person_data.own_unions = [];
+        person.data = person_data;
+        this.ft_datahandler.nodes.push(person);
+        // make sure person lists this union as an parent union
+        if (!person_data.parent_union == this.id) person_data.parent_union == this.id;
+        // make sure this union lists person as child
+        if (!this.data.children.includes(person.id)) this.data.children.push(person.id);
+        if (!this._childLinkData.includes([this.id, person.id])) this._childLinkData.push([this.id, person.id]);
+        // make union visible
+        this.show_child(person);
+        return person;
+    }
+
 };
 
 class Person extends FTNode {
 
-    constructor(dagNode, family_tree) {
+    constructor(dagNode, ft_datahandler) {
         super(dagNode.id, data.persons[dagNode.id]);
         // link to new object
         dagNode.ftnode = this;
         // define additional family tree properties
-        this.family_tree = family_tree;
+        this.ft_datahandler = ft_datahandler;
         this._children = dagNode.children;
         this.children = [];
         this._childLinkData = dagNode._childLinkData;
@@ -351,7 +395,7 @@ class Person extends FTNode {
 
     get_parent_unions() {
         var unions = [this.data.parent_union]
-            .map(id => this.family_tree.find_node_by_id(id))
+            .map(id => this.ft_datahandler.find_node_by_id(id))
             .filter(node => node != undefined);
         var u_id = this.data.parent_union;
         if (unions) return unions
@@ -380,7 +424,7 @@ class Person extends FTNode {
 
     get_own_unions() {
         var unions = this.data.own_unions
-            .map(id => this.family_tree.find_node_by_id(id))
+            .map(id => this.ft_datahandler.find_node_by_id(id))
             .filter(u => u != undefined);
         if (unions) return unions
         else return [];
@@ -434,25 +478,28 @@ class Person extends FTNode {
         return children
     };
 
+    show_union(union) {
+        union.show();
+        this.inserted_nodes.push(union);
+    };
+
+    hide_own_union(union) {
+        union.hide();
+        this.inserted_nodes.remove(union);
+    };
+
+    hide_parent_union(union) {
+        union.hide();
+    };
+
     show() {
-        this.get_hidden_own_unions().forEach(union => {
-            union.show();
-            this.inserted_nodes.push(union);
-        })
-        this.get_hidden_parent_unions().forEach(union => {
-            union.show();
-            this.inserted_nodes.push(union);
-        })
+        this.get_hidden_own_unions().forEach(union => this.show_union(union));
+        this.get_hidden_parent_unions().forEach(union => this.show_union(union));
     };
 
     hide() {
-        this.get_visible_inserted_own_unions().forEach(union => {
-            union.hide();
-            this.inserted_nodes.remove(union);
-        })
-        this.get_visible_inserted_parent_unions().forEach(union => {
-            union.hide();
-        })
+        this.get_visible_inserted_own_unions().forEach(union => this.hide_own_union(union));
+        this.get_visible_inserted_parent_unions().forEach(union => this.hide_parent_union(union));
     };
 
     click() {
@@ -461,7 +508,54 @@ class Person extends FTNode {
         // collapse if fully extended
         else this.hide();
         // update dag roots
-        this.family_tree.update_roots();
+        this.ft_datahandler.update_roots();
+    };
+
+    add_own_union(union_data) {
+        // make union object
+        const id = union_data.id || "u" + ++this.ft_datahandler.number_nodes;
+        const dagNode = new d3.dagNode(id, union_data);
+        const union = new Union(dagNode, this.ft_datahandler);
+        if (!("partner" in union_data)) union_data.partner = [this.id];
+        if (!("children" in union_data)) {
+            union_data.children = [];
+            union._childLinkData = [];
+        }
+        union.data = union_data;
+        this.ft_datahandler.nodes.push(union);
+        // make sure union lists this person as a partner        
+        if (!union_data.partner.includes(this.id)) union_data.partner.push(this.id);
+        // make sure this person lists union as own_union
+        if (!this.data.own_unions.includes(union.id)) this.data.own_unions.push(union.id);
+        if (!this._childLinkData.includes([this.id, union.id])) this._childLinkData.push([this.id, union.id]);
+        // make union visible
+        this.show_union(union);
+        return union;
+    };
+
+    add_parent_union(union_data) {
+        // make union object
+        const id = union_data.id || "u" + ++this.ft_datahandler.number_nodes;
+        const dagNode = new d3.dagNode(id, union_data);
+        const union = new Union(dagNode, this.ft_datahandler);
+        if (!("partner" in union_data)) union_data.partner = [];
+        if (!("children" in union_data)) {
+            union_data.children = [this.id];
+            union._childLinkData = [
+                [union.id, this.id]
+            ];
+            union._children.push(this);
+        }
+        union.data = union_data;
+        this.ft_datahandler.nodes.push(union);
+        // make sure union lists this person as a child
+        if (!union_data.children.includes(this.id)) union_data.children.push(this.id);
+        // make sure this person lists union as own_union
+        this.data.parent_union = union.id;
+        // make union visible
+        this.show_union(union);
+        this.ft_datahandler.update_roots();
+        return union;
     };
 
 };
