@@ -9,6 +9,12 @@ body {
     stroke-width: 3px;
 }
 
+.node-black {
+    stroke: black;
+    stroke-width: 1px;
+    fill: white;
+}
+
 .extendable {
     fill: lightsteelblue;
 }
