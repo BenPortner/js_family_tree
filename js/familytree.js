@@ -163,10 +163,10 @@ class Union extends FTNode {
     get_children() {
         var children = [];
         children = this.children.concat(this._children);
-        // sort children by birth year, filter undefined
+        // sort children by birth year ascending, filter undefined
         children = children
             .filter(c => c != undefined)
-            // .sort((a, b) => Math.sign((getBirthYear(a) || 0) - (getBirthYear(b) || 0)));
+            .sort((a, b) => Math.sign((b.get_birth_year() || 0) - (a.get_birth_year() || 0)));
         return children
     };
 
@@ -489,10 +489,10 @@ class Person extends FTNode {
         this.get_own_unions().forEach(
                 u => children = children.concat(getChildren(u))
             )
-            // sort children by birth year, filter undefined
+        // sort children by birth year ascending, filter undefined
         children = children
             .filter(c => c != undefined)
-            // .sort((a, b) => Math.sign((getBirthYear(a) || 0) - (getBirthYear(b) || 0)));
+            .sort((a, b) => Math.sign((b.get_birth_year() || 0) - (a.get_birth_year() || 0)));
         return children
     };
 
