@@ -756,6 +756,138 @@ class FTDrawer {
         // assign new x and y positions to all nodes
         this.layout(this.ft_datahandler.dag);
 
+        // ****************** Sort section ***************************
+        // Here we sort every *visible* node, starting at layer 2 (I have assumed single root node at level 0, and single union at level 1). I create a
+        // sortable rank number using digits <birthYear><unionYear> first to get node sort order, but then 'reducing' to an integer number i.e. 1, 2, 3
+        // once the order is known; layer 4 and below (remembering that odd numbered layers are unions and don't need to be sorted, as the dag edge stays
+        // joined to the nodes once sorted) then use digits <parentRank><birthYear><unionYear> (by looking up parent ID in the layerRank array) but also
+        // reduced to an integer
+        // NB: the ranks are independent on each layer, so can always start back at 1; the trick is using them in the <parentRank><birthYear><unionYear>
+        // calculation for the true rank before reducing (i.e. dateRank = 100000000*parentRank + 10000*birthyear + unionYear)
+        var nodeRanks = [];
+        for (let i = 2; i <= Math.max.apply(null, nodes.map(object => object.layer)); i = i + 2) {
+            var layerRank = [];
+            nodes.filter(x => x.layer == i).forEach(
+                n => {
+                    // Shift the birthyear up 4 places to allow adding union year i.e born in 1970 and married in 1996 would give 19701996, born in 1978 and not married would give 19780000
+                    var dateRank = 10000;
+                    // In case the birthyear isn't defined
+                    if (typeof n.data.birthyear === 'number') {
+                        var dateRank = 10000*n.data.birthyear;
+                    }
+                    // If neighbours are all lower layers than target layer, we know this is a new partner from a union
+                    var minNeighborLayer = Math.min(...n.get_neighbors().filter(x => x.visible).map(o => o.layer));
+                    if (minNeighborLayer > i) {
+                        // find [first] union's partner's birthyear
+                        var unionId = n.children[0].id,
+                            partnerId = n.children[0].data.partner.filter(x => x != n.id)[0];
+                        // If layer 2 do simple date rank, but if below layer 2, also need to get the union's partner's parent rank
+                        if (i == 2) {
+                            dateRank = 10000*(n.get_neighbors().filter(x => x.id == unionId)[0].get_neighbors().filter(y => y.id == partnerId)[0].data.birthyear) + n.children[0].data.unionYear;
+                        } else {
+                            var parentId = n.get_neighbors().filter(x => x.id == unionId)[0].get_neighbors().filter(y => y.id == partnerId)[0].get_neighbors().filter(z => z.layer == i-1)[0].data.partner[0];
+                            dateRank = 1000000000*nodeRanks.filter(x => x.id == parentId)[0].rank + 10000*(n.get_neighbors().filter(x => x.id == unionId)[0].get_neighbors().filter(y => y.id == partnerId)[0].data.birthyear) + n.children[0].data.unionYear;
+                            // For correct order when multiple parent unions, need to use union's partner's other parent rank
+                            if (typeof n.get_neighbors().filter(x => x.id == unionId)[0].get_neighbors().filter(y => y.id == partnerId)[0].get_neighbors().filter(z => z.layer == i-1)[0].data.partner[1] === 'string') {
+                                var other = n.get_neighbors().filter(x => x.id == unionId)[0].get_neighbors().filter(y => y.id == partnerId)[0].get_neighbors().filter(z => z.layer == i-1)[0].data.partner[1];
+                                dateRank += 100000000*nodeRanks.filter(x => x.id == other)[0].rank;
+                            }
+                        }
+                    // If this not a new partner from a union, and it's below layer 2, we know there is a parent and we need to add their rank; as the
+                    // immediate parent in the dag is going to be a union, we have to step back two layers
+                    } else {
+                        if (i > 2) {
+                            // For ranking, either parent's rank works, so just take first one
+                            var parentId = n.get_neighbors().filter(x => x.layer == i-1)[0].data.partner[0];
+                            dateRank += 1000000000*nodeRanks.filter(x => x.id == parentId)[0].rank;
+                            // For correct order when multiple parent unions, need to use other parent rank
+                            if (typeof n.get_neighbors().filter(x => x.layer == i-1)[0].data.partner[1] === 'string') {
+                                var other = n.get_neighbors().filter(x => x.layer == i-1)[0].data.partner[1];
+                                dateRank += 100000000*nodeRanks.filter(x => x.id == other)[0].rank;
+                            }
+                        }
+                    }
+                    layerRank.push({"rank":dateRank, "id":n.id});
+                }
+            )
+            // Sort the calculated ranks, but instead of storing the calculation result, just store the position integer
+            layerRank.sort((a, b) => {
+                return a.rank - b.rank;
+            });
+            var r = 1;
+            layerRank.forEach(
+                l => {
+                    nodeRanks.push({"rank":r, "id":l.id});
+                    r += 1;
+                }
+            )
+        }
+        // Now go through layers and re-order x positions based on nodeRanks, iterating across layers to
+        //    a) if level i get rank & pos, sort rank & pos
+        //    b) if level i update pos
+        //    c) if level i+1 update union pos
+        //    d) calc union (i+1) and child (i+2) averages
+        //    e) update child (i+2) pos to equalise union and child averages
+        // NB: we only have to shift - not sort - the child (i+2) when looking at i, as next loop of i=i+2 will then reorder them
+        for (let i = 2; i <= Math.max.apply(null, nodes.map(object => object.layer)); i = i + 2) {
+            var layerRank = [],
+                layerPos = [];
+            // First pass: record the ranks and ids for this layer in one array, x-positions in another
+            nodes.filter(x => x.layer == i).forEach(
+                n => {
+                    layerRank.push({"rank":nodeRanks.filter(x => x.id == n.id)[0].rank, "id":n.id});
+                    layerPos.push(n.x);
+                }
+            )
+            // Sort the rank+id array, then the x-position array; result will be a matching list of ids and the correct x-positions
+            layerRank.sort((a, b) => {
+                return a.rank - b.rank;
+            });
+            layerPos = layerPos.sort(function(a, b){return a-b});
+            // Second pass: update the x-positions
+            nodes.filter(x => x.layer == i).forEach(
+                n => {
+                    // Use map to pull just the ids, and use that index to get x-position, i.e. first rank should have first position
+                    n.x = layerPos[layerRank.map(object => object.id).indexOf(n.id)];
+                }
+            )
+            // Third pass: update the visible unions (at layer below the calculations in first + second passes)
+            // We're using even numbered steps in the for loop; layers 0, 2, 4 etc. are nodes, layers 1, 3, 5 etc. are unions
+            // For adjusting children of this layer, need to record the average union x-pos, then adjust child layer evenly (not per union)
+            var unionTotalX = 0,
+                unionCount = 0;
+            nodes.filter(x => x.layer == i+1).forEach(
+                n => {
+                    var newUnionX = (layerPos[layerRank.map(object => object.id).indexOf(n.data.partner[0])] + layerPos[layerRank.map(object => object.id).indexOf(n.data.partner[1])])/2;
+                    n.x = newUnionX;
+                    unionTotalX += newUnionX;
+                    unionCount += 1;
+                }
+            )
+            // If there are any unions, also need to check child layer x-positions
+            if (unionCount > 0) {
+                var childTotalX = 0,
+                    childCount = 0;
+                // Fourth pass: calculate the average x-pos for children of this layer
+                nodes.filter(x => x.layer == i+2).forEach(
+                    n => {
+                        childTotalX += n.x;
+                        childCount += 1;
+                    }
+                )
+                if (childCount > 0) {
+                    // Child delta is difference between average union x-pos and average child x-pos
+                    var childDeltaX = unionTotalX/unionCount - childTotalX/childCount;
+                    // Fifth pass: adjust children of this layer, if there are any, centred around the new union x-position(s)
+                    nodes.filter(x => x.layer == i+2).forEach(
+                        n => {
+                            n.x += childDeltaX;
+                        }
+                    )
+                }
+            }
+        }
+
         // ****************** Nodes section ***************************
 
         // assign node data
