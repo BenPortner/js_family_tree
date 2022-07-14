@@ -585,11 +585,13 @@ class FTDrawer {
     constructor(
         ft_datahandler,
         svg,
-        x0 = svg.attr("height") / 2,
-        y0 = svg.attr("width") / 2,
+        x0 = svg.attr("width") / 2,
+        y0 = svg.attr("height") / 2,
+        orientation = "horizontal",
     ) {
         this.ft_datahandler = ft_datahandler;
         this.svg = svg;
+        this.orientation = orientation;
         this.link_css_class = "link";
 
         // append group element to draw family tree in
@@ -609,7 +611,7 @@ class FTDrawer {
 
         // initialize dag layout maker
         this.layout = d3.sugiyama()
-            .nodeSize([50, 120])
+            .nodeSize([120, 120])
             .layering(d3.layeringSimplex())
             .decross(d3.decrossOpt)
             .coord(d3.coordVert());
@@ -739,10 +741,10 @@ class FTDrawer {
     static default_link_path_func(s, d) {
         function diagonal(s, d) {
             // Creates a curved (diagonal) path from parent to the child nodes
-            return `M ${s.y} ${s.x}
-                C ${(s.y + d.y) / 2} ${s.x},
-                  ${(s.y + d.y) / 2} ${d.x},
-                  ${d.y} ${d.x}`
+            return `M ${s.x} ${s.y}
+            C ${(s.x + d.x) / 2} ${s.y},
+              ${(s.x + d.x) / 2} ${d.y},
+              ${d.x} ${d.y}`
         }
         return diagonal(s, d);
     }
@@ -766,6 +768,16 @@ class FTDrawer {
         // assign new x and y positions to all nodes
         this.layout(this.ft_datahandler.dag);
 
+        // switch x and y coordinates if orientation = "horizontal"
+        if (this.orientation == "horizontal") {
+            var buffer = null;
+            nodes.forEach(function(d) {
+                buffer = d.x
+                d.x = d.y;
+                d.y = buffer;
+            });
+        }
+
         // ****************** Nodes section ***************************
 
         // assign node data
@@ -775,7 +787,7 @@ class FTDrawer {
         // insert new nodes at the parent's previous position.
         var nodeEnter = node.enter().append('g')
             .attr('class', 'node')
-            .attr("transform", _ => "translate(" + source.y0 + "," + source.x0 + ")")
+            .attr("transform", _ => "translate(" + source.x0 + "," + source.y0 + ")")
             .on('click', node => {
                 node.click();
                 this.draw(node);
@@ -807,7 +819,7 @@ class FTDrawer {
         // transition node to final coordinates
         nodeUpdate.transition()
             .duration(this.transition_duration())
-            .attr("transform", d => "translate(" + d.y + "," + d.x + ")");
+            .attr("transform", d => "translate(" + d.x + "," + d.y + ")");
 
         // update node style
         nodeUpdate.select('.node circle')
@@ -818,7 +830,7 @@ class FTDrawer {
         // remove hidden nodes
         var nodeExit = node.exit().transition()
             .duration(this.transition_duration())
-            .attr("transform", _ => "translate(" + source.y + "," + source.x + ")")
+            .attr("transform", _ => "translate(" + source.x + "," + source.y + ")")
             .attr('visible', false)
             .remove();
 
@@ -873,7 +885,7 @@ class FTDrawer {
             .duration(this.transition_duration())
             .call(
                 this.zoom.transform,
-                d3.zoomTransform(this.g.node()).translate(-(source.y - source.y0), -(source.x - source.x0)),
+                d3.zoomTransform(this.g.node()).translate(-(source.x - source.x0), -(source.y - source.y0)),
             );
 
         // store current node positions for next transition
