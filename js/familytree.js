@@ -627,6 +627,7 @@ class FTDrawer {
     };
 
     node_separation(value) {
+        // getter/setter for separation of nodes in x and y direction (see d3-dag documentation)
         if (!value) return this.layout.nodeSize();
         else {
             this.layout.nodeSize(value);
@@ -635,6 +636,7 @@ class FTDrawer {
     };
 
     layering(value) {
+        // getter/setter for layout operator (see d3-dag documentation)
         if (!value) return this.layout.layering();
         else {
             this.layout.layering(value);
@@ -643,6 +645,7 @@ class FTDrawer {
     };
 
     decross(value) {
+        // getter/setter for descross operator (see d3-dag documentation)
         if (!value) return this.layout.decross();
         else {
             this.layout.decross(value);
@@ -651,6 +654,7 @@ class FTDrawer {
     };
 
     coord(value) {
+        // getter/setter for coordinate operator (see d3-dag documentation)
         if (!value) return this.layout.coord();
         else {
             this.layout.coord(value);
@@ -659,6 +663,7 @@ class FTDrawer {
     };
 
     transition_duration(value) {
+        // getter/setter for animation transition duration
         if (value != 0 & !value) return this._transition_duration;
         else {
             this._transition_duration = value;
@@ -679,6 +684,7 @@ class FTDrawer {
     };
 
     tooltip(tooltip_func) {
+        // setter for tooltips
         if (!tooltip_func) {
             this.show_tooltips = false;
         } else {
@@ -698,6 +704,7 @@ class FTDrawer {
     };
 
     node_label(node_label_func) {
+        // setter for node labels
         if (!node_label_func) {} else { this.node_label_func = node_label_func };
         return this;
     };
@@ -712,6 +719,7 @@ class FTDrawer {
     };
 
     node_class(node_class_func) {
+        // setter for node css class function
         if (!node_class_func) {} else { this.node_class_func = node_class_func };
         return this;
     };
@@ -723,6 +731,7 @@ class FTDrawer {
     }
 
     node_size(node_size_func) {
+        // setter for node size function
         if (!node_size_func) {} else { this.node_size_func = node_size_func };
         return this;
     };
@@ -739,6 +748,7 @@ class FTDrawer {
     }
 
     link_path(link_path_func) {
+        // setter for link path function
         if (!link_path_func) {} else { this.link_path_func = link_path_func };
         return this;
     }
