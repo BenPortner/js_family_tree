@@ -703,7 +703,7 @@ class FTDrawer {
     };
 
     static default_node_class_func(node) {
-        // returns a stirng which determines a node's css class assignments
+        // returns a node's css classes as a string
         if (node.is_union()) return;
         else {
             if (node.is_extendable()) return "person extendable"
@@ -857,7 +857,7 @@ class FTDrawer {
             })
             .remove();
 
-        // expanding a big subgraph moves the entire dag out of the window
+        // expanding a big subgraph moves the entire dag out of the screen
         // to prevent this, cancel any transformations in y-direction
         this.svg.transition()
             .duration(this.transition_duration())
