@@ -587,11 +587,10 @@ class FTDrawer {
         svg,
         x0 = svg.attr("width") / 2,
         y0 = svg.attr("height") / 2,
-        orientation = "horizontal",
     ) {
         this.ft_datahandler = ft_datahandler;
         this.svg = svg;
-        this.orientation = orientation;
+        this._orientation = null;
         this.link_css_class = "link";
 
         // append group element to draw family tree in
@@ -617,6 +616,7 @@ class FTDrawer {
             .coord(d3.coordVert());
 
         // defaults
+        this.orientation("horizontal");
         this.transition_duration(750);
         this.link_path(FTDrawer.default_link_path_func);
         this.node_label(FTDrawer.default_node_label_func);
@@ -626,6 +626,15 @@ class FTDrawer {
         // set starting position for root node
         this.ft_datahandler.root.x0 = x0;
         this.ft_datahandler.root.y0 = y0;
+    };
+
+    orientation(value) {
+        // getter/setter for tree orientation (horizontal/vertical)
+        if (!value) return this.orientation;
+        else {
+            this._orientation = value;
+            return this;
+        }
     };
 
     node_separation(value) {
@@ -769,7 +778,7 @@ class FTDrawer {
         this.layout(this.ft_datahandler.dag);
 
         // switch x and y coordinates if orientation = "horizontal"
-        if (this.orientation == "horizontal") {
+        if (this._orientation == "horizontal") {
             var buffer = null;
             nodes.forEach(function(d) {
                 buffer = d.x
