@@ -749,7 +749,7 @@ class FTDrawer {
 
     static default_link_path_func(s, d) {
         function vertical_s_bend(s, d) {
-            // Creates a diagonal curve fit for vertical oriented trees
+            // Creates a diagonal curve fit for vertically oriented trees
             return `M ${s.x} ${s.y} 
             C ${s.x} ${(s.y + d.y) / 2},
             ${d.x} ${(s.y + d.y) / 2},
