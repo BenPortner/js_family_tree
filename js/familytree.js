@@ -748,21 +748,21 @@ class FTDrawer {
     };
 
     static default_link_path_func(s, d) {
-		function vertical_s_bend(s, d) {
-			// Creates a diagonal curve fit for vertical oriented trees
-			return `M ${s.x} ${s.y} 
-			C ${s.x} ${(s.y + d.y) / 2},
-			${d.x} ${(s.y + d.y) / 2},
-			${d.x} ${d.y}`
-		}
+        function vertical_s_bend(s, d) {
+            // Creates a diagonal curve fit for vertical oriented trees
+            return `M ${s.x} ${s.y} 
+            C ${s.x} ${(s.y + d.y) / 2},
+            ${d.x} ${(s.y + d.y) / 2},
+            ${d.x} ${d.y}`
+        }
 
-		function horizontal_s_bend(s, d) {
-			// Creates a diagonal curve fit for horizontally oriented trees
+        function horizontal_s_bend(s, d) {
+            // Creates a diagonal curve fit for horizontally oriented trees
             return `M ${s.x} ${s.y}
             C ${(s.x + d.x) / 2} ${s.y},
               ${(s.x + d.x) / 2} ${d.y},
               ${d.x} ${d.y}`
-		}
+        }
         return this._orientation == "vertical" ? vertical_s_bend(s, d) : horizontal_s_bend(s, d);
     }
 
