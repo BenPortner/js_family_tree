@@ -912,6 +912,10 @@ class FTDrawer {
         });
 
     };
+
+    clear() {
+        this.g.selectAll("*").remove();
+    }
 };
 
 class FamilyTree extends FTDrawer {
