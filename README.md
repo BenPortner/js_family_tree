@@ -9,6 +9,7 @@ License: GNU General Public License v3.0
 [Live example here.](https://rawcdn.githack.com/BenPortner/js_family_tree/6632790076e4d01b4a9754adce7cbc7d4c652019/familytree.html) (Kudos to [Pavel Puchkin](https://neoascetic.me/) from [githack.com](https://raw.githack.com/) for prividing the chaching proxy!)
 
 ## Features
+
 The code is based on the [collapsible d3 tree example](https://bl.ocks.org/d3noob/43a860bc0024792f8803bba8ca0d5ecd) by d3noob.
 
 Features in the original:
@@ -24,11 +25,15 @@ New features:
 - use d3-zoom to enable zooming and panning
 
 ## How to use
-- edit `data/data.js` to represent your family tree
-- open `familytree.html`
-- done.
 
-The file `data/data.js` contains a single javascript object with the following fields:
+- Edit `data/data.js` to represent your family tree
+- Open `familytree.html`
+- Done!
+
+## Data format
+
+The file `data/data.js` contains a single javascript object, which represents the family tree. The fields are as follows:
+
 - `start`: Enter here the id of the person, which should be the starting point of the family tree.
 - `persons`: Contains metadata about each person. Make sure each `id` is unique. Also, make sure each element in `own_unions` refers to a valid `union` defined in `data.unions`.
 - `unions`: Contains metadata about each family. Each entry in `partner` and `children` must refer to a valid `person` defined in `data.persons`.
