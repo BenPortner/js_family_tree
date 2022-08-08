@@ -937,4 +937,53 @@ class FamilyTree extends FTDrawer {
         return this.ft_datahandler.root;
     }
 
+    wait_until_data_loaded(old_data, delay, tries, max_tries) {
+        if (tries == max_tries) {
+            return;
+        } else {
+            const new_data = window.data;
+            if (old_data == new_data) {
+                setTimeout(
+                    _ => this.wait_until_data_loaded(old_data, delay, ++tries, max_tries),
+                    delay,
+                )
+            } else {
+                this.draw_data(new_data);
+                return;
+            }
+        }
+    }
+
+    draw_data(data) {
+        var x0 = null,
+            y0 = null;
+        if (this.root !== null) {
+            [x0, y0] = [this.root.x0, this.root.y0];
+        } else {
+            [x0, y0] = this.default_root_position();
+        }
+        this.ft_datahandler = new FTDataHandler(data);
+        this.root.x0 = x0;
+        this.root.y0 = y0;
+        this.clear();
+        this.draw();
+    }
+
+    load_data(path_to_data) {
+        const old_data = data,
+            max_tries = 5,
+            delay = 1000,
+            file = document.createElement('script');
+        var tries = 0;
+        file.onreadystatechange = function() {
+            if (this.readyState == 'complete') {
+                this.wait_until_data_loaded(old_data, delay, tries, max_tries);
+            }
+        }
+        file.onload = this.wait_until_data_loaded(old_data, delay, tries, max_tries);
+        file.type = "text/javascript";
+        file.src = path_to_data;
+        document.getElementsByTagName("head")[0].appendChild(file)
+    }
+
 };
