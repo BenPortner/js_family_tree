@@ -1,6 +1,5 @@
 // Game of Thrones family tree (https://en.wikipedia.org/wiki/Game_of_Thrones)
 // file created by djBirdman (https://github.com/djBirdman)
-
 data = {
     "start": "benjenstark1",
     "persons": {
