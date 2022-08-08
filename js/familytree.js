@@ -585,11 +585,12 @@ class FTDrawer {
     constructor(
         ft_datahandler,
         svg,
-        x0 = svg.attr("height") / 2,
-        y0 = svg.attr("width") / 2,
+        x0 = svg.attr("width") / 2,
+        y0 = svg.attr("height") / 2,
     ) {
         this.ft_datahandler = ft_datahandler;
         this.svg = svg;
+        this._orientation = null;
         this.link_css_class = "link";
 
         // append group element to draw family tree in
@@ -609,12 +610,13 @@ class FTDrawer {
 
         // initialize dag layout maker
         this.layout = d3.sugiyama()
-            .nodeSize([50, 120])
+            .nodeSize([120, 120])
             .layering(d3.layeringSimplex())
             .decross(d3.decrossOpt)
             .coord(d3.coordVert());
 
         // defaults
+        this.orientation("horizontal");
         this.transition_duration(750);
         this.link_path(FTDrawer.default_link_path_func);
         this.node_label(FTDrawer.default_node_label_func);
@@ -626,7 +628,17 @@ class FTDrawer {
         this.ft_datahandler.root.y0 = y0;
     };
 
+    orientation(value) {
+        // getter/setter for tree orientation (horizontal/vertical)
+        if (!value) return this.orientation;
+        else {
+            this._orientation = value;
+            return this;
+        }
+    };
+
     node_separation(value) {
+        // getter/setter for separation of nodes in x and y direction (see d3-dag documentation)
         if (!value) return this.layout.nodeSize();
         else {
             this.layout.nodeSize(value);
@@ -635,6 +647,7 @@ class FTDrawer {
     };
 
     layering(value) {
+        // getter/setter for layout operator (see d3-dag documentation)
         if (!value) return this.layout.layering();
         else {
             this.layout.layering(value);
@@ -643,6 +656,7 @@ class FTDrawer {
     };
 
     decross(value) {
+        // getter/setter for descross operator (see d3-dag documentation)
         if (!value) return this.layout.decross();
         else {
             this.layout.decross(value);
@@ -651,6 +665,7 @@ class FTDrawer {
     };
 
     coord(value) {
+        // getter/setter for coordinate operator (see d3-dag documentation)
         if (!value) return this.layout.coord();
         else {
             this.layout.coord(value);
@@ -659,6 +674,7 @@ class FTDrawer {
     };
 
     transition_duration(value) {
+        // getter/setter for animation transition duration
         if (value != 0 & !value) return this._transition_duration;
         else {
             this._transition_duration = value;
@@ -679,6 +695,7 @@ class FTDrawer {
     };
 
     tooltip(tooltip_func) {
+        // setter for tooltips
         if (!tooltip_func) {
             this.show_tooltips = false;
         } else {
@@ -698,12 +715,13 @@ class FTDrawer {
     };
 
     node_label(node_label_func) {
+        // setter for node labels
         if (!node_label_func) {} else { this.node_label_func = node_label_func };
         return this;
     };
 
     static default_node_class_func(node) {
-        // returns a stirng which determines a node's css class assignments
+        // returns a node's css classes as a string
         if (node.is_union()) return;
         else {
             if (node.is_extendable()) return "person extendable"
@@ -712,6 +730,7 @@ class FTDrawer {
     };
 
     node_class(node_class_func) {
+        // setter for node css class function
         if (!node_class_func) {} else { this.node_class_func = node_class_func };
         return this;
     };
@@ -723,22 +742,32 @@ class FTDrawer {
     }
 
     node_size(node_size_func) {
+        // setter for node size function
         if (!node_size_func) {} else { this.node_size_func = node_size_func };
         return this;
     };
 
     static default_link_path_func(s, d) {
-        function diagonal(s, d) {
-            // Creates a curved (diagonal) path from parent to the child nodes
-            return `M ${s.y} ${s.x}
-                C ${(s.y + d.y) / 2} ${s.x},
-                  ${(s.y + d.y) / 2} ${d.x},
-                  ${d.y} ${d.x}`
+        function vertical_s_bend(s, d) {
+            // Creates a diagonal curve fit for vertically oriented trees
+            return `M ${s.x} ${s.y} 
+            C ${s.x} ${(s.y + d.y) / 2},
+            ${d.x} ${(s.y + d.y) / 2},
+            ${d.x} ${d.y}`
         }
-        return diagonal(s, d);
+
+        function horizontal_s_bend(s, d) {
+            // Creates a diagonal curve fit for horizontally oriented trees
+            return `M ${s.x} ${s.y}
+            C ${(s.x + d.x) / 2} ${s.y},
+              ${(s.x + d.x) / 2} ${d.y},
+              ${d.x} ${d.y}`
+        }
+        return this._orientation == "vertical" ? vertical_s_bend(s, d) : horizontal_s_bend(s, d);
     }
 
     link_path(link_path_func) {
+        // setter for link path function
         if (!link_path_func) {} else { this.link_path_func = link_path_func };
         return this;
     }
@@ -756,6 +785,16 @@ class FTDrawer {
         // assign new x and y positions to all nodes
         this.layout(this.ft_datahandler.dag);
 
+        // switch x and y coordinates if orientation = "horizontal"
+        if (this._orientation == "horizontal") {
+            var buffer = null;
+            nodes.forEach(function(d) {
+                buffer = d.x
+                d.x = d.y;
+                d.y = buffer;
+            });
+        }
+
         // ****************** Nodes section ***************************
 
         // assign node data
@@ -765,7 +804,7 @@ class FTDrawer {
         // insert new nodes at the parent's previous position.
         var nodeEnter = node.enter().append('g')
             .attr('class', 'node')
-            .attr("transform", _ => "translate(" + source.y0 + "," + source.x0 + ")")
+            .attr("transform", _ => "translate(" + source.x0 + "," + source.y0 + ")")
             .on('click', node => {
                 node.click();
                 this.draw(node);
@@ -797,7 +836,7 @@ class FTDrawer {
         // transition node to final coordinates
         nodeUpdate.transition()
             .duration(this.transition_duration())
-            .attr("transform", d => "translate(" + d.y + "," + d.x + ")");
+            .attr("transform", d => "translate(" + d.x + "," + d.y + ")");
 
         // update node style
         nodeUpdate.select('.node circle')
@@ -808,7 +847,7 @@ class FTDrawer {
         // remove hidden nodes
         var nodeExit = node.exit().transition()
             .duration(this.transition_duration())
-            .attr("transform", _ => "translate(" + source.y + "," + source.x + ")")
+            .attr("transform", _ => "translate(" + source.x + "," + source.y + ")")
             .attr('visible', false)
             .remove();
 
@@ -857,13 +896,13 @@ class FTDrawer {
             })
             .remove();
 
-        // expanding a big subgraph moves the entire dag out of the window
+        // expanding a big subgraph moves the entire dag out of the screen
         // to prevent this, cancel any transformations in y-direction
         this.svg.transition()
             .duration(this.transition_duration())
             .call(
                 this.zoom.transform,
-                d3.zoomTransform(this.g.node()).translate(-(source.y - source.y0), -(source.x - source.x0)),
+                d3.zoomTransform(this.g.node()).translate(-(source.x - source.x0), -(source.y - source.y0)),
             );
 
         // store current node positions for next transition

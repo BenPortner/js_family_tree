@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/BenPortner/js_family_tree/css/main.css">
+</head>
+
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.15.0/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.9.1/d3-tip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/BenPortner/js_family_tree/js/d3-dag.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/BenPortner/js_family_tree/data/data.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/BenPortner/js_family_tree/js/familytree.js"></script>
+    <script>
+        // insert svg object to hold the family tree
+        const svg = d3.select("body").append("svg")
+            .attr("width", document.body.offsetWidth)
+            .attr("height", document.documentElement.clientHeight);
+
+        // make family tree object
+        FT = new FamilyTree(data, svg)
+            .orientation("vertical");
+
+        // draw family tree
+        FT.draw();
+    </script>
+</body>
