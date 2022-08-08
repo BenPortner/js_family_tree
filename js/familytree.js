@@ -585,8 +585,8 @@ class FTDrawer {
     constructor(
         ft_datahandler,
         svg,
-        x0 = svg.attr("width") / 2,
-        y0 = svg.attr("height") / 2,
+        x0,
+        y0,
     ) {
         this.ft_datahandler = ft_datahandler;
         this.svg = svg;
@@ -624,9 +624,17 @@ class FTDrawer {
         this.node_class(FTDrawer.default_node_class_func);
 
         // set starting position for root node
-        this.ft_datahandler.root.x0 = x0;
-        this.ft_datahandler.root.y0 = y0;
+        const default_pos = this.default_root_position();
+        this.ft_datahandler.root.x0 = x0 || default_pos[0];
+        this.ft_datahandler.root.y0 = y0 || default_pos[1];
     };
+
+    default_root_position() {
+        return [
+            this.svg.attr("width") / 2,
+            this.svg.attr("height") / 2
+        ];
+    }
 
     orientation(value) {
         // getter/setter for tree orientation (horizontal/vertical)
