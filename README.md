@@ -1,12 +1,12 @@
 # js_family_tree
 
-Interactive family tree visualization and -exploration with [d3-dag](https://github.com/erikbrinkman/d3-dag).
+Interactive visualization and -exploration tool for large family trees.
 
 Author: Benjamin W. Portner
 
 License: GNU General Public License v3.0
 
-[Live example here.](https://rawcdn.githack.com/BenPortner/js_family_tree/6632790076e4d01b4a9754adce7cbc7d4c652019/familytree.html) (Kudos to [Pavel Puchkin](https://neoascetic.me/) from [githack.com](https://raw.githack.com/) for prividing the chaching proxy!)
+[Live example here.](https://rawcdn.githack.com/BenPortner/js_family_tree/6632790076e4d01b4a9754adce7cbc7d4c652019/familytree.html) (Kudos to [Pavel Puchkin](https://neoascetic.me/) from [githack.com](https://raw.githack.com/) for providing the caching proxy!)
 
 ## Features
 
