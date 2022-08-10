@@ -8,6 +8,8 @@ License: GNU General Public License v3.0
 
 [Live example here.](https://rawcdn.githack.com/BenPortner/js_family_tree/6632790076e4d01b4a9754adce7cbc7d4c652019/familytree.html) (Kudos to [Pavel Puchkin](https://neoascetic.me/) from [githack.com](https://raw.githack.com/) for providing the caching proxy!)
 
+[JSFiddle here.](https://jsfiddle.net/BenPortner/6mnt1wy4/18/)
+
 ## Features
 
 The code is based on the [collapsible d3 tree example](https://bl.ocks.org/d3noob/43a860bc0024792f8803bba8ca0d5ecd) by d3noob.
