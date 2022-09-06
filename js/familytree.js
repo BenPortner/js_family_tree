@@ -24,7 +24,7 @@ function d3_append_multiline_text(d3element, text, delimiter = "_", css_class = 
     const arr = text.split(delimiter);
     if (!line_offset) { line_offset = -line_sep * (arr.length - 1) / 2; }
     if (arr != undefined) {
-        for (i = 0; i < arr.length; i++) {
+        for (let i = 0; i < arr.length; i++) {
             d3text.append("tspan")
                 .text(arr[i])
                 .attr("dy", i == 0 ? line_offset : line_sep)
