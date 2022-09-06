@@ -53,8 +53,8 @@ class FTDataHandler {
 
             // get all d3-dag nodes and convert to family tree nodes
             this.nodes = this.dag.descendants().map(node => {
-                if (node.id in data.unions) return new Union(node, this)
-                else if (node.id in data.persons) return new Person(node, this);
+                if (node.id in data.unions) return new Union(node, data.unions[node.id], this)
+                else if (node.id in data.persons) return new Person(node, data.persons[node.id], this);
             });
 
             // relink children arrays: use family tree nodes instead of d3-dag nodes
@@ -126,8 +126,8 @@ class FTNode extends d3.dagNode {
 
 class Union extends FTNode {
 
-    constructor(dagNode, ft_datahandler) {
-        super(dagNode.id, data.unions[dagNode.id]);
+    constructor(dagNode, data, ft_datahandler) {
+        super(dagNode.id, data);
         // link to new object
         dagNode.ftnode = this;
         // define additional family tree properties
@@ -373,8 +373,8 @@ class Union extends FTNode {
 
 class Person extends FTNode {
 
-    constructor(dagNode, ft_datahandler) {
-        super(dagNode.id, data.persons[dagNode.id]);
+    constructor(dagNode, data, ft_datahandler) {
+        super(dagNode.id, data);
         // link to new object
         dagNode.ftnode = this;
         // define additional family tree properties
