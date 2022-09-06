@@ -1,3 +1,5 @@
+import {dagNode, dagConnect, sugiyama, layeringSimplex, decrossOpt, coordVert} from "./d3-dag.js";
+
 // extend javascript array class by a remove function
 // copied from https://stackoverflow.com/a/3955096/12267732
 Array.prototype.remove = function() {
@@ -41,7 +43,7 @@ class FTDataHandler {
         if (data.links.length > 0) {
 
             // make dag from edge list
-            this.dag = d3.dagConnect()(data.links);
+            this.dag = dagConnect()(data.links);
 
             // dag must be a node with id undefined. fix if necessary
             if (this.dag.id != undefined) {
@@ -108,7 +110,7 @@ class FTDataHandler {
 
 };
 
-class FTNode extends d3.dagNode {
+class FTNode extends dagNode {
 
     is_extendable() {
         return this.get_neighbors().filter(node => !node.visible).length > 0;
@@ -609,11 +611,11 @@ class FTDrawer {
         this.tooltip(FTDrawer.default_tooltip_func);
 
         // initialize dag layout maker
-        this.layout = d3.sugiyama()
+        this.layout = sugiyama()
             .nodeSize([120, 120])
-            .layering(d3.layeringSimplex())
-            .decross(d3.decrossOpt)
-            .coord(d3.coordVert());
+            .layering(layeringSimplex())
+            .decross(decrossOpt)
+            .coord(coordVert());
 
         // defaults
         this.orientation("horizontal");
