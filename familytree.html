@@ -26,9 +26,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.15.0/d3.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.9.1/d3-tip.min.js"></script>
     <script src="js/d3-dag.js"></script>
-    <script src="data/data.js"></script>
-    <script type="module" src="js/familytree.js"></script>
+    <script type="module" src="./data/data.js"></script>
+    <script type="module" src="./js/familytree.js"></script>
     <script type="module">
+        import {data} from "./data/data.js";
         import FamilyTree from "./js/familytree.js";
 
         // insert svg object to hold the family tree
