@@ -28,6 +28,7 @@ body {
 }
 
 .tooltip {
+    position: absolute;
     font: 12px sans-serif;
     padding: 12px;
     background: rgba(0, 0, 0, 0.8);

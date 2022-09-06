@@ -1,10 +1,9 @@
-import * as d3 from "https://cdn.skypack.dev/d3@5";
-import tip from "./d3-tip.js";
-import {dagNode, dagConnect, sugiyama, layeringSimplex, decrossOpt, coordVert} from "./d3-dag.js";
+import * as d3 from "https://cdn.skypack.dev/d3";
+import { dagNode, dagConnect, sugiyama, layeringSimplex, decrossOpt, coordVert } from "./d3-dag.js";
 
 // extend javascript array class by a remove function
 // copied from https://stackoverflow.com/a/3955096/12267732
-Array.prototype.remove = function() {
+Array.prototype.remove = function () {
     var what, a = arguments,
         L = a.length,
         ax;
@@ -170,7 +169,7 @@ class Union extends FTNode {
         // sort children by birth year, filter undefined
         children = children
             .filter(c => c != undefined)
-            // .sort((a, b) => Math.sign((getBirthYear(a) || 0) - (getBirthYear(b) || 0)));
+        // .sort((a, b) => Math.sign((getBirthYear(a) || 0) - (getBirthYear(b) || 0)));
         return children
     };
 
@@ -491,12 +490,12 @@ class Person extends FTNode {
     get_children() {
         var children = [];
         this.get_own_unions().forEach(
-                u => children = children.concat(getChildren(u))
-            )
-            // sort children by birth year, filter undefined
+            u => children = children.concat(getChildren(u))
+        )
+        // sort children by birth year, filter undefined
         children = children
             .filter(c => c != undefined)
-            // .sort((a, b) => Math.sign((getBirthYear(a) || 0) - (getBirthYear(b) || 0)));
+        // .sort((a, b) => Math.sign((getBirthYear(a) || 0) - (getBirthYear(b) || 0)));
         return children
     };
 
@@ -601,15 +600,13 @@ class FTDrawer {
         this.g = this.svg.append("g");
 
         // initialize panning, zooming
-        this.zoom = d3.zoom().on("zoom", _ => this.g.attr("transform", d3.event.transform));
+        this.zoom = d3.zoom().on("zoom", event => this.g.attr("transform", event.transform));
         this.svg.call(this.zoom);
 
         // initialize tooltips
-        this.tip = tip()
-            .attr('class', 'tooltip')
-            .direction('e')
-            .offset([0, 5]);
-        this.svg.call(this.tip);
+        this._tooltip_div = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
         this.tooltip(FTDrawer.default_tooltip_func);
 
         // initialize dag layout maker
@@ -712,7 +709,7 @@ class FTDrawer {
             this.show_tooltips = false;
         } else {
             this.show_tooltips = true;
-            this.tip.html(tooltip_func);
+            this._tooltip_func = tooltip_func;
         }
         return this;
     };
@@ -728,7 +725,7 @@ class FTDrawer {
 
     node_label(node_label_func) {
         // setter for node labels
-        if (!node_label_func) {} else { this.node_label_func = node_label_func };
+        if (!node_label_func) { } else { this.node_label_func = node_label_func };
         return this;
     };
 
@@ -743,7 +740,7 @@ class FTDrawer {
 
     node_class(node_class_func) {
         // setter for node css class function
-        if (!node_class_func) {} else { this.node_class_func = node_class_func };
+        if (!node_class_func) { } else { this.node_class_func = node_class_func };
         return this;
     };
 
@@ -755,7 +752,7 @@ class FTDrawer {
 
     node_size(node_size_func) {
         // setter for node size function
-        if (!node_size_func) {} else { this.node_size_func = node_size_func };
+        if (!node_size_func) { } else { this.node_size_func = node_size_func };
         return this;
     };
 
@@ -780,7 +777,7 @@ class FTDrawer {
 
     link_path(link_path_func) {
         // setter for link path function
-        if (!link_path_func) {} else { this.link_path_func = link_path_func };
+        if (!link_path_func) { } else { this.link_path_func = link_path_func };
         return this;
     }
 
@@ -800,7 +797,7 @@ class FTDrawer {
         // switch x and y coordinates if orientation = "horizontal"
         if (this._orientation == "horizontal") {
             var buffer = null;
-            nodes.forEach(function(d) {
+            nodes.forEach(function (d) {
                 buffer = d.x
                 d.x = d.y;
                 d.y = buffer;
@@ -817,14 +814,32 @@ class FTDrawer {
         var nodeEnter = node.enter().append('g')
             .attr('class', 'node')
             .attr("transform", _ => "translate(" + source.x0 + "," + source.y0 + ")")
-            .on('click', node => {
+            .on('click', (_, node) => {
                 node.click();
                 this.draw(node);
             })
             .attr('visible', true);
 
         // add tooltip
-        if (this.show_tooltips) nodeEnter.on('mouseover', this.tip.show).on('mouseout', this.tip.hide);
+        if (this.show_tooltips) {
+            const tooltip_div = this._tooltip_div,
+                tooltip_func = this._tooltip_func;
+            nodeEnter
+                .on("mouseover", function (event, d) {
+                    tooltip_div.transition()
+                        .duration(200)
+                        .style("opacity", undefined);
+                    tooltip_div.html(tooltip_func(d));
+                    let height = tooltip_div.node().getBoundingClientRect().height;
+                    tooltip_div.style("left", (event.pageX + 10) + "px")
+                        .style("top", (event.pageY-height/2) + "px");
+                })
+                .on("mouseout", function (d) {
+                    tooltip_div.transition()
+                        .duration(500)
+                        .style("opacity", 0);
+                });
+        };
 
         // add a circle for each node
         nodeEnter.append('circle')
@@ -833,7 +848,7 @@ class FTDrawer {
 
         // add node label
         const this_object = this;
-        nodeEnter.each(function(node) {
+        nodeEnter.each(function (node) {
             d3_append_multiline_text(
                 d3.select(this),
                 this_object.node_label_func(node),
@@ -918,7 +933,7 @@ class FTDrawer {
             );
 
         // store current node positions for next transition
-        nodes.forEach(function(d) {
+        nodes.forEach(function (d) {
             d.x0 = d.x;
             d.y0 = d.y;
         });
@@ -979,7 +994,7 @@ export default class FamilyTree extends FTDrawer {
             delay = 1000,
             file = document.createElement('script');
         var tries = 0;
-        file.onreadystatechange = function() {
+        file.onreadystatechange = function () {
             if (this.readyState == 'complete') {
                 this.wait_until_data_loaded(old_data, delay, tries, max_tries);
             }
