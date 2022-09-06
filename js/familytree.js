@@ -1,3 +1,4 @@
+import tip from "./d3-tip.js";
 import {dagNode, dagConnect, sugiyama, layeringSimplex, decrossOpt, coordVert} from "./d3-dag.js";
 
 // extend javascript array class by a remove function
@@ -603,7 +604,7 @@ class FTDrawer {
         this.svg.call(this.zoom);
 
         // initialize tooltips
-        this.tip = d3.tip()
+        this.tip = tip()
             .attr('class', 'tooltip')
             .direction('e')
             .offset([0, 5]);
