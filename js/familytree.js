@@ -926,7 +926,7 @@ class FTDrawer {
     }
 };
 
-class FamilyTree extends FTDrawer {
+export default class FamilyTree extends FTDrawer {
 
     constructor(data, svg) {
         const ft_datahandler = new FTDataHandler(data);
