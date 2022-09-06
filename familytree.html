@@ -27,8 +27,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.9.1/d3-tip.min.js"></script>
     <script src="js/d3-dag.js"></script>
     <script src="data/data.js"></script>
-    <script src="js/familytree.js"></script>
-    <script>
+    <script type="module" src="js/familytree.js"></script>
+    <script type="module">
+        import FamilyTree from "./js/familytree.js";
+
         // insert svg object to hold the family tree
         const svg = d3.select("body").append("svg")
             .attr("width", document.body.offsetWidth)
