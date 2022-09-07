@@ -195,7 +195,6 @@ class Union extends FTNode {
             this.inserted_nodes.push(child);
             // downstream part of the family tree is automatically reconstructed because children attribute
             // is not reset when hiding
-
         }
     };
 
@@ -572,7 +571,7 @@ class Person extends FTNode {
         if (!("children" in union_data)) {
             union_data.children = [this.id];
             union._children.push(this);
-            union._dataChildren.push({child: this, data:[union.id, this.id], points:[]});
+            union._dataChildren.push({ child: this, data: [union.id, this.id], points: [] });
         }
         union.data = union_data;
         this.ft_datahandler.nodes.push(union);
@@ -839,7 +838,7 @@ class FTDrawer {
                     tooltip_div.html(tooltip_func(d));
                     let height = tooltip_div.node().getBoundingClientRect().height;
                     tooltip_div.style("left", (event.pageX + 10) + "px")
-                        .style("top", (event.pageY-height/2) + "px");
+                        .style("top", (event.pageY - height / 2) + "px");
                 })
                 .on("mouseout", function (d) {
                     tooltip_div.transition()
