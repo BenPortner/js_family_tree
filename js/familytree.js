@@ -46,6 +46,12 @@ class FTDataHandler {
             // make dag from edge list
             this.dag = dagConnect()(data.links);
 
+            // make sure each node has an id
+            this.number_nodes = 0;
+            this.dag.descendants().forEach(node => {
+                node.id = node.id || node.data.id || this.number_nodes;
+                this.number_nodes++;
+            })
 
             // get all d3-dag nodes and convert to family tree nodes
             this.nodes = this.dag.descendants().map(node => {
@@ -55,13 +61,6 @@ class FTDataHandler {
 
             // relink children arrays: use family tree nodes instead of d3-dag nodes
             this.nodes.forEach(n => n._children = n._children.map(c => c.ftnode));
-
-            // make sure each node has an id
-            this.number_nodes = 0;
-            this.nodes.forEach(node => {
-                node.id = node.id || this.number_nodes;
-                this.number_nodes++;
-            })
 
             // set root node
             this.root = this.find_node_by_id(start_node_id);
