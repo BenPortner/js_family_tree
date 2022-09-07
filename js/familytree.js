@@ -132,7 +132,6 @@ class Union extends FTNode {
         this._children = dagNode.dataChildren.map(dc => dc.child);
         this.dataChildren = [];
         this.children = [];
-        this._childLinkData = dagNode._childLinkData;
         this.inserted_nodes = [];
         this.inserted_links = [];
         this.visible = false;
@@ -349,9 +348,6 @@ class Union extends FTNode {
         if (!("parent_union" in person_data)) person_data.parent_union = undefined;
         if (!("own_unions" in person_data)) {
             person_data.own_unions = [this.id];
-            person._childLinkData = [
-                [person.id, this.id]
-            ];
             person._children.push(this);
             person._dataChildren.push({ child: this, data: [person.id, this.id], points: [] });
         }
@@ -380,7 +376,6 @@ class Union extends FTNode {
         if (!person_data.parent_union == this.id) person_data.parent_union == this.id;
         // make sure this union lists person as child
         if (!this.data.children.includes(person.id)) this.data.children.push(person.id);
-        if (!this._childLinkData.includes([this.id, person.id])) this._childLinkData.push([this.id, person.id]);
         // make union visible
         this.show_child(person);
         return person;
@@ -400,7 +395,6 @@ class Person extends FTNode {
         this._children = dagNode.dataChildren.map(dc => dc.child)
         this.dataChildren = [];
         this.children = [];
-        this._childLinkData = dagNode._childLinkData;
         this.inserted_nodes = [];
         this.inserted_links = [];
         this.visible = false;
@@ -556,7 +550,6 @@ class Person extends FTNode {
         if (!("partner" in union_data)) union_data.partner = [this.id];
         if (!("children" in union_data)) {
             union_data.children = [];
-            union._childLinkData = [];
         }
         union.data = union_data;
         this.ft_datahandler.nodes.push(union);
@@ -564,7 +557,6 @@ class Person extends FTNode {
         if (!union_data.partner.includes(this.id)) union_data.partner.push(this.id);
         // make sure this person lists union as own_union
         if (!this.data.own_unions.includes(union.id)) this.data.own_unions.push(union.id);
-        if (!this._childLinkData.includes([this.id, union.id])) this._childLinkData.push([this.id, union.id]);
         // make union visible
         this.show_union(union);
         return union;
@@ -578,9 +570,6 @@ class Person extends FTNode {
         if (!("partner" in union_data)) union_data.partner = [];
         if (!("children" in union_data)) {
             union_data.children = [this.id];
-            union._childLinkData = [
-                [union.id, this.id]
-            ];
             union._children.push(this);
             union._dataChildren.push({child: this, data:[union.id, this.id], points:[]});
         }
