@@ -46,13 +46,6 @@ class FTDataHandler {
             // make dag from edge list
             this.dag = dagConnect()(data.links);
 
-            // dag must be a node with id undefined. fix if necessary
-            if (this.dag.id != undefined) {
-                this.root = this.dag.copy();
-                this.root.id = undefined;
-                this.root.children = [this.dag];
-                this.dag = this.root;
-            }
 
             // get all d3-dag nodes and convert to family tree nodes
             this.nodes = this.dag.descendants().map(node => {
