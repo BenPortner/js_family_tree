@@ -60,6 +60,7 @@ class FTDataHandler {
             });
 
             // relink children arrays: use family tree nodes instead of d3-dag nodes
+            this.nodes.forEach(n => n._dataChildren.forEach(dc => dc.child = dc.child.ftnode));
             this.nodes.forEach(n => n._children = n._children.map(c => c.ftnode));
 
             // set root node
@@ -127,7 +128,9 @@ class Union extends FTNode {
         dagNode.ftnode = this;
         // define additional family tree properties
         this.ft_datahandler = ft_datahandler;
-        this._children = dagNode.children;
+        this._dataChildren = dagNode.dataChildren;
+        this._children = dagNode.dataChildren.map(dc => dc.child);
+        this.dataChildren = [];
         this.children = [];
         this._childLinkData = dagNode._childLinkData;
         this.inserted_nodes = [];
@@ -179,6 +182,9 @@ class Union extends FTNode {
         }
         this.children.push(child);
         this._children.remove(child);
+        let dataChild = this._dataChildren.filter(dc => dc.child == child);
+        this.dataChildren.push(dataChild);
+        this._dataChildren.remove(dataChild);
         // if child is already visible, note a connection to destroy it later
         if (child.visible) {
             this.inserted_links.push([this, child]);
@@ -199,6 +205,9 @@ class Union extends FTNode {
         }
         parent.children.push(this);
         parent._children.remove(this);
+        let dataChild = parent._dataChildren.filter(dc => dc.child == this);
+        parent.dataChildren.push(dataChild);
+        parent._dataChildren.remove(dataChild);
         // if parent is already visible, note a connection to destroy it later
         if (parent.visible) {
             this.inserted_links.push([parent, this]);
@@ -245,6 +254,9 @@ class Union extends FTNode {
         child.visible = false;
         this._children.push(child);
         this.children.remove(child);
+        let dataChild = this.dataChildren.filter(dc => dc.child == child);
+        this._dataChildren.push(dataChild);
+        this.dataChildren.remove(dataChild);
         this.inserted_nodes.remove(child);
     };
 
@@ -255,6 +267,9 @@ class Union extends FTNode {
         parent.visible = false;
         parent._children.push(this);
         parent.children.remove(this);
+        let dataChild = parent.dataChildren.filter(dc => dc.child == this);
+        parent._dataChildren.push(dataChild);
+        parent.dataChildren.remove(dataChild);
         this.inserted_nodes.remove(parent);
     };
 
@@ -279,9 +294,15 @@ class Union extends FTNode {
             if (this == source) {
                 this._children.push(target);
                 this.children.remove(target);
+                let dataChild = this.dataChildren.filter(dc => dc.child == target);
+                this._dataChildren.push(dataChild);
+                this.dataChildren.remove(dataChild);
             } else if (this == target) {
                 source._children.push(this);
                 source.children.remove(this);
+                let dataChild = source.dataChildren.filter(dc => dc.child == this);
+                source._dataChildren.push(dataChild);
+                source.dataChildren.remove(dataChild);
             };
         });
         this.inserted_links = [];
@@ -332,6 +353,7 @@ class Union extends FTNode {
                 [person.id, this.id]
             ];
             person._children.push(this);
+            person._dataChildren.push({ child: this, data: [person.id, this.id], points: [] });
         }
         person.data = person_data;
         this.ft_datahandler.nodes.push(person);
@@ -374,7 +396,9 @@ class Person extends FTNode {
         dagNode.ftnode = this;
         // define additional family tree properties
         this.ft_datahandler = ft_datahandler;
-        this._children = dagNode.children;
+        this._dataChildren = dagNode.dataChildren;
+        this._children = dagNode.dataChildren.map(dc => dc.child)
+        this.dataChildren = [];
         this.children = [];
         this._childLinkData = dagNode._childLinkData;
         this.inserted_nodes = [];
@@ -558,6 +582,7 @@ class Person extends FTNode {
                 [union.id, this.id]
             ];
             union._children.push(this);
+            union._dataChildren.push({child: this, data:[union.id, this.id], points:[]});
         }
         union.data = union_data;
         this.ft_datahandler.nodes.push(union);
