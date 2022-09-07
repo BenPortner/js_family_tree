@@ -545,7 +545,7 @@ class Person extends FTNode {
     add_own_union(union_data) {
         // make union object
         const id = union_data.id || "u" + ++this.ft_datahandler.number_nodes;
-        const dagNode = new d3.dagNode(id, union_data);
+        const dagNode = new dagNode(id, union_data);
         const union = new Union(dagNode, union_data, this.ft_datahandler);
         if (!("partner" in union_data)) union_data.partner = [this.id];
         if (!("children" in union_data)) {
@@ -565,7 +565,7 @@ class Person extends FTNode {
     add_parent_union(union_data) {
         // make union object
         const id = union_data.id || "u" + ++this.ft_datahandler.number_nodes;
-        const dagNode = new d3.dagNode(id, union_data);
+        const dagNode = new dagNode(id, union_data);
         const union = new Union(dagNode, union_data, this.ft_datahandler);
         if (!("partner" in union_data)) union_data.partner = [];
         if (!("children" in union_data)) {
