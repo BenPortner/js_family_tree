@@ -1,5 +1,6 @@
 import * as d3 from "https://cdn.skypack.dev/d3";
-import { dagNode, dagConnect, sugiyama, layeringSimplex, decrossOpt, coordVert } from "./d3-dag.js";
+import { dagNode } from "./d3-dag.js";
+import { dagConnect, sugiyama, layeringSimplex, decrossOpt, coordQuad as coordVert } from "./d3-dag.esm.min.js";
 
 // extend javascript array class by a remove function
 // copied from https://stackoverflow.com/a/3955096/12267732
