@@ -617,7 +617,7 @@ class FTDrawer {
 
         // initialize dag layout maker
         this.layout = sugiyama()
-            .nodeSize([120, 120])
+            .nodeSize(node => [120, 120])
             .layering(layeringSimplex())
             .decross(decrossOpt)
             .coord(coordVert());
