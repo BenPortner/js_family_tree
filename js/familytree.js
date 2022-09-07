@@ -67,7 +67,7 @@ class FTDataHandler {
             // set root node
             this.root = this.find_node_by_id(start_node_id);
             this.root.visible = true;
-            this.dag.children = [this.root];
+            this.dag.proots = [this.root];
 
         }
         // if no edges but only nodes are defined: root = dag
@@ -82,17 +82,17 @@ class FTDataHandler {
 
             // dag must be a node with id undefined
             this.dag = new dagNode(undefined, {});
-            this.dag.children = this.root;
+            this.dag.proots = [this.root];
         }
     };
 
     update_roots() {
-        this.dag.children = [this.root];
+        this.dag.proots = [this.root];
         const FT = this;
 
         function find_roots_recursive(node) {
             node.get_visible_inserted_neighbors().forEach(node => {
-                if (node.is_root()) FT.dag.children.push(node);
+                if (node.is_root()) FT.dag.proots.push(node);
                 find_roots_recursive(node);
             });
         };
