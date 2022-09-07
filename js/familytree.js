@@ -81,7 +81,7 @@ class FTDataHandler {
 
             const root_data = data.persons[start_node_id];
             this.root = new d3.dagNode(start_node_id, root_data);
-            this.root = new Person(this.root, this);
+            this.root = new Person(this.root, root_data, this);
             this.root.visible = true;
             this.number_nodes = 1;
             this.nodes = [this.root];
@@ -332,7 +332,7 @@ class Union extends FTNode {
         // make person object
         const id = person_data.id || "p" + ++this.ft_datahandler.number_nodes;
         const dagNode = new d3.dagNode(id, person_data);
-        const person = new Person(dagNode, this.ft_datahandler);
+        const person = new Person(dagNode, person_data, this.ft_datahandler);
         if (!("parent_union" in person_data)) person_data.parent_union = undefined;
         if (!("own_unions" in person_data)) {
             person_data.own_unions = [this.id];
@@ -357,7 +357,7 @@ class Union extends FTNode {
         // make person object
         const id = person_data.id || "p" + ++this.ft_datahandler.number_nodes;
         const dagNode = new d3.dagNode(id, person_data);
-        const person = new Person(dagNode, this.ft_datahandler);
+        const person = new Person(dagNode, person_data, this.ft_datahandler);
         if (!("parent_union" in person_data)) person_data.parent_union = this.id;
         if (!("own_unions" in person_data)) person_data.own_unions = [];
         person.data = person_data;
@@ -536,7 +536,7 @@ class Person extends FTNode {
         // make union object
         const id = union_data.id || "u" + ++this.ft_datahandler.number_nodes;
         const dagNode = new d3.dagNode(id, union_data);
-        const union = new Union(dagNode, this.ft_datahandler);
+        const union = new Union(dagNode, union_data, this.ft_datahandler);
         if (!("partner" in union_data)) union_data.partner = [this.id];
         if (!("children" in union_data)) {
             union_data.children = [];
@@ -558,7 +558,7 @@ class Person extends FTNode {
         // make union object
         const id = union_data.id || "u" + ++this.ft_datahandler.number_nodes;
         const dagNode = new d3.dagNode(id, union_data);
-        const union = new Union(dagNode, this.ft_datahandler);
+        const union = new Union(dagNode, union_data, this.ft_datahandler);
         if (!("partner" in union_data)) union_data.partner = [];
         if (!("children" in union_data)) {
             union_data.children = [this.id];
