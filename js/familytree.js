@@ -331,8 +331,8 @@ class Union extends FTNode {
     add_parent(person_data) {
         // make person object
         const id = person_data.id || "p" + ++this.ft_datahandler.number_nodes;
-        const dagNode = new dagNode(id, person_data);
-        const person = new Person(dagNode, person_data, this.ft_datahandler);
+        const dagnode = new dagNode(id, person_data);
+        const person = new Person(dagnode, person_data, this.ft_datahandler);
         if (!("parent_union" in person_data)) person_data.parent_union = undefined;
         if (!("own_unions" in person_data)) {
             person_data.own_unions = [this.id];
@@ -356,8 +356,8 @@ class Union extends FTNode {
     add_child(person_data) {
         // make person object
         const id = person_data.id || "p" + ++this.ft_datahandler.number_nodes;
-        const dagNode = new dagNode(id, person_data);
-        const person = new Person(dagNode, person_data, this.ft_datahandler);
+        const dagnode = new dagNode(id, person_data);
+        const person = new Person(dagnode, person_data, this.ft_datahandler);
         if (!("parent_union" in person_data)) person_data.parent_union = this.id;
         if (!("own_unions" in person_data)) person_data.own_unions = [];
         person.data = person_data;
@@ -535,8 +535,8 @@ class Person extends FTNode {
     add_own_union(union_data) {
         // make union object
         const id = union_data.id || "u" + ++this.ft_datahandler.number_nodes;
-        const dagNode = new dagNode(id, union_data);
-        const union = new Union(dagNode, union_data, this.ft_datahandler);
+        const dagnode = new dagNode(id, union_data);
+        const union = new Union(dagnode, union_data, this.ft_datahandler);
         if (!("partner" in union_data)) union_data.partner = [this.id];
         if (!("children" in union_data)) {
             union_data.children = [];
@@ -557,8 +557,8 @@ class Person extends FTNode {
     add_parent_union(union_data) {
         // make union object
         const id = union_data.id || "u" + ++this.ft_datahandler.number_nodes;
-        const dagNode = new dagNode(id, union_data);
-        const union = new Union(dagNode, union_data, this.ft_datahandler);
+        const dagnode = new dagNode(id, union_data);
+        const union = new Union(dagnode, union_data, this.ft_datahandler);
         if (!("partner" in union_data)) union_data.partner = [];
         if (!("children" in union_data)) {
             union_data.children = [this.id];
