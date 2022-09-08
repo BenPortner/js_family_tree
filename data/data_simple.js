@@ -1,4 +1,4 @@
-data = {
+export const data = {
     "start":"id4",
     "persons": {
         "id1": { "id": "id1", "name": "Adam", "birthyear": 1900, "deathyear": 1980, "own_unions": ["u1"], "birthplace":"Alberta", "deathplace":"Austin"},
@@ -39,4 +39,4 @@ data = {
         ["id8", "u5"],
         ["u5", "id12"],
     ]
-}
+};
