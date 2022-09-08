@@ -18,7 +18,7 @@
             .attr("height", document.documentElement.clientHeight);
 
         // make family tree object
-        FT = new FamilyTree(data, svg)
+        let FT = new FamilyTree(data, svg)
             .tooltip(node => node.data.birthyear) // change tooltips: show only birth year
             .node_label(node => node.is_union() ? null : node.data.name) // change node labels: show only names
             .node_size(node => node.is_union() ? 0 : 5) // change node size to 5 px

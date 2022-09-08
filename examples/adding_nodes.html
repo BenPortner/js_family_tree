@@ -35,7 +35,7 @@
             .attr("height", document.documentElement.clientHeight);
 
         // make family tree object
-        FT = new FamilyTree(data, svg);
+        let FT = new FamilyTree(data, svg);
 
         // add children
         const own_union = FT.root.add_own_union({});
