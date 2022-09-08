@@ -597,15 +597,13 @@ class FTDrawer {
         this.g = this.svg.append("g");
 
         // initialize panning, zooming
-        this.zoom = d3.zoom().on("zoom", _ => this.g.attr("transform", d3.event.transform));
+        this.zoom = d3.zoom().on("zoom", event => this.g.attr("transform", event.transform));
         this.svg.call(this.zoom);
 
         // initialize tooltips
-        this.tip = d3.tip()
-            .attr('class', 'tooltip')
-            .direction('e')
-            .offset([0, 5]);
-        this.svg.call(this.tip);
+        this._tooltip_div = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
         this.tooltip(FTDrawer.default_tooltip_func);
 
         // initialize dag layout maker
@@ -708,7 +706,7 @@ class FTDrawer {
             this.show_tooltips = false;
         } else {
             this.show_tooltips = true;
-            this.tip.html(tooltip_func);
+            this._tooltip_func = tooltip_func;
         }
         return this;
     };
@@ -813,14 +811,32 @@ class FTDrawer {
         var nodeEnter = node.enter().append('g')
             .attr('class', 'node')
             .attr("transform", _ => "translate(" + source.x0 + "," + source.y0 + ")")
-            .on('click', node => {
+            .on('click', (_, node) => {
                 node.click();
                 this.draw(node);
             })
             .attr('visible', true);
 
         // add tooltip
-        if (this.show_tooltips) nodeEnter.on('mouseover', this.tip.show).on('mouseout', this.tip.hide);
+        if (this.show_tooltips) {
+            const tooltip_div = this._tooltip_div,
+                tooltip_func = this._tooltip_func;
+            nodeEnter
+                .on("mouseover", function (event, d) {
+                    tooltip_div.transition()
+                        .duration(200)
+                        .style("opacity", undefined);
+                    tooltip_div.html(tooltip_func(d));
+                    let height = tooltip_div.node().getBoundingClientRect().height;
+                    tooltip_div.style("left", (event.pageX + 10) + "px")
+                        .style("top", (event.pageY-height/2) + "px");
+                })
+                .on("mouseout", function (d) {
+                    tooltip_div.transition()
+                        .duration(500)
+                        .style("opacity", 0);
+                });
+        };
 
         // add a circle for each node
         nodeEnter.append('circle')
