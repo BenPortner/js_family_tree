@@ -441,7 +441,7 @@ class Person extends FTNode {
     };
 
     get_own_unions() {
-        var unions = this.data.own_unions
+        var unions = (this.data.own_unions ?? [])
             .map(id => this.ft_datahandler.find_node_by_id(id))
             .filter(u => u != undefined);
         if (unions) return unions
