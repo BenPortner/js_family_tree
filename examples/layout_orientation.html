@@ -6,8 +6,7 @@
 </head>
 
 <body>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.15.0/d3.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.9.1/d3-tip.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/BenPortner/js_family_tree/js/d3-dag.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/BenPortner/js_family_tree/data/data.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/BenPortner/js_family_tree/js/familytree.js"></script>
@@ -18,7 +17,7 @@
             .attr("height", document.documentElement.clientHeight);
 
         // make family tree object
-        FT = new FamilyTree(data, svg)
+        let FT = new FamilyTree(data, svg)
             .orientation("vertical");
 
         // draw family tree
