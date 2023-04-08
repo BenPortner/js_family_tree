@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "esbuild js/familytree.js --bundle --minify --outfile=dist/index.js --format=esm",
-    "dev": "esbuild index.js --bundle --outfile=dist/index.js --watch --format=esm",
+    "dev": "esbuild js/familytree.js --bundle --outfile=dist/index.js --watch --format=esm",
     "examples": "npx http-server -o examples"
   },
   "devDependencies": {
