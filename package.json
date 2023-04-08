@@ -1,0 +1,15 @@
+{
+  "name": "js_family_tree",
+  "version": "0.0.1",
+  "description": "Interactive visualization and -exploration tool for large family trees.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "esbuild js/familytree.js --bundle --minify --outfile=dist/index.js --format=esm",
+    "dev": "esbuild index.js --bundle --outfile=dist/index.js --watch --format=esm",
+    "examples": "npx http-server -o examples"
+  },
+  "devDependencies": {
+    "d3": "^7.8.4",
+    "esbuild": "^0.17.15"
+  }
+}

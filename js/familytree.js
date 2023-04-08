@@ -1,4 +1,4 @@
-import * as d3 from "https://cdn.skypack.dev/d3";
+import * as d3 from "d3";
 import { dagNode, dagConnect, sugiyama, layeringSimplex, decrossOpt, coordVert } from "./d3-dag.js";
 
 // extend javascript array class by a remove function
@@ -544,7 +544,7 @@ class Person extends FTNode {
         }
         union.data = union_data;
         this.ft_datahandler.nodes.push(union);
-        // make sure union lists this person as a partner        
+        // make sure union lists this person as a partner
         if (!union_data.partner.includes(this.id)) union_data.partner.push(this.id);
         // make sure this person lists union as own_union
         if (!this.data.own_unions.includes(union.id)) this.data.own_unions.push(union.id);
@@ -759,7 +759,7 @@ class FTDrawer {
     static default_link_path_func(s, d) {
         function vertical_s_bend(s, d) {
             // Creates a diagonal curve fit for vertically oriented trees
-            return `M ${s.x} ${s.y} 
+            return `M ${s.x} ${s.y}
             C ${s.x} ${(s.y + d.y) / 2},
             ${d.x} ${(s.y + d.y) / 2},
             ${d.x} ${d.y}`

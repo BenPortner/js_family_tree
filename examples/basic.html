@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+
+<!--
+    collapsible directed acyclical graph for family tree visualization
+    author: Benjamin W. Portner
+    license: GNU General Public License v3.0
+
+    based on d3 collapsible treemap example by d3noob: https://bl.ocks.org/d3noob/43a860bc0024792f8803bba8ca0d5ecd
+    features in the original:
+    - d3 tree
+    - collapsible
+    - transitions
+    new features:
+    - two types of nodes: unions and persons
+    - d3 dag instead of tree (to allow two parents per union)
+    - collapse/expand in all directions (memory function)
+    - tooltips: show node metadata on hover
+-->
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="js/d3-dag.js"></script>
+    <script src="data/data.js"></script>
+    <script src="js/familytree.js"></script>
+    <script>
+        // insert svg object to hold the family tree
+        const svg = d3.select("body").append("svg")
+            .attr("width", document.body.offsetWidth)
+            .attr("height", document.documentElement.clientHeight);
+
+        // make family tree object
+        let FT = new FamilyTree(data, svg);
+
+        // draw family tree
+        FT.draw();
+    </script>
+</body>
