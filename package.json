@@ -4,12 +4,20 @@
   "description": "Interactive visualization and -exploration tool for large family trees.",
   "main": "dist/index.js",
   "scripts": {
-    "build": "esbuild js/familytree.js --bundle --minify --outfile=dist/index.js --format=esm",
+    "build": "webpack --config webpack.config.js",
+    "build2": "esbuild js/familytree.js --bundle --minify --outfile=dist/index.js --format=esm",
     "dev": "esbuild js/familytree.js --bundle --outfile=dist/index.js --watch",
     "examples": "npx http-server -o examples"
   },
   "devDependencies": {
+    "@babel/cli": "^7.21.0",
+    "@babel/core": "^7.21.4",
+    "@babel/preset-env": "^7.21.4",
+    "babel-loader": "^9.1.2",
     "d3": "^7.8.4",
-    "esbuild": "^0.17.15"
+    "esbuild": "^0.17.15",
+    "js_family_tree": "github:asabhaney/js_family_tree#d326fc0b867fb6ca60bfd6961cf4fdb0cf11fa4e",
+    "webpack": "^5.78.0",
+    "webpack-cli": "^5.0.1"
   }
 }
