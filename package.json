@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "webpack --config webpack.config.js",
-    "build2": "esbuild js/familytree.js --bundle --minify --outfile=dist/index.js --format=esm",
+    "build2": "esbuild js/familytree.js --bundle --minify --outfile=dist/index.js",
     "dev": "esbuild js/familytree.js --bundle --outfile=dist/index.js --watch",
     "examples": "npx http-server -o examples"
   },

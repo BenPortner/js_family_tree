@@ -8,9 +8,9 @@ module.exports = {
    output: {
       path: path.resolve(__dirname, '.', 'dist'),
       filename: 'index.js',
-      libraryTarget: 'umd',
+      library: "FamilyTree"
       // Workaround until https://github.com/webpack/webpack/issues/6525 is adddressed
-      globalObject: 'this'
+      // globalObject: 'this'
    },
    externals: {
       // react: {
