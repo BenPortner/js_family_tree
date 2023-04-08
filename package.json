@@ -16,7 +16,6 @@
     "babel-loader": "^9.1.2",
     "d3": "^7.8.4",
     "esbuild": "^0.17.15",
-    "js_family_tree": "github:asabhaney/js_family_tree#d326fc0b867fb6ca60bfd6961cf4fdb0cf11fa4e",
     "webpack": "^5.78.0",
     "webpack-cli": "^5.0.1"
   }
