@@ -972,7 +972,7 @@ export default class FamilyTree extends FTDrawer {
     }
 
     async load_data(path_to_new_data) {
-        let { data } = await import(path_to_new_data);
+        let { data } = await import(/* webpackIgnore: true */ path_to_new_data);
         this.draw_data(data);
     }
 
