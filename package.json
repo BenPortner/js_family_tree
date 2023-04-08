@@ -9,6 +9,9 @@
     "dev": "esbuild js/familytree.js --bundle --outfile=dist/index.js --watch",
     "examples": "npx http-server -o examples"
   },
+  "peerDependencies": {
+    "d3": ">=7"
+  },
   "devDependencies": {
     "@babel/cli": "^7.21.0",
     "@babel/core": "^7.21.4",
