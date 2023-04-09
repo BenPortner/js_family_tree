@@ -14,5 +14,7 @@ let FT = new FamilyTree(data, svg);
 FT.draw();
 
 // change data after two seconds
-// TODO: DO DIFFERENTLY
-// setTimeout(_ => FT.load_data("https://cdn.jsdelivr.net/gh/BenPortner/js_family_tree/data/data_simple.js"), 2000);
+setTimeout(async () => {
+    const { data } = await import('./data/data_simple.js');
+    FT.draw_data(data);
+}, 2000);
