@@ -26,7 +26,8 @@ module.exports = {
          }
       ]
    }
+   // TODO: Add hot module replacement
    // plugins: [
-   //    new webpack.HotModuleReplacementPlugin(),
+   //    new webpack.HotModuleReplacementPlugin()
    // ]
 }
