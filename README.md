@@ -1,4 +1,4 @@
-# js_family_tree
+# js-family-tree
 
 Interactive visualization and -exploration tool for large family trees.
 
@@ -28,9 +28,8 @@ New features:
 
 ## How to use
 
-- Edit `data/data.js` to represent your family tree
-- Open `familytree.html`
-- Done!
+- Tinker with the examples in the `examples` directory. Run `npm i` and `npm run examples` to get started.
+- If you wish to use this as a library as part of an application, you can install this package by using `npm install js-family-tree --save`. For an example of how to use this in a React app, check out this [sample project](https://github.com/asabhaney/js_family_tree_react).
 
 ## Data format
 

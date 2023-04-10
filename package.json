@@ -1,5 +1,5 @@
 {
-  "name": "js_family_tree",
+  "name": "js-family-tree",
   "version": "0.0.1",
   "description": "Interactive visualization and -exploration tool for large family trees.",
   "main": "dist/index.js",
