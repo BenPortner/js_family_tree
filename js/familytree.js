@@ -1,6 +1,9 @@
+import * as d3 from "d3";
+import { dagNode, dagConnect, sugiyama, layeringSimplex, decrossOpt, coordVert } from "./d3-dag.js";
+
 // extend javascript array class by a remove function
 // copied from https://stackoverflow.com/a/3955096/12267732
-Array.prototype.remove = function() {
+Array.prototype.remove = function () {
     var what, a = arguments,
         L = a.length,
         ax;
@@ -41,7 +44,7 @@ class FTDataHandler {
         if (data.links.length > 0) {
 
             // make dag from edge list
-            this.dag = d3.dagConnect()(data.links);
+            this.dag = dagConnect()(data.links);
 
             // dag must be a node with id undefined. fix if necessary
             if (this.dag.id != undefined) {
@@ -53,8 +56,8 @@ class FTDataHandler {
 
             // get all d3-dag nodes and convert to family tree nodes
             this.nodes = this.dag.descendants().map(node => {
-                if (node.id in data.unions) return new Union(node, this)
-                else if (node.id in data.persons) return new Person(node, this);
+                if (node.id in data.unions) return new Union(node, data.unions[node.id], this)
+                else if (node.id in data.persons) return new Person(node, data.persons[node.id], this);
             });
 
             // relink children arrays: use family tree nodes instead of d3-dag nodes
@@ -77,14 +80,14 @@ class FTDataHandler {
         else if (Object.values(data.persons).length > 0) {
 
             const root_data = data.persons[start_node_id];
-            this.root = new d3.dagNode(start_node_id, root_data);
-            this.root = new Person(this.root, this);
+            this.root = new dagNode(start_node_id, root_data);
+            this.root = new Person(this.root, root_data, this);
             this.root.visible = true;
             this.number_nodes = 1;
             this.nodes = [this.root];
 
             // dag must be a node with id undefined
-            this.dag = new d3.dagNode(undefined, {});
+            this.dag = new dagNode(undefined, {});
             this.dag.children = this.root;
         }
     };
@@ -108,7 +111,7 @@ class FTDataHandler {
 
 };
 
-class FTNode extends d3.dagNode {
+class FTNode extends dagNode {
 
     is_extendable() {
         return this.get_neighbors().filter(node => !node.visible).length > 0;
@@ -126,8 +129,8 @@ class FTNode extends d3.dagNode {
 
 class Union extends FTNode {
 
-    constructor(dagNode, ft_datahandler) {
-        super(dagNode.id, data.unions[dagNode.id]);
+    constructor(dagNode, data, ft_datahandler) {
+        super(dagNode.id, data);
         // link to new object
         dagNode.ftnode = this;
         // define additional family tree properties
@@ -166,7 +169,7 @@ class Union extends FTNode {
         // sort children by birth year, filter undefined
         children = children
             .filter(c => c != undefined)
-            // .sort((a, b) => Math.sign((getBirthYear(a) || 0) - (getBirthYear(b) || 0)));
+        // .sort((a, b) => Math.sign((getBirthYear(a) || 0) - (getBirthYear(b) || 0)));
         return children
     };
 
@@ -328,8 +331,8 @@ class Union extends FTNode {
     add_parent(person_data) {
         // make person object
         const id = person_data.id || "p" + ++this.ft_datahandler.number_nodes;
-        const dagNode = new d3.dagNode(id, person_data);
-        const person = new Person(dagNode, this.ft_datahandler);
+        const dagnode = new dagNode(id, person_data);
+        const person = new Person(dagnode, person_data, this.ft_datahandler);
         if (!("parent_union" in person_data)) person_data.parent_union = undefined;
         if (!("own_unions" in person_data)) {
             person_data.own_unions = [this.id];
@@ -353,8 +356,8 @@ class Union extends FTNode {
     add_child(person_data) {
         // make person object
         const id = person_data.id || "p" + ++this.ft_datahandler.number_nodes;
-        const dagNode = new d3.dagNode(id, person_data);
-        const person = new Person(dagNode, this.ft_datahandler);
+        const dagnode = new dagNode(id, person_data);
+        const person = new Person(dagnode, person_data, this.ft_datahandler);
         if (!("parent_union" in person_data)) person_data.parent_union = this.id;
         if (!("own_unions" in person_data)) person_data.own_unions = [];
         person.data = person_data;
@@ -373,8 +376,8 @@ class Union extends FTNode {
 
 class Person extends FTNode {
 
-    constructor(dagNode, ft_datahandler) {
-        super(dagNode.id, data.persons[dagNode.id]);
+    constructor(dagNode, data, ft_datahandler) {
+        super(dagNode.id, data);
         // link to new object
         dagNode.ftnode = this;
         // define additional family tree properties
@@ -487,12 +490,12 @@ class Person extends FTNode {
     get_children() {
         var children = [];
         this.get_own_unions().forEach(
-                u => children = children.concat(getChildren(u))
-            )
-            // sort children by birth year, filter undefined
+            u => children = children.concat(getChildren(u))
+        )
+        // sort children by birth year, filter undefined
         children = children
             .filter(c => c != undefined)
-            // .sort((a, b) => Math.sign((getBirthYear(a) || 0) - (getBirthYear(b) || 0)));
+        // .sort((a, b) => Math.sign((getBirthYear(a) || 0) - (getBirthYear(b) || 0)));
         return children
     };
 
@@ -532,8 +535,8 @@ class Person extends FTNode {
     add_own_union(union_data) {
         // make union object
         const id = union_data.id || "u" + ++this.ft_datahandler.number_nodes;
-        const dagNode = new d3.dagNode(id, union_data);
-        const union = new Union(dagNode, this.ft_datahandler);
+        const dagnode = new dagNode(id, union_data);
+        const union = new Union(dagnode, union_data, this.ft_datahandler);
         if (!("partner" in union_data)) union_data.partner = [this.id];
         if (!("children" in union_data)) {
             union_data.children = [];
@@ -541,7 +544,7 @@ class Person extends FTNode {
         }
         union.data = union_data;
         this.ft_datahandler.nodes.push(union);
-        // make sure union lists this person as a partner        
+        // make sure union lists this person as a partner
         if (!union_data.partner.includes(this.id)) union_data.partner.push(this.id);
         // make sure this person lists union as own_union
         if (!this.data.own_unions.includes(union.id)) this.data.own_unions.push(union.id);
@@ -554,8 +557,8 @@ class Person extends FTNode {
     add_parent_union(union_data) {
         // make union object
         const id = union_data.id || "u" + ++this.ft_datahandler.number_nodes;
-        const dagNode = new d3.dagNode(id, union_data);
-        const union = new Union(dagNode, this.ft_datahandler);
+        const dagnode = new dagNode(id, union_data);
+        const union = new Union(dagnode, union_data, this.ft_datahandler);
         if (!("partner" in union_data)) union_data.partner = [];
         if (!("children" in union_data)) {
             union_data.children = [this.id];
@@ -608,11 +611,11 @@ class FTDrawer {
         this.tooltip(FTDrawer.default_tooltip_func);
 
         // initialize dag layout maker
-        this.layout = d3.sugiyama()
+        this.layout = sugiyama()
             .nodeSize([120, 120])
-            .layering(d3.layeringSimplex())
-            .decross(d3.decrossOpt)
-            .coord(d3.coordVert());
+            .layering(layeringSimplex())
+            .decross(decrossOpt)
+            .coord(coordVert());
 
         // defaults
         this.orientation("horizontal");
@@ -723,7 +726,7 @@ class FTDrawer {
 
     node_label(node_label_func) {
         // setter for node labels
-        if (!node_label_func) {} else { this.node_label_func = node_label_func };
+        if (!node_label_func) { } else { this.node_label_func = node_label_func };
         return this;
     };
 
@@ -738,7 +741,7 @@ class FTDrawer {
 
     node_class(node_class_func) {
         // setter for node css class function
-        if (!node_class_func) {} else { this.node_class_func = node_class_func };
+        if (!node_class_func) { } else { this.node_class_func = node_class_func };
         return this;
     };
 
@@ -750,14 +753,14 @@ class FTDrawer {
 
     node_size(node_size_func) {
         // setter for node size function
-        if (!node_size_func) {} else { this.node_size_func = node_size_func };
+        if (!node_size_func) { } else { this.node_size_func = node_size_func };
         return this;
     };
 
     static default_link_path_func(s, d) {
         function vertical_s_bend(s, d) {
             // Creates a diagonal curve fit for vertically oriented trees
-            return `M ${s.x} ${s.y} 
+            return `M ${s.x} ${s.y}
             C ${s.x} ${(s.y + d.y) / 2},
             ${d.x} ${(s.y + d.y) / 2},
             ${d.x} ${d.y}`
@@ -775,7 +778,7 @@ class FTDrawer {
 
     link_path(link_path_func) {
         // setter for link path function
-        if (!link_path_func) {} else { this.link_path_func = link_path_func };
+        if (!link_path_func) { } else { this.link_path_func = link_path_func };
         return this;
     }
 
@@ -795,7 +798,7 @@ class FTDrawer {
         // switch x and y coordinates if orientation = "horizontal"
         if (this._orientation == "horizontal") {
             var buffer = null;
-            nodes.forEach(function(d) {
+            nodes.forEach(function (d) {
                 buffer = d.x
                 d.x = d.y;
                 d.y = buffer;
@@ -850,7 +853,7 @@ class FTDrawer {
 
         // add node label
         const this_object = this;
-        nodeEnter.each(function(node) {
+        nodeEnter.each(function (node) {
             d3_append_multiline_text(
                 d3.select(this),
                 this_object.node_label_func(node),
@@ -935,7 +938,7 @@ class FTDrawer {
             );
 
         // store current node positions for next transition
-        nodes.forEach(function(d) {
+        nodes.forEach(function (d) {
             d.x0 = d.x;
             d.y0 = d.y;
         });
@@ -947,7 +950,7 @@ class FTDrawer {
     }
 };
 
-class FamilyTree extends FTDrawer {
+export default class FamilyTree extends FTDrawer {
 
     constructor(data, svg) {
         const ft_datahandler = new FTDataHandler(data);
@@ -956,23 +959,6 @@ class FamilyTree extends FTDrawer {
 
     get root() {
         return this.ft_datahandler.root;
-    }
-
-    wait_until_data_loaded(old_data, delay, tries, max_tries) {
-        if (tries == max_tries) {
-            return;
-        } else {
-            const new_data = window.data;
-            if (old_data == new_data) {
-                setTimeout(
-                    _ => this.wait_until_data_loaded(old_data, delay, ++tries, max_tries),
-                    delay,
-                )
-            } else {
-                this.draw_data(new_data);
-                return;
-            }
-        }
     }
 
     draw_data(data) {
@@ -990,21 +976,9 @@ class FamilyTree extends FTDrawer {
         this.draw();
     }
 
-    load_data(path_to_data) {
-        const old_data = data,
-            max_tries = 5,
-            delay = 1000,
-            file = document.createElement('script');
-        var tries = 0;
-        file.onreadystatechange = function() {
-            if (this.readyState == 'complete') {
-                this.wait_until_data_loaded(old_data, delay, tries, max_tries);
-            }
-        }
-        file.onload = this.wait_until_data_loaded(old_data, delay, tries, max_tries);
-        file.type = "text/javascript";
-        file.src = path_to_data;
-        document.getElementsByTagName("head")[0].appendChild(file)
-    }
+    // async load_data(path_to_new_data) {
+    //     let { data } = await import(/* webpackIgnore: true */ path_to_new_data);
+    //     this.draw_data(data);
+    // }
 
 };

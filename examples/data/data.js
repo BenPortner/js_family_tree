@@ -1,6 +1,6 @@
 // Game of Thrones family tree (https://en.wikipedia.org/wiki/Game_of_Thrones)
 // file created by djBirdman (https://github.com/djBirdman)
-data = {
+export const data = {
     "start": "benjenstark1",
     "persons": {
         "benjenstark1": { "id": "benjenstark1", "name": "Benjen Stark", "birthyear": 84, "deathyear": "101-121", "own_unions": ["uBenjenLysa"] },
@@ -259,4 +259,4 @@ data = {
         ["uEddardCatelyn", "branstark1"],
         ["uEddardCatelyn", "rickonstark3"],
     ]
-}
+};

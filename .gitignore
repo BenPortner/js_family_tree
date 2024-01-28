@@ -1,2 +1,4 @@
 .vscode/
 data/data_large.js
+node_modules/
+.DS_Store
