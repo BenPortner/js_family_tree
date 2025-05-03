@@ -2753,10 +2753,12 @@ class D3Renderer {
         // set container class
         select(container).attr('class', 'svg-container');
         // create svg element in container
+        const svgWidth = Math.max(container.clientWidth * 0.99, dag.width);
+        const svgHeight = Math.max(container.clientHeight * 0.99, dag.height);
         this.svg = select(container)
             .append('svg')
-            .attr('width', dag.width)
-            .attr('height', dag.height);
+            .attr('width', svgWidth)
+            .attr('height', svgHeight);
         // create group element in svg
         this.g = this.svg.append('g').attr('transform', 'translate(0, 0)');
         // initialize tooltips
@@ -2838,9 +2840,10 @@ class D3Renderer {
             .selectAll('circle')
             .data(nodes)
             .enter()
+            .append('g')
+            .attr('class', 'node-group')
+            .attr('transform', (d) => 'translate(' + d.x + ',' + d.y + ')')
             .append('circle')
-            .attr('cx', (d) => d.x)
-            .attr('cy', (d) => d.y)
             .attr('r', this.nodeSizeFunction)
             .attr('class', this.nodeCSSClassFunction);
     }
@@ -2883,24 +2886,28 @@ class D3Renderer {
         });
     }
     renderLabels(nodeSelect, cssClass = 'node-label', lineSep = 14, xOffset = 13, dominantBaseline = 'central') {
-        nodeSelect
-            .append('text')
-            .attr('class', cssClass)
-            .attr('dominant-baseline', dominantBaseline)
-            .selectAll('tspan')
-            .data((node) => {
-            const lines = this.nodeLabelFunction(node);
-            const yOffset = (-lineSep * (lines.length - 1)) / 2;
-            return lines.map((line, i) => ({
-                line,
-                dy: i === 0 ? yOffset : lineSep,
-            }));
-        })
-            .enter()
-            .append('tspan')
-            .text((d) => d.line)
-            .attr('x', xOffset)
-            .attr('dy', (d) => d.dy);
+        const nodeLabelFunction = this.nodeLabelFunction;
+        nodeSelect.each(function (node) {
+            const parentGroup = select(this.parentNode);
+            parentGroup
+                .append('text')
+                .attr('class', cssClass)
+                .attr('dominant-baseline', dominantBaseline)
+                .selectAll('tspan')
+                .data(() => {
+                const lines = nodeLabelFunction(node);
+                const yOffset = (-lineSep * (lines.length - 1)) / 2;
+                return lines.map((line, i) => ({
+                    line,
+                    dy: i === 0 ? yOffset : lineSep,
+                }));
+            })
+                .enter()
+                .append('tspan')
+                .text((d) => d.line)
+                .attr('x', xOffset)
+                .attr('dy', (d) => d.dy);
+        });
     }
     render() {
         // render links first so that they are behind the nodes

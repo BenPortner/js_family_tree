@@ -23,11 +23,13 @@ export class D3Renderer {
     d3.select(container).attr('class', 'svg-container');
 
     // create svg element in container
+    const svgWidth = Math.max(container.clientWidth * 0.99, dag.width);
+    const svgHeight = Math.max(container.clientHeight * 0.99, dag.height);
     this.svg = d3
       .select(container)
       .append('svg')
-      .attr('width', dag.width)
-      .attr('height', dag.height);
+      .attr('width', svgWidth)
+      .attr('height', svgHeight);
 
     // create group element in svg
     this.g = this.svg.append('g').attr('transform', 'translate(0, 0)');
