@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch index.html",
+      "type": "firefox",
+      "request": "launch",
+      "reAttach": true,
+      "file": "${workspaceFolder}/familytree.html"
+    },
+    {
+      "name": "Launch Test File",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "mocha",
+      "args": ["${file}"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    }
+  ]
+}
