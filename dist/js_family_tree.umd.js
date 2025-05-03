@@ -2755,7 +2755,7 @@
     class D3Renderer {
         constructor(dag, container) {
             this.dag = dag;
-            this._orientation = 'vertical'; // default orientation
+            this.orientation = 'vertical'; // default orientation
             // set container class
             select(container).attr('class', 'svg-container');
             // create svg element in container
@@ -2773,6 +2773,7 @@
                 .style('visibility', 'hidden');
             this.nodeTooltipFunction = D3Renderer.defaultNodeTooltipFunction;
             this.linkPathFunction = D3Renderer.defaultLinkPathFunction;
+            this.nodeLabelFunction = D3Renderer.defaultNodeLabelFunction;
             this.nodeSizeFunction = D3Renderer.defaultNodeSizeFunction;
             this.nodeCSSClassFunction = D3Renderer.defaultNodeCSSClassFunction;
         }
@@ -2797,7 +2798,17 @@
                 ? vertical_s_bend(s, d)
                 : horizontal_s_bend(s, d);
         }
-        static defaultNodeTooltipFunction(node) {
+        static defaultNodeLabelFunction(node, missingData = '?') {
+            if (node.data.type == 'union')
+                return [];
+            const { name, birthyear, deathyear } = node.data;
+            const lines = [
+                name,
+                `${birthyear !== null && birthyear !== void 0 ? birthyear : missingData} - ${deathyear !== null && deathyear !== void 0 ? deathyear : missingData}`,
+            ];
+            return lines;
+        }
+        static defaultNodeTooltipFunction(node, missingData = '?') {
             if (node.data.type == 'union')
                 return;
             const content = `
@@ -2815,7 +2826,7 @@
         </tr>
       </table>`;
             // replace undefined entries with ?
-            return content.replace(/undefined/g, '?');
+            return content.replace(/undefined/g, missingData);
         }
         static defaultNodeSizeFunction(node) {
             if (node.data.type == 'union')
@@ -2847,7 +2858,7 @@
                 .enter()
                 .append('path')
                 .attr('d', (link) => {
-                return this.linkPathFunction(link, this._orientation);
+                return this.linkPathFunction(link, this.orientation);
             })
                 .attr('class', 'link');
         }
@@ -2877,11 +2888,32 @@
                     .style('visibility', 'hidden');
             });
         }
+        renderLabels(nodeSelect, cssClass = 'node-label', lineSep = 14, xOffset = 13, dominantBaseline = 'central') {
+            nodeSelect
+                .append('text')
+                .attr('class', cssClass)
+                .attr('dominant-baseline', dominantBaseline)
+                .selectAll('tspan')
+                .data((node) => {
+                const lines = this.nodeLabelFunction(node);
+                const yOffset = (-lineSep * (lines.length - 1)) / 2;
+                return lines.map((line, i) => ({
+                    line,
+                    dy: i === 0 ? yOffset : lineSep,
+                }));
+            })
+                .enter()
+                .append('tspan')
+                .text((d) => d.line)
+                .attr('x', xOffset)
+                .attr('dy', (d) => d.dy);
+        }
         render() {
             // render links first so that they are behind the nodes
             this.renderLinks();
             const nodeSelect = this.renderNodes();
             this.setupTooltips(nodeSelect);
+            this.renderLabels(nodeSelect, 'node-label', 14, 13, 'central');
         }
         clear() {
             this.g.selectAll('*').remove();

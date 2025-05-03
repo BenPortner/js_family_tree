@@ -1,13 +1,15 @@
 import * as d3 from 'd3';
 import type { D3DAGAdapter, Link, Node } from './dag';
+import { DominantBaseline } from './types/types';
 
 export class D3Renderer {
-  public svg;
-  public g;
-  public dag: D3DAGAdapter;
+  private svg;
+  private g;
   private _tooltipDiv;
-  private _orientation: 'vertical' | 'horizontal';
 
+  public dag: D3DAGAdapter;
+  public orientation: 'vertical' | 'horizontal';
+  public nodeLabelFunction;
   public linkPathFunction;
   public nodeTooltipFunction;
   public nodeSizeFunction;
@@ -15,7 +17,7 @@ export class D3Renderer {
 
   constructor(dag: D3DAGAdapter, container: HTMLElement) {
     this.dag = dag;
-    this._orientation = 'vertical'; // default orientation
+    this.orientation = 'vertical'; // default orientation
 
     // set container class
     d3.select(container).attr('class', 'svg-container');
@@ -40,6 +42,7 @@ export class D3Renderer {
     this.nodeTooltipFunction = D3Renderer.defaultNodeTooltipFunction;
 
     this.linkPathFunction = D3Renderer.defaultLinkPathFunction;
+    this.nodeLabelFunction = D3Renderer.defaultNodeLabelFunction;
     this.nodeSizeFunction = D3Renderer.defaultNodeSizeFunction;
     this.nodeCSSClassFunction = D3Renderer.defaultNodeCSSClassFunction;
   }
@@ -70,7 +73,23 @@ export class D3Renderer {
       : horizontal_s_bend(s, d);
   }
 
-  private static defaultNodeTooltipFunction(node: Node) {
+  private static defaultNodeLabelFunction(
+    node: Node,
+    missingData: string = '?'
+  ) {
+    if (node.data.type == 'union') return [];
+    const { name, birthyear, deathyear } = node.data;
+    const lines = [
+      name,
+      `${birthyear ?? missingData} - ${deathyear ?? missingData}`,
+    ];
+    return lines;
+  }
+
+  private static defaultNodeTooltipFunction(
+    node: Node,
+    missingData: string = '?'
+  ) {
     if (node.data.type == 'union') return;
     const content = `
       <span style='margin-left: 2.5px;'>
@@ -87,7 +106,7 @@ export class D3Renderer {
         </tr>
       </table>`;
     // replace undefined entries with ?
-    return content.replace(/undefined/g, '?');
+    return content.replace(/undefined/g, missingData);
   }
 
   private static defaultNodeSizeFunction(node: Node) {
@@ -106,9 +125,10 @@ export class D3Renderer {
       .selectAll('circle')
       .data(nodes)
       .enter()
+      .append('g')
+      .attr('class', 'node-group')
+      .attr('transform', (d) => 'translate(' + d.x + ',' + d.y + ')')
       .append('circle')
-      .attr('cx', (d) => d.x)
-      .attr('cy', (d) => d.y)
       .attr('r', this.nodeSizeFunction)
       .attr('class', this.nodeCSSClassFunction);
   }
@@ -121,7 +141,7 @@ export class D3Renderer {
       .enter()
       .append('path')
       .attr('d', (link) => {
-        return this.linkPathFunction(link, this._orientation);
+        return this.linkPathFunction(link, this.orientation);
       })
       .attr('class', 'link');
   }
@@ -153,11 +173,43 @@ export class D3Renderer {
     });
   }
 
+  private renderLabels(
+    nodeSelect: d3.Selection<SVGCircleElement, Node, SVGGElement, unknown>,
+    cssClass: string = 'node-label',
+    lineSep: number = 14,
+    xOffset: number = 13,
+    dominantBaseline: DominantBaseline = 'central'
+  ) {
+    const nodeLabelFunction = this.nodeLabelFunction;
+    nodeSelect.each(function (node) {
+      const parentGroup = d3.select(this.parentNode as SVGGElement);
+      parentGroup
+        .append('text')
+        .attr('class', cssClass)
+        .attr('dominant-baseline', dominantBaseline)
+        .selectAll('tspan')
+        .data(() => {
+          const lines = nodeLabelFunction(node);
+          const yOffset = (-lineSep * (lines.length - 1)) / 2;
+          return lines.map((line, i) => ({
+            line,
+            dy: i === 0 ? yOffset : lineSep,
+          }));
+        })
+        .enter()
+        .append('tspan')
+        .text((d) => d.line)
+        .attr('x', xOffset)
+        .attr('dy', (d) => d.dy);
+    });
+  }
+
   render() {
     // render links first so that they are behind the nodes
     const linkSelect = this.renderLinks();
     const nodeSelect = this.renderNodes();
     this.setupTooltips(nodeSelect);
+    this.renderLabels(nodeSelect, 'node-label', 14, 13, 'central');
   }
 
   clear() {

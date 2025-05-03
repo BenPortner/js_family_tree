@@ -20,3 +20,14 @@ export interface FamilyTreeData {
     unions: { [key: NodeID]: Union }; // Map of union IDs to Union objects
     links: Link[]; // Array of links between persons and unions
 }
+
+export type DominantBaseline =
+  | 'auto'
+  | 'text-bottom'
+  | 'alphabetic'
+  | 'ideographic'
+  | 'middle'
+  | 'central'
+  | 'mathematical'
+  | 'hanging'
+  | 'text-top';
