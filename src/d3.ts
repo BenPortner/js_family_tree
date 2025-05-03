@@ -159,4 +159,8 @@ export class D3Renderer {
     const nodeSelect = this.renderNodes();
     this.setupTooltips(nodeSelect);
   }
+
+  clear() {
+    this.g.selectAll('*').remove();
+  }
 }

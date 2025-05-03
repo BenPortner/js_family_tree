@@ -2883,6 +2883,9 @@
             const nodeSelect = this.renderNodes();
             this.setupTooltips(nodeSelect);
         }
+        clear() {
+            this.g.selectAll('*').remove();
+        }
     }
 
     exports.D3DAGAdapter = D3DAGAdapter;
