@@ -96,7 +96,7 @@ data = {
         "sansastark2": { "id": "sansastark2", "name": "Sansa Stark", "birthyear": 286, "own_unions": [], "parent_union": "uEddardCatelyn" },
         "aryastark1": { "id": "aryastark1", "name": "Arya Stark", "birthyear": 289, "own_unions": [], "parent_union": "uEddardCatelyn" },
         "branstark1": { "id": "branstark1", "name": "Bran Stark", "birthyear": 290, "own_unions": [], "parent_union": "uEddardCatelyn" },
-        "rickonstark3": { "id": "rickonstark3", "name": "Rickon Stark", "birthyear": 295, "own_unions": [], "parent_union": "uEddardCatelyn" },
+        "rickonstark3": { "id": "rickonstark3", "name": "Rickon Stark", "birthyear": 295, "own_unions": [], "parent_union": "uEddardCatelyn" }
     },
     "unions": {
         "uBenjenLysa": { "id": "uBenjenLysa", "partner": ["benjenstark1", "lysalocke1"], "children": ["rickonstark1", "bennardstark1"], "unionYear": 1 },
@@ -130,7 +130,7 @@ data = {
         "uLyarraStark1Inbreed": { "id": "uLyarraStark1Inbreed", "partner": ["rickardstark1inbreed", "lyarrastark1"], "children": ["lyarrastark1inbreednote"], "unionYear": 2 },
         "uRickardLyarra": { "id": "uRickardLyarra", "partner": ["rickardstark1", "lyarrastark1inbreed"], "children": ["brandonstark5", "eddardstark1", "lyannastark2", "benjenstark4"], "unionYear": 2 },
         "uEddardUnknown": { "id": "uEddardUnknown", "partner": ["eddardstark1", "unknown8"], "children": ["jonsnow1"], "unionYear": 282 },
-        "uEddardCatelyn": { "id": "uEddardCatelyn", "partner": ["eddardstark1", "catelyntully1"], "children": ["robbstark1", "sansastark2", "aryastark1", "branstark1", "rickonstark3"], "unionYear": 283 },
+        "uEddardCatelyn": { "id": "uEddardCatelyn", "partner": ["eddardstark1", "catelyntully1"], "children": ["robbstark1", "sansastark2", "aryastark1", "branstark1", "rickonstark3"], "unionYear": 283 }
     },
     "links": [
         ["benjenstark1", "uBenjenLysa"],
@@ -257,6 +257,6 @@ data = {
         ["uEddardCatelyn", "sansastark2"],
         ["uEddardCatelyn", "aryastark1"],
         ["uEddardCatelyn", "branstark1"],
-        ["uEddardCatelyn", "rickonstark3"],
+        ["uEddardCatelyn", "rickonstark3"]
     ]
 }

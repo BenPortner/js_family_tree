@@ -12,14 +12,14 @@ data = {
         "id9": { "id": "id9", "name": "Iver", "birthyear": 1925, "deathyear": 1963, "own_unions": ["u4"] },
         "id10": { "id": "id10", "name": "Jennifer", "birthyear": 1950, "own_unions": [], "parent_union": "u4" },
         "id11": { "id": "id11", "name": "Klaus", "birthyear": 1933, "deathyear": 2013, "own_unions": [], "parent_union": "u1" },
-        "id12": { "id": "id12", "name": "Lennart", "birthyear": 1999, "own_unions": [], "parent_union": "u5" },
+        "id12": { "id": "id12", "name": "Lennart", "birthyear": 1999, "own_unions": [], "parent_union": "u5" }
     },
     "unions": {
         "u1": { "id": "u1", "partner": ["id1", "id2"], "children": ["id3", "id4", "id11"] },
         "u2": { "id": "u2", "partner": ["id6", "id7"], "children": ["id5"] },
         "u3": { "id": "u3", "partner": ["id3", "id5"], "children": ["id8"] },
         "u4": { "id": "u4", "partner": ["id3", "id9"], "children": ["id10"] },
-        "u5": { "id": "u5", "partner": ["id8"], "children": ["id12"] },
+        "u5": { "id": "u5", "partner": ["id8"], "children": ["id12"] }
     },
     "links": [
         ["id1", "u1"],
@@ -37,6 +37,6 @@ data = {
         ["u4", "id10"],
         ["u1", "id11"],
         ["id8", "u5"],
-        ["u5", "id12"],
+        ["u5", "id12"]
     ]
 }
