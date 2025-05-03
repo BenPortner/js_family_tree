@@ -1,0 +1,7 @@
+{
+  "require": "tsx",
+  "extension": ["ts"],
+  "spec": "test/**/*.test.ts",
+  "watch-files": ["src/**/*.ts", "test/**/*.ts"],
+  "timeout": 5000
+}
