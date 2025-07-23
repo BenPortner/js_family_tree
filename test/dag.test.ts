@@ -45,4 +45,12 @@ describe("D3DAGAdapter", () => {
       }
     });
   });
+  it("should have horizontal layout", () => {
+    const nodes = [...dag.graph.nodes()];
+    nodes.forEach((node) => {
+      // expect child.x > parent.x for all children
+      const children_x = [...node.children()].map(c => c.x);
+      expect(children_x.every(cx => cx > node.x)).to.be.true;
+    })
+  })
 });

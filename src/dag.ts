@@ -15,12 +15,24 @@ export type NodeDatum = PersonData | UnionData;
 export type LinkDatum = undefined;
 export interface Node extends d3dag.MutGraphNode<NodeDatum, LinkDatum> {}
 export interface Link extends d3dag.MutGraphLink<NodeDatum, LinkDatum> {}
+export type Orientation = 'vertical' | 'horizontal';
 
 export interface D3DAGAdapterOptions {
   nodeSize: [number, number];
   layering: d3dag.Layering<NodeDatum, LinkDatum>;
   decross: d3dag.Decross<NodeDatum, LinkDatum>;
   coord: d3dag.Coord<NodeDatum, LinkDatum>;
+  orientation: Orientation;
+}
+
+function translateOrientationToTweak(orientation: Orientation) {
+  if (orientation == 'vertical') {
+    return [];
+  } else if (orientation == 'horizontal') {
+    return [d3dag.tweakFlip('diagonal')];
+  } else {
+    throw Error('Invalid orientation: ' + orientation);
+  }
 }
 
 function customSugiyamaDecross(
@@ -49,6 +61,7 @@ const D3DAGAdapterDefaultOptions: D3DAGAdapterOptions = {
   layering: d3dag.layeringSimplex(),
   decross: customSugiyamaDecross,
   coord: d3dag.coordQuad(),
+  orientation: 'horizontal',
 };
 
 export class D3DAGAdapter {
@@ -91,6 +104,7 @@ export class D3DAGAdapter {
       .layering(opts.layering)
       .decross(opts.decross)
       .coord(opts.coord)
+      .tweaks(translateOrientationToTweak(opts.orientation));
     const layoutResult = layout(this.graph);
     this._width = layoutResult.width;
     this._height = layoutResult.height;
