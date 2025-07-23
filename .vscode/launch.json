@@ -6,7 +6,7 @@
       "type": "firefox",
       "request": "launch",
       "reAttach": true,
-      "file": "${workspaceFolder}/familytree.html"
+      "file": "${workspaceFolder}/index.html"
     },
     {
       "name": "Launch Test File",
