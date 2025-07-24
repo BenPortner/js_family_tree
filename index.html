@@ -17,9 +17,7 @@
   <script src="dist/js_family_tree.umd.js"></script>
   <script>
     const container = document.getElementById("container");
-    const adapter = new FamilyTreeJS.D3DAGAdapter(data);
-    const renderer = new FamilyTreeJS.D3Renderer(adapter, container);
-    renderer.render();
+    const familytree = new FamilyTreeJS.FamilyTree(data, container);
   </script>
 </body>
 

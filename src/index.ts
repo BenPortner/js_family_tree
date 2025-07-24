@@ -1,4 +1,3 @@
-import { D3DAGAdapter } from "./dag";
-import { D3Renderer } from "./d3";
+import { FamilyTree } from './familytree';
 
-export { D3DAGAdapter, D3Renderer };
+export { FamilyTree };
