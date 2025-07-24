@@ -1,13 +1,13 @@
 import * as d3 from 'd3';
-import type { D3DAGAdapter, Link, Node } from './dag';
+import type { LayoutResult, Link, Node, NodeDatum } from './dag';
 import { DominantBaseline } from './types/types';
+import * as d3dag from 'd3-dag';
 
 export class D3Renderer {
   private svg;
   private g;
   private _tooltipDiv;
 
-  public dag: D3DAGAdapter;
   public orientation: 'vertical' | 'horizontal';
   public nodeLabelFunction;
   public linkPathFunction;
@@ -15,21 +15,14 @@ export class D3Renderer {
   public nodeSizeFunction;
   public nodeCSSClassFunction;
 
-  constructor(dag: D3DAGAdapter, container: HTMLElement) {
-    this.dag = dag;
+  constructor(container: HTMLElement) {
     this.orientation = 'vertical'; // default orientation
 
     // set container class
     d3.select(container).attr('class', 'svg-container');
 
     // create svg element in container
-    const svgWidth = Math.max(container.clientWidth * 0.99, dag.width);
-    const svgHeight = Math.max(container.clientHeight * 0.99, dag.height);
-    this.svg = d3
-      .select(container)
-      .append('svg')
-      .attr('width', svgWidth)
-      .attr('height', svgHeight);
+    this.svg = d3.select(container).append('svg');
 
     // create group element in svg
     this.g = this.svg.append('g').attr('transform', 'translate(0, 0)');
@@ -121,8 +114,8 @@ export class D3Renderer {
     return node.data.type;
   }
 
-  private renderNodes() {
-    const nodes = this.dag.graph.nodes();
+  private renderNodes(graph: d3dag.MutGraph<NodeDatum, undefined>) {
+    const nodes = graph.nodes();
     return this.g
       .selectAll('circle')
       .data(nodes)
@@ -135,8 +128,8 @@ export class D3Renderer {
       .attr('class', this.nodeCSSClassFunction);
   }
 
-  private renderLinks() {
-    const links = this.dag.graph.links();
+  private renderLinks(graph: d3dag.MutGraph<NodeDatum, undefined>) {
+    const links = graph.links();
     return this.g
       .selectAll('path')
       .data(links)
@@ -206,10 +199,20 @@ export class D3Renderer {
     });
   }
 
-  render() {
+  render(layoutResult: LayoutResult) {
+    // adapt svg element size
+    const svgWidth = Math.max(
+      this.svg.node()!.clientWidth * 0.99,
+      layoutResult.width
+    );
+    const svgHeight = Math.max(
+      this.svg.node()!.clientHeight * 0.99,
+      layoutResult.height
+    );
+    this.svg.attr('width', svgWidth).attr('height', svgHeight);
     // render links first so that they are behind the nodes
-    const linkSelect = this.renderLinks();
-    const nodeSelect = this.renderNodes();
+    const linkSelect = this.renderLinks(layoutResult.graph);
+    const nodeSelect = this.renderNodes(layoutResult.graph);
     this.setupTooltips(nodeSelect);
     this.renderLabels(nodeSelect, 'node-label', 14, 13, 'central');
   }
