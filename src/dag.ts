@@ -1,4 +1,4 @@
-import type { FamilyTreeData, Person, Union } from './types/types';
+import type { Person, Union } from './types/types';
 import * as d3dag from 'd3-dag';
 
 export interface PersonData extends Person {
@@ -17,7 +17,17 @@ export interface Node extends d3dag.MutGraphNode<NodeDatum, LinkDatum> {}
 export interface Link extends d3dag.MutGraphLink<NodeDatum, LinkDatum> {}
 export type Orientation = 'vertical' | 'horizontal';
 
-export interface D3DAGAdapterOptions {
+export interface LayoutResult {
+  graph: d3dag.MutGraph<NodeDatum, undefined>;
+  width: number;
+  height: number;
+}
+
+export interface LayoutCalculator {
+  calculateLayout(nodes: NodeDatum[], userOpts?: any): LayoutResult;
+}
+
+export interface D3DAGLayoutCalculatorOptions {
   nodeSize: [number, number];
   layering: d3dag.Layering<NodeDatum, LinkDatum>;
   decross: d3dag.Decross<NodeDatum, LinkDatum>;
@@ -35,9 +45,7 @@ function translateOrientationToTweak(orientation: Orientation) {
   }
 }
 
-function customSugiyamaDecross(
-  layers: d3dag.SugiNode<NodeDatum>[][]
-): void {
+function customSugiyamaDecross(layers: d3dag.SugiNode<NodeDatum>[][]): void {
   // apply optimal decrossing algorithm
   d3dag.decrossOpt()(layers);
   // then re-arrange to make sure that union partners are next to each other
@@ -56,47 +64,23 @@ function customSugiyamaDecross(
   }
 }
 
-const D3DAGAdapterDefaultOptions: D3DAGAdapterOptions = {
+const D3DAGLAyoutCalculatorDefaultOptions: D3DAGLayoutCalculatorOptions = {
   nodeSize: [120, 120],
   layering: d3dag.layeringSimplex(),
-  decross: customSugiyamaDecross,
+  // decross: customSugiyamaDecross,
+  decross: d3dag.decrossTwoLayer(),
   coord: d3dag.coordQuad(),
   orientation: 'horizontal',
 };
 
-export class D3DAGAdapter {
-  public graph;
-  private _width: number = 0;
-  private _height: number = 0;
-
-  constructor(data: FamilyTreeData, userOpts?: D3DAGAdapterOptions) {
+export class D3DAGLayoutCalculator implements LayoutCalculator {
+  calculateLayout(nodes: NodeDatum[], userOpts?: D3DAGLayoutCalculatorOptions) {
     const opts = {
-      ...D3DAGAdapterDefaultOptions,
+      ...D3DAGLAyoutCalculatorDefaultOptions,
       ...userOpts,
     };
-    const persons = [...Object.values(data.persons)];
-    const mappedPersons = persons.map((person: Person) => {
-      return {
-        ...person,
-        type: 'person',
-        parentIds: data.links
-          .filter((link) => link[1] === person.id)
-          .map((link) => link[0]),
-      } as PersonData;
-    });
-    const unions = [...Object.values(data.unions)];
-    const mappedUnions = unions.map((union) => {
-      return {
-        ...union,
-        type: 'union',
-        parentIds: union.partner,
-      } as UnionData;
-    });
-    const nodes = [...mappedPersons, ...mappedUnions];
-    // const builder = d3dag.graphConnect();
-    // this.graph = builder(data.links);
     const builder = d3dag.graphStratify();
-    this.graph = builder(nodes);
+    const graph = builder(nodes);
     // calculate the layout
     const layout = d3dag
       .sugiyama()
@@ -105,15 +89,11 @@ export class D3DAGAdapter {
       .decross(opts.decross)
       .coord(opts.coord)
       .tweaks(translateOrientationToTweak(opts.orientation));
-    const layoutResult = layout(this.graph);
-    this._width = layoutResult.width;
-    this._height = layoutResult.height;
-  }
-
-  get width() {
-    return this._width;
-  }
-  get height() {
-    return this._height;
+    const layoutResult = layout(graph);
+    return {
+      graph: graph,
+      width: layoutResult.width,
+      height: layoutResult.height,
+    };
   }
 }
