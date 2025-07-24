@@ -11,7 +11,8 @@
   },
   "scripts": {
     "test": "mocha",
-    "watch": "rollup -c -w"
+    "watch": "rollup -c -w",
+    "prettier": "prettier --write ./src"
   },
   "repository": {
     "type": "git",
@@ -41,6 +42,7 @@
     "@types/node": "^22.15.3",
     "chai": "^5.2.0",
     "mocha": "^11.2.2",
+    "prettier": "^3.6.2",
     "rollup": "^4.40.1",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
