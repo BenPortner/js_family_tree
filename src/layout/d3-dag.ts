@@ -1,31 +1,18 @@
-import type { Person, Union } from './types/types';
 import * as d3dag from 'd3-dag';
+import {
+  LayoutCalculator,
+  LinkDatum,
+  NodeDatum,
+  PersonData,
+  UnionData,
+} from './types';
 
-export interface PersonData extends Person {
-  type: 'person';
-  parentIds: string[];
-}
 export interface PersonNode extends d3dag.MutGraphNode<PersonData, undefined> {}
-export interface UnionData extends Union {
-  type: 'union';
-  parentIds: string[];
-}
 export interface UnionNode extends d3dag.MutGraphNode<UnionData, undefined> {}
-export type NodeDatum = PersonData | UnionData;
-export type LinkDatum = undefined;
+export interface Graph extends d3dag.MutGraph<NodeDatum, LinkDatum> {}
 export interface Node extends d3dag.MutGraphNode<NodeDatum, LinkDatum> {}
 export interface Link extends d3dag.MutGraphLink<NodeDatum, LinkDatum> {}
 export type Orientation = 'vertical' | 'horizontal';
-
-export interface LayoutResult {
-  graph: d3dag.MutGraph<NodeDatum, undefined>;
-  width: number;
-  height: number;
-}
-
-export interface LayoutCalculator {
-  calculateLayout(nodes: NodeDatum[], userOpts?: any): LayoutResult;
-}
 
 export interface D3DAGLayoutCalculatorOptions {
   nodeSize: [number, number];

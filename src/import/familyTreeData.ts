@@ -1,9 +1,6 @@
-import type { FamilyTreeData, Person, Union } from './types/types';
-import type { NodeDatum, PersonData, UnionData } from './dag';
-
-export interface Importer {
-  import(data: FamilyTreeData): NodeDatum[];
-}
+import type { FamilyTreeData, Person, Union } from '../familyTreeData';
+import type { PersonData, UnionData } from '../layout/types';
+import type { Importer } from './types';
 
 export class FamilyTreeDataImporter implements Importer {
   import(data: FamilyTreeData) {

@@ -1,9 +1,9 @@
 import * as d3 from 'd3';
-import type { LayoutResult, Link, Node, NodeDatum } from './dag';
-import { DominantBaseline } from './types/types';
-import * as d3dag from 'd3-dag';
+import type { Graph, LayoutResult, Link, Node } from '../layout/types';
+import { DominantBaseline } from './types';
+import { Renderer } from './types';
 
-export class D3Renderer {
+export class D3Renderer implements Renderer {
   private svg;
   private g;
   private _tooltipDiv;
@@ -114,7 +114,7 @@ export class D3Renderer {
     return node.data.type;
   }
 
-  private renderNodes(graph: d3dag.MutGraph<NodeDatum, undefined>) {
+  private renderNodes(graph: Graph) {
     const nodes = graph.nodes();
     return this.g
       .selectAll('circle')
@@ -128,7 +128,7 @@ export class D3Renderer {
       .attr('class', this.nodeCSSClassFunction);
   }
 
-  private renderLinks(graph: d3dag.MutGraph<NodeDatum, undefined>) {
+  private renderLinks(graph: Graph) {
     const links = graph.links();
     return this.g
       .selectAll('path')

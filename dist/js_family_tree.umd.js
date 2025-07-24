@@ -2933,6 +2933,16 @@
             const renderer = new D3Renderer(container);
             renderer.render(layoutResult);
         }
+        getNodeById(id) {
+            const result = [...this.completeGraph.nodes()].filter((n) => n.data.id === id);
+            if (result.length > 1) {
+                throw Error('More than one node found with with id ' + id);
+            }
+            else if (result.length == 0) {
+                throw Error('No node found with id ' + id);
+            }
+            return result[0];
+        }
     }
 
     exports.FamilyTree = FamilyTree;
