@@ -1,3 +1,3 @@
-import { FamilyTree } from './familytree';
+import { FamilyTree } from './familyTree';
 
 export { FamilyTree };

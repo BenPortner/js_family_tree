@@ -1,4 +1,5 @@
-import { LayoutResult } from 'd3-dag';
+import { FamilyTree } from '../familyTree';
+import type { LayoutResult } from '../layout/types';
 
 export interface Renderer {
   render(layoutResult: LayoutResult): any;

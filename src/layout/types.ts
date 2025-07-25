@@ -1,36 +1,34 @@
-import type { Person, Union } from '../familyTreeData';
+import type {
+  Graph,
+  GraphNode,
+  GraphLink,
+  GraphNodeData,
+} from '../graph/types';
 
-export interface PersonData extends Person {
-  type: 'person';
-  parentIds: string[];
-}
-export interface UnionData extends Union {
-  type: 'union';
-  parentIds: string[];
-}
-export type NodeDatum = PersonData | UnionData;
-export type LinkDatum = undefined;
-
-export interface Graph {
-  nodes(): IterableIterator<Node>;
-  links(): IterableIterator<Link>;
-}
-export interface Node {
-  data: NodeDatum;
+export interface LayoutedNode extends GraphNode {
   x: number;
   y: number;
 }
-export interface Link {
-  source: Node;
-  target: Node;
+export interface LayoutedLink extends GraphLink {
+  source: LayoutedNode;
+  target: LayoutedNode;
+}
+export interface LayoutedGraph extends Graph {
+  nodes(): IterableIterator<LayoutedNode>;
+  links(): IterableIterator<LayoutedLink>;
 }
 
+export const Vertical = 'vertical' as const;
+export const Horizontal = 'horizontal' as const;
+export type Orientation = typeof Vertical | typeof Horizontal;
+
 export interface LayoutResult {
-  graph: Graph;
+  graph: LayoutedGraph;
   width: number;
   height: number;
+  orientation: Orientation;
 }
 
 export interface LayoutCalculator {
-  calculateLayout(nodes: NodeDatum[], userOpts?: any): LayoutResult;
+  calculateLayout(nodes: GraphNodeData[], userOpts?: any): LayoutResult;
 }

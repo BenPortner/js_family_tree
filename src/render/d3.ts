@@ -1,35 +1,43 @@
-import * as d3 from 'd3';
-import type { Graph, LayoutResult, Link, Node } from '../layout/types';
-import { DominantBaseline } from './types';
-import { Renderer } from './types';
+import { select, descending, type Selection } from 'd3';
+import {
+  type LayoutedGraph,
+  type LayoutResult,
+  type LayoutedLink,
+  type LayoutedNode,
+  type Orientation,
+  Vertical,
+} from '../layout/types';
+import type { DominantBaseline } from './types';
+import type { Renderer } from './types';
+import type { FamilyTree } from '../familyTree';
+import { PersonType, UnionType } from '../import/types';
 
 export class D3Renderer implements Renderer {
   private svg;
   private g;
   private _tooltipDiv;
+  private ft;
 
-  public orientation: 'vertical' | 'horizontal';
   public nodeLabelFunction;
   public linkPathFunction;
   public nodeTooltipFunction;
   public nodeSizeFunction;
   public nodeCSSClassFunction;
 
-  constructor(container: HTMLElement) {
-    this.orientation = 'vertical'; // default orientation
+  constructor(container: HTMLElement, ft: FamilyTree) {
+    this.ft = ft;
 
     // set container class
-    d3.select(container).attr('class', 'svg-container');
+    select(container).attr('class', 'svg-container');
 
     // create svg element in container
-    this.svg = d3.select(container).append('svg');
+    this.svg = select(container).append('svg');
 
     // create group element in svg
     this.g = this.svg.append('g').attr('transform', 'translate(0, 0)');
 
     // initialize tooltips
-    this._tooltipDiv = d3
-      .select(container)
+    this._tooltipDiv = select(container)
       .append('div')
       .attr('class', 'tooltip')
       .style('opacity', 0)
@@ -39,14 +47,14 @@ export class D3Renderer implements Renderer {
     this.linkPathFunction = D3Renderer.defaultLinkPathFunction;
     this.nodeLabelFunction = D3Renderer.defaultNodeLabelFunction;
     this.nodeSizeFunction = D3Renderer.defaultNodeSizeFunction;
-    this.nodeCSSClassFunction = D3Renderer.defaultNodeCSSClassFunction;
+    this.nodeCSSClassFunction = this.defaultNodeCSSClassFunction;
   }
 
   private static defaultLinkPathFunction(
-    link: Link,
-    orientation: 'vertical' | 'horizontal'
+    link: LayoutedLink,
+    orientation: Orientation
   ) {
-    function vertical_s_bend(s: Node, d: Node) {
+    function vertical_s_bend(s: LayoutedNode, d: LayoutedNode) {
       // Creates a diagonal curve fit for vertically oriented trees
       return `M ${s.x} ${s.y} 
         C ${s.x} ${(s.y + d.y) / 2},
@@ -54,7 +62,7 @@ export class D3Renderer implements Renderer {
         ${d.x} ${d.y}`;
     }
 
-    function horizontal_s_bend(s: Node, d: Node) {
+    function horizontal_s_bend(s: LayoutedNode, d: LayoutedNode) {
       // Creates a diagonal curve fit for horizontally oriented trees
       return `M ${s.x} ${s.y}
         C ${(s.x + d.x) / 2} ${s.y},
@@ -63,16 +71,16 @@ export class D3Renderer implements Renderer {
     }
     const s = link.source;
     const d = link.target;
-    return orientation == 'vertical'
+    return orientation == Vertical
       ? vertical_s_bend(s, d)
       : horizontal_s_bend(s, d);
   }
 
   private static defaultNodeLabelFunction(
-    node: Node,
+    node: LayoutedNode,
     missingData: string = '?'
   ) {
-    if (node.data.type == 'union') return [];
+    if (node.data.type == UnionType) return [];
     const { name, birthyear, deathyear } = node.data;
     const lines = [
       name,
@@ -82,10 +90,10 @@ export class D3Renderer implements Renderer {
   }
 
   private static defaultNodeTooltipFunction(
-    node: Node,
+    node: LayoutedNode,
     missingData: string = '?'
   ) {
-    if (node.data.type == 'union') return;
+    if (node.data.type == UnionType) return;
     const content = `
       <span style='margin-left: 2.5px;'>
         <b>${node.data.name}</b>
@@ -104,45 +112,58 @@ export class D3Renderer implements Renderer {
     return content.replace(/undefined/g, missingData);
   }
 
-  private static defaultNodeSizeFunction(node: Node) {
-    if (node.data.type == 'union') return 0;
-    if (node.data.type == 'person') return 10;
+  private static defaultNodeSizeFunction(node: LayoutedNode) {
+    if (node.data.type == UnionType) return 0;
+    if (node.data.type == PersonType) return 10;
     return 0;
   }
 
-  private static defaultNodeCSSClassFunction(node: Node) {
-    return node.data.type;
+  private defaultNodeCSSClassFunction(node: LayoutedNode) {
+    const clickableNode = this.ft.getNodeById(node.data.id);
+    const class1 = clickableNode.extendable ? 'extendable' : 'non-extendable';
+    const class2 = node.data.type;
+    return class1 + ' ' + class2;
   }
 
-  private renderNodes(graph: Graph) {
+  private renderNodes(graph: LayoutedGraph) {
     const nodes = graph.nodes();
-    return this.g
-      .selectAll('circle')
-      .data(nodes)
+    const selection = this.g
+      .selectAll<SVGGElement, LayoutedNode>('g')
+      .data<LayoutedNode>(nodes, (n) => n.data.id);
+    const enteringGroups = selection
       .enter()
       .append('g')
       .attr('class', 'node-group')
-      .attr('transform', (d) => 'translate(' + d.x + ',' + d.y + ')')
+      .attr('transform', (d) => 'translate(' + d.x + ',' + d.y + ')');
+    enteringGroups
       .append('circle')
       .attr('r', this.nodeSizeFunction)
-      .attr('class', this.nodeCSSClassFunction);
+      .attr('class', (d) => this.nodeCSSClassFunction(d))
+      .on('click', (event, d) => this.ft.nodeClickHandler(d));
+    // remove hidden nodes
+    selection.exit().remove();
+    // update existing nodes
+    selection
+      .attr('transform', (d) => 'translate(' + d.x + ',' + d.y + ')')
+      .select('circle')
+      .attr('class', (d) => this.nodeCSSClassFunction(d));
+    return enteringGroups;
   }
 
-  private renderLinks(graph: Graph) {
-    const links = graph.links();
+  private renderLinks(layoutResult: LayoutResult) {
+    const links = layoutResult.graph.links();
     return this.g
-      .selectAll('path')
-      .data(links)
-      .enter()
-      .append('path')
+      .selectAll<SVGElement, LayoutedLink>('path')
+      .data<LayoutedLink>(links, (l) => l.source.data.id + l.target.data.id)
+      .join('path')
       .attr('d', (link) => {
-        return this.linkPathFunction(link, this.orientation);
+        return this.linkPathFunction(link, layoutResult.orientation);
       })
       .attr('class', 'link');
   }
 
   private setupTooltips(
-    nodeSelect: d3.Selection<SVGCircleElement, Node, SVGGElement, unknown>
+    nodeSelect: Selection<SVGGElement, LayoutedNode, SVGGElement, unknown>
   ) {
     const tooltip_div = this._tooltipDiv;
     const tooltip_func = this.nodeTooltipFunction;
@@ -169,50 +190,60 @@ export class D3Renderer implements Renderer {
   }
 
   private renderLabels(
-    nodeSelect: d3.Selection<SVGCircleElement, Node, SVGGElement, unknown>,
+    enteringNodes: Selection<SVGGElement, LayoutedNode, SVGGElement, unknown>,
     cssClass: string = 'node-label',
     lineSep: number = 14,
     xOffset: number = 13,
     dominantBaseline: DominantBaseline = 'central'
   ) {
     const nodeLabelFunction = this.nodeLabelFunction;
-    nodeSelect.each(function (node) {
-      const parentGroup = d3.select(this.parentNode as SVGGElement);
-      parentGroup
-        .append('text')
-        .attr('class', cssClass)
-        .attr('dominant-baseline', dominantBaseline)
-        .selectAll('tspan')
-        .data(() => {
-          const lines = nodeLabelFunction(node);
-          const yOffset = (-lineSep * (lines.length - 1)) / 2;
-          return lines.map((line, i) => ({
-            line,
-            dy: i === 0 ? yOffset : lineSep,
-          }));
-        })
-        .enter()
-        .append('tspan')
-        .text((d) => d.line)
-        .attr('x', xOffset)
-        .attr('dy', (d) => d.dy);
-    });
+    enteringNodes
+      .append('text')
+      .attr('class', cssClass)
+      .attr('dominant-baseline', dominantBaseline)
+      .selectAll('tspan')
+      .data((node) => {
+        const lines = nodeLabelFunction(node);
+        const yOffset = (-lineSep * (lines.length - 1)) / 2;
+        return lines.map((line, i) => ({
+          line,
+          dy: i === 0 ? yOffset : lineSep,
+        }));
+      })
+      .enter()
+      .append('tspan')
+      .text((d) => d.line)
+      .attr('x', xOffset)
+      .attr('dy', (d) => d.dy);
+  }
+
+  private sortDomElements() {
+    // will sort elements of this.g based on their tag name
+    // --> ensures that nodes (g) are drawn on top of links (link)
+    const nodes_and_links = this.g
+      .selectChildren<SVGElement, any>()
+      .nodes()
+      .sort((a, b) => descending(a.tagName, b.tagName));
+    nodes_and_links.forEach((el) => el.parentNode!.appendChild(el));
   }
 
   render(layoutResult: LayoutResult) {
     // adapt svg element size
     const svgWidth = Math.max(
-      this.svg.node()!.clientWidth * 0.99,
-      layoutResult.width
+      this.svg.node()!.clientWidth,
+      layoutResult.width * 1.05
     );
     const svgHeight = Math.max(
-      this.svg.node()!.clientHeight * 0.99,
-      layoutResult.height
+      this.svg.node()!.clientHeight,
+      layoutResult.height * 1.05
     );
     this.svg.attr('width', svgWidth).attr('height', svgHeight);
-    // render links first so that they are behind the nodes
-    const linkSelect = this.renderLinks(layoutResult.graph);
+    // add / update / remove links and nodes
+    const linkSelect = this.renderLinks(layoutResult);
     const nodeSelect = this.renderNodes(layoutResult.graph);
+    // ensure that nodes are drawn on top of links
+    this.sortDomElements();
+    // add tooltips and node labels
     this.setupTooltips(nodeSelect);
     this.renderLabels(nodeSelect, 'node-label', 14, 13, 'central');
   }
