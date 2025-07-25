@@ -1,5 +1,10 @@
 import * as d3dag from 'd3-dag';
-import { Horizontal, Vertical, type LayoutCalculator, type Orientation } from './types';
+import {
+  Horizontal,
+  Vertical,
+  type LayoutCalculator,
+  type Orientation,
+} from './types';
 import { UnionType, type PersonData } from '../import/types';
 import type { GraphNodeData, GraphLinkData } from '../graph/types';
 

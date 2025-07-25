@@ -18,6 +18,7 @@ export class D3Renderer implements Renderer {
   private _tooltipDiv;
   private ft;
 
+  public transitionDuration = 750; // ms
   public nodeLabelFunction;
   public linkPathFunction;
   public nodeTooltipFunction;
@@ -125,41 +126,107 @@ export class D3Renderer implements Renderer {
     return class1 + ' ' + class2;
   }
 
-  private renderNodes(graph: LayoutedGraph) {
+  private renderNodes(
+    graph: LayoutedGraph,
+    clickedNodeOld?: LayoutedNode,
+    clickedNodeNew?: LayoutedNode
+  ) {
     const nodes = graph.nodes();
     const selection = this.g
       .selectAll<SVGGElement, LayoutedNode>('g')
       .data<LayoutedNode>(nodes, (n) => n.data.id);
-    const enteringGroups = selection
-      .enter()
-      .append('g')
+    const enteringGroups = selection.enter().append('g');
+    // entering groups transition from clicked node old to final position
+    enteringGroups
+      .attr('transform', (d) => {
+        const transitionStart = clickedNodeOld ?? d;
+        return 'translate(' + transitionStart.x + ',' + transitionStart.y + ')';
+      })
+      .transition()
+      .duration(this.transitionDuration)
       .attr('class', 'node-group')
       .attr('transform', (d) => 'translate(' + d.x + ',' + d.y + ')');
     enteringGroups
       .append('circle')
+      .on('click', (event, d) => this.ft.nodeClickHandler(d))
+      .transition()
+      .duration(this.transitionDuration)
       .attr('r', this.nodeSizeFunction)
-      .attr('class', (d) => this.nodeCSSClassFunction(d))
-      .on('click', (event, d) => this.ft.nodeClickHandler(d));
-    // remove hidden nodes
-    selection.exit().remove();
+      .attr('class', (d) => this.nodeCSSClassFunction(d));
+    // exiting nodes move from current position to clicked node new position
+    selection
+      .exit<LayoutedNode>()
+      .transition()
+      .duration(this.transitionDuration)
+      .attr('transform', (d) => {
+        const transitionEnd = clickedNodeNew ?? d;
+        return 'translate(' + transitionEnd.x + ',' + transitionEnd.y + ')';
+      })
+      .remove();
     // update existing nodes
     selection
+      .transition()
+      .duration(this.transitionDuration)
       .attr('transform', (d) => 'translate(' + d.x + ',' + d.y + ')')
       .select('circle')
       .attr('class', (d) => this.nodeCSSClassFunction(d));
     return enteringGroups;
   }
 
-  private renderLinks(layoutResult: LayoutResult) {
+  private renderLinks(
+    layoutResult: LayoutResult,
+    clickedNodeOld?: LayoutedNode,
+    clickedNodeNew?: LayoutedNode
+  ) {
     const links = layoutResult.graph.links();
-    return this.g
+    const selection = this.g
       .selectAll<SVGElement, LayoutedLink>('path')
-      .data<LayoutedLink>(links, (l) => l.source.data.id + l.target.data.id)
-      .join('path')
+      .data<LayoutedLink>(links, (l) => l.source.data.id + l.target.data.id);
+    // entering links transition from old clicked node position to final position
+    selection
+      .enter()
+      .append('path')
+      .attr('d', (link) => {
+        const transitionStart = clickedNodeOld ?? link.source;
+        const transitionStartLink = {
+          source: transitionStart,
+          target: transitionStart,
+        };
+        return this.linkPathFunction(
+          transitionStartLink,
+          layoutResult.orientation
+        );
+      })
+      .transition()
+      .duration(this.transitionDuration)
       .attr('d', (link) => {
         return this.linkPathFunction(link, layoutResult.orientation);
       })
       .attr('class', 'link');
+    // updated links transition from current position to new position
+    selection
+      .transition()
+      .duration(this.transitionDuration)
+      .attr('d', (link) => {
+        return this.linkPathFunction(link, layoutResult.orientation);
+      });
+    // exiting links transition from current position to clicked node new position
+    selection
+      .exit<LayoutedLink>()
+      .transition()
+      .duration(this.transitionDuration)
+      .attr('d', (link) => {
+        const transitionEnd = clickedNodeNew ?? link.target;
+        const transitionEndLink = {
+          source: transitionEnd,
+          target: transitionEnd,
+        };
+        return this.linkPathFunction(
+          transitionEndLink,
+          layoutResult.orientation
+        );
+      })
+      .remove();
   }
 
   private setupTooltips(
@@ -227,7 +294,11 @@ export class D3Renderer implements Renderer {
     nodes_and_links.forEach((el) => el.parentNode!.appendChild(el));
   }
 
-  render(layoutResult: LayoutResult) {
+  render(
+    layoutResult: LayoutResult,
+    clickedNodeOld?: LayoutedNode,
+    clickedNodeNew?: LayoutedNode
+  ) {
     // adapt svg element size
     const svgWidth = Math.max(
       this.svg.node()!.clientWidth,
@@ -239,8 +310,16 @@ export class D3Renderer implements Renderer {
     );
     this.svg.attr('width', svgWidth).attr('height', svgHeight);
     // add / update / remove links and nodes
-    const linkSelect = this.renderLinks(layoutResult);
-    const nodeSelect = this.renderNodes(layoutResult.graph);
+    const linkSelect = this.renderLinks(
+      layoutResult,
+      clickedNodeOld,
+      clickedNodeNew
+    );
+    const nodeSelect = this.renderNodes(
+      layoutResult.graph,
+      clickedNodeOld,
+      clickedNodeNew
+    );
     // ensure that nodes are drawn on top of links
     this.sortDomElements();
     // add tooltips and node labels

@@ -39,7 +39,7 @@ export class FamilyTree {
     this.root = this.getNodeById(data.start);
 
     // render
-    this.renderVisibleSubgraph(layoutOptions);
+    this.renderVisibleSubgraph(undefined, layoutOptions);
   }
 
   private getVisibleSubgraph() {
@@ -72,13 +72,20 @@ export class FamilyTree {
     return visibleNodeData;
   }
 
-  public renderVisibleSubgraph(layoutOptions?: D3DAGLayoutCalculatorOptions) {
+  public renderVisibleSubgraph(
+    clickedNodeOld?: LayoutedNode,
+    layoutOptions?: D3DAGLayoutCalculatorOptions
+  ) {
     const visibleNodeData = this.getVisibleSubgraph();
     const layoutResult = this.layouter.calculateLayout(
       visibleNodeData,
       layoutOptions
     );
-    this.renderer.render(layoutResult);
+    // get the new position of the clicked node for transitions
+    const clickedNodeNew = [...layoutResult.graph.nodes()].find(
+      (n) => n.data.id === clickedNodeOld?.data.id
+    );
+    this.renderer.render(layoutResult, clickedNodeOld, clickedNodeNew);
   }
 
   public getNodeById(id: NodeID): ClickableNode {
@@ -94,6 +101,6 @@ export class FamilyTree {
   public nodeClickHandler(node: LayoutedNode) {
     const clickableNode = this.getNodeById(node.data.id);
     clickableNode.click();
-    this.renderVisibleSubgraph();
+    this.renderVisibleSubgraph(node);
   }
 }

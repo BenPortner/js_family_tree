@@ -2773,6 +2773,7 @@ class D3Renderer {
     g;
     _tooltipDiv;
     ft;
+    transitionDuration = 750; // ms
     nodeLabelFunction;
     linkPathFunction;
     nodeTooltipFunction;
@@ -2862,40 +2863,92 @@ class D3Renderer {
         const class2 = node.data.type;
         return class1 + ' ' + class2;
     }
-    renderNodes(graph) {
+    renderNodes(graph, clickedNodeOld, clickedNodeNew) {
         const nodes = graph.nodes();
         const selection = this.g
             .selectAll('g')
             .data(nodes, (n) => n.data.id);
-        const enteringGroups = selection
-            .enter()
-            .append('g')
+        const enteringGroups = selection.enter().append('g');
+        // entering groups transition from clicked node old to final position
+        enteringGroups
+            .attr('transform', (d) => {
+            const transitionStart = clickedNodeOld ?? d;
+            return 'translate(' + transitionStart.x + ',' + transitionStart.y + ')';
+        })
+            .transition()
+            .duration(this.transitionDuration)
             .attr('class', 'node-group')
             .attr('transform', (d) => 'translate(' + d.x + ',' + d.y + ')');
         enteringGroups
             .append('circle')
+            .on('click', (event, d) => this.ft.nodeClickHandler(d))
+            .transition()
+            .duration(this.transitionDuration)
             .attr('r', this.nodeSizeFunction)
-            .attr('class', (d) => this.nodeCSSClassFunction(d))
-            .on('click', (event, d) => this.ft.nodeClickHandler(d));
-        // remove hidden nodes
-        selection.exit().remove();
+            .attr('class', (d) => this.nodeCSSClassFunction(d));
+        // exiting nodes move from current position to clicked node new position
+        selection
+            .exit()
+            .transition()
+            .duration(this.transitionDuration)
+            .attr('transform', (d) => {
+            const transitionEnd = clickedNodeNew ?? d;
+            return 'translate(' + transitionEnd.x + ',' + transitionEnd.y + ')';
+        })
+            .remove();
         // update existing nodes
         selection
+            .transition()
+            .duration(this.transitionDuration)
             .attr('transform', (d) => 'translate(' + d.x + ',' + d.y + ')')
             .select('circle')
             .attr('class', (d) => this.nodeCSSClassFunction(d));
         return enteringGroups;
     }
-    renderLinks(layoutResult) {
+    renderLinks(layoutResult, clickedNodeOld, clickedNodeNew) {
         const links = layoutResult.graph.links();
-        return this.g
+        const selection = this.g
             .selectAll('path')
-            .data(links, (l) => l.source.data.id + l.target.data.id)
-            .join('path')
+            .data(links, (l) => l.source.data.id + l.target.data.id);
+        // entering links transition from old clicked node position to final position
+        selection
+            .enter()
+            .append('path')
+            .attr('d', (link) => {
+            const transitionStart = clickedNodeOld ?? link.source;
+            const transitionStartLink = {
+                source: transitionStart,
+                target: transitionStart,
+            };
+            return this.linkPathFunction(transitionStartLink, layoutResult.orientation);
+        })
+            .transition()
+            .duration(this.transitionDuration)
             .attr('d', (link) => {
             return this.linkPathFunction(link, layoutResult.orientation);
         })
             .attr('class', 'link');
+        // updated links transition from current position to new position
+        selection
+            .transition()
+            .duration(this.transitionDuration)
+            .attr('d', (link) => {
+            return this.linkPathFunction(link, layoutResult.orientation);
+        });
+        // exiting links transition from current position to clicked node new position
+        selection
+            .exit()
+            .transition()
+            .duration(this.transitionDuration)
+            .attr('d', (link) => {
+            const transitionEnd = clickedNodeNew ?? link.target;
+            const transitionEndLink = {
+                source: transitionEnd,
+                target: transitionEnd,
+            };
+            return this.linkPathFunction(transitionEndLink, layoutResult.orientation);
+        })
+            .remove();
     }
     setupTooltips(nodeSelect) {
         const tooltip_div = this._tooltipDiv;
@@ -2953,14 +3006,14 @@ class D3Renderer {
             .sort((a, b) => descending(a.tagName, b.tagName));
         nodes_and_links.forEach((el) => el.parentNode.appendChild(el));
     }
-    render(layoutResult) {
+    render(layoutResult, clickedNodeOld, clickedNodeNew) {
         // adapt svg element size
         const svgWidth = Math.max(this.svg.node().clientWidth, layoutResult.width * 1.05);
         const svgHeight = Math.max(this.svg.node().clientHeight, layoutResult.height * 1.05);
         this.svg.attr('width', svgWidth).attr('height', svgHeight);
         // add / update / remove links and nodes
-        this.renderLinks(layoutResult);
-        const nodeSelect = this.renderNodes(layoutResult.graph);
+        this.renderLinks(layoutResult, clickedNodeOld, clickedNodeNew);
+        const nodeSelect = this.renderNodes(layoutResult.graph, clickedNodeOld, clickedNodeNew);
         // ensure that nodes are drawn on top of links
         this.sortDomElements();
         // add tooltips and node labels
@@ -3066,7 +3119,7 @@ class FamilyTree {
         this.nodes = this.graphBuilder.buildGraph(nodeData);
         this.root = this.getNodeById(data.start);
         // render
-        this.renderVisibleSubgraph(layoutOptions);
+        this.renderVisibleSubgraph(undefined, layoutOptions);
     }
     getVisibleSubgraph() {
         function recursiveVisibleNeighborCollector(node, res) {
@@ -3092,10 +3145,12 @@ class FamilyTree {
         });
         return visibleNodeData;
     }
-    renderVisibleSubgraph(layoutOptions) {
+    renderVisibleSubgraph(clickedNodeOld, layoutOptions) {
         const visibleNodeData = this.getVisibleSubgraph();
         const layoutResult = this.layouter.calculateLayout(visibleNodeData, layoutOptions);
-        this.renderer.render(layoutResult);
+        // get the new position of the clicked node for transitions
+        const clickedNodeNew = [...layoutResult.graph.nodes()].find((n) => n.data.id === clickedNodeOld?.data.id);
+        this.renderer.render(layoutResult, clickedNodeOld, clickedNodeNew);
     }
     getNodeById(id) {
         const result = this.nodes.filter((n) => n.id === id);
@@ -3110,7 +3165,7 @@ class FamilyTree {
     nodeClickHandler(node) {
         const clickableNode = this.getNodeById(node.data.id);
         clickableNode.click();
-        this.renderVisibleSubgraph();
+        this.renderVisibleSubgraph(node);
     }
 }
 

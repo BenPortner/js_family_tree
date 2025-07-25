@@ -1,8 +1,12 @@
 import { FamilyTree } from '../familyTree';
-import type { LayoutResult } from '../layout/types';
+import type { LayoutedNode, LayoutResult } from '../layout/types';
 
 export interface Renderer {
-  render(layoutResult: LayoutResult): any;
+  render(
+    layoutResult: LayoutResult,
+    clickedNodeOld?: LayoutedNode,
+    clickedNodeNew?: LayoutedNode
+  ): any;
 }
 
 export type DominantBaseline =
