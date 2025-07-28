@@ -8,6 +8,7 @@ import type {
 export interface LayoutedNode extends GraphNode {
   x: number;
   y: number;
+  children(): IterableIterator<LayoutedNode>
 }
 export interface LayoutedLink extends GraphLink {
   source: LayoutedNode;
