@@ -2,7 +2,7 @@ import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
-import { FamilyTreeData } from "../src/types/types";
+import { FamilyTreeData } from "../src/familyTreeData";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
