@@ -46,8 +46,11 @@
         orientation: Horizontal,
     };
     class D3DAGLayoutCalculator {
-        calculateLayout(nodes, userOpts) {
-            const opts = Object.assign(Object.assign({}, D3DAGLAyoutCalculatorDefaultOptions), userOpts);
+        constructor(opts) {
+            this.opts = opts;
+        }
+        calculateLayout(nodes) {
+            const opts = Object.assign(Object.assign({}, D3DAGLAyoutCalculatorDefaultOptions), this.opts);
             const builder = ai()
                 .id((n) => n.data.id)
                 .parentIds((n) => n.visibleParentIDs());
@@ -3114,14 +3117,14 @@
         constructor(data, container, layoutOptions) {
             var _a;
             this.importer = new FamilyTreeDataV1Importer();
-            this.layouter = new D3DAGLayoutCalculator();
+            this.layouter = new D3DAGLayoutCalculator(layoutOptions);
             this.renderer = new D3Renderer(container, this);
             // import data
             this.nodes = this.importer.import(data);
             this.root =
                 (_a = this.nodes.find((n) => n.data.id == data.start)) !== null && _a !== void 0 ? _a : this.nodes[0];
             // render
-            this.renderVisibleSubgraph(undefined, layoutOptions);
+            this.renderVisibleSubgraph(undefined);
         }
         getVisibleSubgraph() {
             function recursiveVisibleNeighborCollector(node, res) {
@@ -3137,12 +3140,12 @@
             ]);
             return visibleNodeData;
         }
-        renderVisibleSubgraph(clickedNodeOld, layoutOptions) {
-            const visibleNodeData = this.getVisibleSubgraph();
-            const layoutResult = this.layouter.calculateLayout(visibleNodeData, layoutOptions);
+        renderVisibleSubgraph(nodeOld) {
+            const visibleNodes = this.getVisibleSubgraph();
+            const layoutResult = this.layouter.calculateLayout(visibleNodes);
             // get the new position of the clicked node for transitions
-            const clickedNodeNew = [...layoutResult.graph.nodes()].find((n) => n.data.data.id === (clickedNodeOld === null || clickedNodeOld === void 0 ? void 0 : clickedNodeOld.data.data.id));
-            this.renderer.render(layoutResult, clickedNodeOld, clickedNodeNew);
+            const nodeNew = [...layoutResult.graph.nodes()].find((n) => n.data === (nodeOld === null || nodeOld === void 0 ? void 0 : nodeOld.data));
+            this.renderer.render(layoutResult, nodeOld, nodeNew);
         }
         nodeClickHandler(node) {
             node.data.click();

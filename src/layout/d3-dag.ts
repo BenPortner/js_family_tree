@@ -16,10 +16,10 @@ import {
   type Orientation,
 } from './types';
 import type { ClickableNode } from '../clickableNode';
-import type { NodeData, LinkData } from './types';
+import type { NodeData, LinkData, LayoutCalculatorOpts } from './types';
 import type { PersonData } from '../import/types';
 
-export interface D3DAGLayoutCalculatorOptions {
+export interface D3DAGLayoutCalculatorOptions extends LayoutCalculatorOpts {
   nodeSize: [number, number];
   layering: Layering<NodeData, LinkData>;
   decross: Decross<NodeData, LinkData>;
@@ -66,13 +66,15 @@ const D3DAGLAyoutCalculatorDefaultOptions: D3DAGLayoutCalculatorOptions = {
 };
 
 export class D3DAGLayoutCalculator implements LayoutCalculator {
-  calculateLayout(
-    nodes: ClickableNode[],
-    userOpts?: D3DAGLayoutCalculatorOptions
-  ): LayoutResult {
+  public opts?: D3DAGLayoutCalculatorOptions;
+
+  constructor(opts?: D3DAGLayoutCalculatorOptions) {
+    this.opts = opts;
+  }
+  calculateLayout(nodes: ClickableNode[]): LayoutResult {
     const opts = {
       ...D3DAGLAyoutCalculatorDefaultOptions,
-      ...userOpts,
+      ...this.opts,
     };
     const builder = graphStratify()
       .id((n: ClickableNode) => n.data.id)

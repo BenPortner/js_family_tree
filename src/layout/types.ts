@@ -22,6 +22,7 @@ export const Vertical = 'vertical' as const;
 export const Horizontal = 'horizontal' as const;
 export type Orientation = typeof Vertical | typeof Horizontal;
 
+export type LayoutCalculatorOpts = any;
 export interface LayoutResult {
   graph: LayoutedGraph;
   width: number;
@@ -30,5 +31,6 @@ export interface LayoutResult {
 }
 
 export interface LayoutCalculator {
-  calculateLayout(nodes: ClickableNode[], userOpts?: any): LayoutResult;
+  opts?: LayoutCalculatorOpts;
+  calculateLayout(nodes: ClickableNode[]): LayoutResult;
 }
