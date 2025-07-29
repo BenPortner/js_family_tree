@@ -1,7 +1,7 @@
 import { graphStratify } from 'd3-dag';
 import type { NodeData } from '../import/types';
 import type { Graph, GraphBuilder } from './types';
-import { ClickableNode } from './clickableNode';
+import { augmentD3DAGNodeClass, ClickableNode } from './clickableNode';
 
 export class D3DAGGraphBuilder implements GraphBuilder {
   buildGraph(nodeData: NodeData[]) {
@@ -12,7 +12,8 @@ export class D3DAGGraphBuilder implements GraphBuilder {
     nodes.forEach((n) => {
       n.data.insertedNodes = [];
     });
-    // add custom methods (wrapper)
-    return nodes.map((n) => new ClickableNode(n));
+    // add custom methods (augment)
+    augmentD3DAGNodeClass(nodes[0]);
+    return nodes as ClickableNode[];
   }
 }

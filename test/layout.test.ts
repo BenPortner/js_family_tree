@@ -1,12 +1,9 @@
-import { ClickableNode } from '../src/graph/clickableNode';
 import { D3DAGGraphBuilder } from '../src/graph/d3-dag';
-import type { GraphNode } from '../src/graph/types';
 import { FamilyTreeDataImporter } from '../src/import/familyTreeData';
-import { PersonType, UnionType } from '../src/import/types';
 import { D3DAGLayoutCalculator } from '../src/layout/d3-dag';
 import { Horizontal, LayoutResult, Vertical } from '../src/layout/types';
 import { SimpleFamilyTree } from './fixtures';
-import { expect, assert } from 'chai';
+import { expect } from 'chai';
 
 let calculator: D3DAGLayoutCalculator;
 let layoutResult: LayoutResult;
@@ -26,7 +23,7 @@ describe('D3DAGLayoutCalculator', () => {
     const clickableNodes = builder.buildGraph(nodeData);
     const visibleNodes = clickableNodes.map((n) => {
       // show all nodes
-      return { ...n.node.data, visible: true };
+      return { ...n.data, visible: true };
     });
     layoutResult = calculator.calculateLayout(visibleNodes);
     expect(layoutResult).not.undefined;

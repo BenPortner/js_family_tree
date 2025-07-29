@@ -47,10 +47,9 @@ export class FamilyTree {
       node: ClickableNode,
       res: ClickableNode[]
     ) {
-      const foundIDs = res.map((n) => n.node.data.id);
+      const foundIDs = res.map((n) => n.data.id);
       const newVisibleNeighbors = node.visibleNeighbors
-        .filter((n) => !foundIDs.includes(n.data.id))
-        .map((n) => new ClickableNode(n));
+        .filter((n) => !foundIDs.includes(n.data.id));
       res = res.concat(newVisibleNeighbors);
       newVisibleNeighbors.forEach(
         (n) => (res = recursiveVisibleNeighborCollector(n, res))
@@ -62,7 +61,7 @@ export class FamilyTree {
       this.root,
     ]).map((n) => {
       // return a shallow copy because data is manipulated in the next step
-      return { ...n.node.data };
+      return { ...n.data };
     });
     // remove parent references to invisible nodes
     const visibleNodeIds = visibleNodeData.map((d) => d.id);
@@ -89,7 +88,7 @@ export class FamilyTree {
   }
 
   public getNodeById(id: NodeID): ClickableNode {
-    const result = this.nodes.filter((n) => n.id === id);
+    const result = this.nodes.filter((n) => n.data.id === id);
     if (result.length > 1) {
       throw Error('More than one node found with with id ' + id);
     } else if (result.length == 0) {
