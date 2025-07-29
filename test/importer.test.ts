@@ -1,6 +1,6 @@
 import type { ClickableNode } from '../src/clickableNode';
 import { FamilyTreeDataV1Importer } from '../src/import/familyTreeData';
-import { PersonType, UnionType } from '../src/import/types';
+import { CPerson, CUnion } from '../src/import/types';
 import { SimpleFamilyTree } from './fixtures';
 import { expect, assert } from 'chai';
 
@@ -27,7 +27,7 @@ describe('FamilyTreeDataV1Importer', () => {
   it('added valid field: type', () => {
     nodes.forEach((node) => {
       expect(node.data).to.have.property('type');
-      expect(node.data.type).to.be.oneOf([PersonType, UnionType]);
+      expect(node.data.type).to.be.oneOf([CPerson, CUnion]);
     });
   });
   it('added valid field: visible', () => {
@@ -55,7 +55,7 @@ describe('FamilyTreeDataV1Importer', () => {
   it('created a root node', () => {
     root = nodes.find((node) => node.data.visible)!;
     expect(root).not.undefined;
-    expect(root.data.type).to.equal(PersonType);
+    expect(root.data.type).to.equal(CPerson);
   });
 });
 
@@ -77,7 +77,7 @@ describe('ClickableNode', () => {
   });
   it('all neighbors are unions', () => {
     neighbors.forEach((n) =>
-      assert(n.data.type == UnionType, `${n} is not a union`)
+      assert(n.data.type == CUnion, `${n} is not a union`)
     );
   });
   it('throws an error when clicking a union', () => {
@@ -86,7 +86,7 @@ describe('ClickableNode', () => {
   });
   it("all neighbors' neighbors are persons", () => {
     neighborsNeighbors.forEach((n) =>
-      assert(n.data.type == PersonType, `${n} is not a person`)
+      assert(n.data.type == CPerson, `${n} is not a person`)
     );
   });
   it("makes neighbors and neighbors' neighbors visible when clicked", () => {

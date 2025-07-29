@@ -1,8 +1,8 @@
 import { graphConnect } from 'd3-dag';
 import type { FamilyTreeData } from '../familyTreeData';
 import {
-  PersonType,
-  UnionType,
+  CPerson,
+  CUnion,
   type Importer,
   type Graph,
   type UnionData,
@@ -16,14 +16,14 @@ export class FamilyTreeDataV1Importer implements Importer {
       if (id in data.persons) {
         return {
           ...data.persons[id],
-          type: PersonType,
+          type: CPerson,
           visible: id == data.start,
           insertedNodes: [],
         } as PersonData;
       } else if (id in data.unions) {
         return {
           ...data.unions[id],
-          type: UnionType,
+          type: CUnion,
           visible: false,
           insertedNodes: [],
         } as UnionData;

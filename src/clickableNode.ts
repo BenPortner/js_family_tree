@@ -1,5 +1,5 @@
-import { NodeID } from './familyTreeData';
-import { PersonType, UnionType, GraphNode } from './import/types';
+import type { NodeID } from './familyTreeData';
+import { CPerson, CUnion, type GraphNode } from './import/types';
 
 export interface ClickableNode extends GraphNode {
   // a ClickableNode is a GraphNode with additional methods
@@ -28,10 +28,10 @@ function extendable(this: ClickableNode) {
   return this.invisibleNeighbors.length > 0;
 }
 function isUnion(this: ClickableNode) {
-  return this.data.type == UnionType;
+  return this.data.type == CUnion;
 }
 function isPerson(this: ClickableNode) {
-  return this.data.type == PersonType;
+  return this.data.type == CPerson;
 }
 function showNeighbors(this: ClickableNode) {
   const insertedNodes = this.data.insertedNodes;
@@ -39,7 +39,7 @@ function showNeighbors(this: ClickableNode) {
   this.data.insertedNodes = insertedNodes.concat(invisibleNeighbors);
   invisibleNeighbors.forEach((n) => {
     n.data.visible = true;
-    if (n.data.type == UnionType) {
+    if (n.isUnion) {
       n.showNeighbors();
     }
   });
@@ -50,14 +50,14 @@ function hideNeighbors(this: ClickableNode) {
   this.data.insertedNodes = [];
   insertedNodes.forEach((n) => {
     n.data.visible = false;
-    if (n.data.type == UnionType) {
+    if (n.isUnion) {
       n.hideNeighbors();
     }
   });
 }
 
 function click(this: ClickableNode) {
-  if (this.data.type == UnionType) {
+  if (this.isUnion) {
     throw Error('Only person nodes can be clicked.');
   }
   if (this.extendable) {

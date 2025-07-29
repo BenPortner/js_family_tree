@@ -6,16 +6,16 @@ import type {
 import type { NodeID, Person, Union } from '../familyTreeData';
 import type { ClickableNode } from '../clickableNode';
 
-export const PersonType = 'person' as const;
-export const UnionType = 'union' as const;
+export const CPerson = 'person' as const;
+export const CUnion = 'union' as const;
 
 export interface PersonData extends Person {
-  type: typeof PersonType;
+  type: typeof CPerson;
   visible: boolean;
   insertedNodes: ClickableNode[];
 }
 export interface UnionData extends Union {
-  type: typeof UnionType;
+  type: typeof CUnion;
   visible: boolean;
   insertedNodes: ClickableNode[];
 }

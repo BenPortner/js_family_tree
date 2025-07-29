@@ -69,8 +69,8 @@
         }
     }
 
-    const PersonType = 'person';
-    const UnionType = 'union';
+    const CPerson = 'person';
+    const CUnion = 'union';
 
     function neighbors() {
         return [...this.children(), ...this.parents()];
@@ -85,10 +85,10 @@
         return this.invisibleNeighbors.length > 0;
     }
     function isUnion() {
-        return this.data.type == UnionType;
+        return this.data.type == CUnion;
     }
     function isPerson() {
-        return this.data.type == PersonType;
+        return this.data.type == CPerson;
     }
     function showNeighbors() {
         const insertedNodes = this.data.insertedNodes;
@@ -96,7 +96,7 @@
         this.data.insertedNodes = insertedNodes.concat(invisibleNeighbors);
         invisibleNeighbors.forEach((n) => {
             n.data.visible = true;
-            if (n.data.type == UnionType) {
+            if (n.isUnion) {
                 n.showNeighbors();
             }
         });
@@ -106,13 +106,13 @@
         this.data.insertedNodes = [];
         insertedNodes.forEach((n) => {
             n.data.visible = false;
-            if (n.data.type == UnionType) {
+            if (n.isUnion) {
                 n.hideNeighbors();
             }
         });
     }
     function click() {
-        if (this.data.type == UnionType) {
+        if (this.isUnion) {
             throw Error('Only person nodes can be clicked.');
         }
         if (this.extendable) {
@@ -169,10 +169,10 @@
         import(data) {
             const builder = ei().nodeDatum((id) => {
                 if (id in data.persons) {
-                    return Object.assign(Object.assign({}, data.persons[id]), { type: PersonType, visible: id == data.start, insertedNodes: [] });
+                    return Object.assign(Object.assign({}, data.persons[id]), { type: CPerson, visible: id == data.start, insertedNodes: [] });
                 }
                 else if (id in data.unions) {
-                    return Object.assign(Object.assign({}, data.unions[id]), { type: UnionType, visible: false, insertedNodes: [] });
+                    return Object.assign(Object.assign({}, data.unions[id]), { type: CUnion, visible: false, insertedNodes: [] });
                 }
                 else {
                     throw Error(`ID '${id}' not found in data.persons or data.unions.`);
