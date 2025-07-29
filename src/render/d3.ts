@@ -10,7 +10,7 @@ import {
 import type { DominantBaseline } from './types';
 import type { Renderer } from './types';
 import type { FamilyTree } from '../familyTree';
-import { PersonType, UnionType } from '../import/types';
+import { PersonData } from '../import/types';
 
 export class D3Renderer implements Renderer {
   private svg;
@@ -81,8 +81,8 @@ export class D3Renderer implements Renderer {
     node: LayoutedNode,
     missingData: string = '?'
   ) {
-    if (node.data.type == UnionType) return [];
-    const { name, birthyear, deathyear } = node.data;
+    if (node.data.isUnion) return [];
+    const { name, birthyear, deathyear } = node.data.data as PersonData;
     const lines = [
       name,
       `${birthyear ?? missingData} - ${deathyear ?? missingData}`,
@@ -94,19 +94,21 @@ export class D3Renderer implements Renderer {
     node: LayoutedNode,
     missingData: string = '?'
   ) {
-    if (node.data.type == UnionType) return;
+    if (node.data.isUnion) return;
+    const { name, birthyear, birthplace, deathyear, deathplace } = node.data
+      .data as PersonData;
     const content = `
       <span style='margin-left: 2.5px;'>
-        <b>${node.data.name}</b>
+        <b>${name}</b>
       </span><br>
       <table style="margin-top: 2.5px;">
         <tr>
           <td>born</td>
-          <td>${node.data.birthyear} in ${node.data.birthplace}</td>
+          <td>${birthyear} in ${birthplace}</td>
         </tr>
         <tr>
           <td>died</td>
-          <td>${node.data.deathyear} in ${node.data.deathplace}</td>
+          <td>${deathyear} in ${deathplace}</td>
         </tr>
       </table>`;
     // replace undefined entries with ?
@@ -114,15 +116,14 @@ export class D3Renderer implements Renderer {
   }
 
   private static defaultNodeSizeFunction(node: LayoutedNode) {
-    if (node.data.type == UnionType) return 0;
-    if (node.data.type == PersonType) return 10;
+    if (node.data.isUnion) return 0;
+    if (node.data.isPerson) return 10;
     return 0;
   }
 
   private defaultNodeCSSClassFunction(node: LayoutedNode) {
-    const clickableNode = this.ft.getNodeById(node.data.id);
-    const class1 = clickableNode.extendable ? 'extendable' : 'non-extendable';
-    const class2 = node.data.type;
+    const class1 = node.data.extendable ? 'extendable' : 'non-extendable';
+    const class2 = node.data.data.type;
     return class1 + ' ' + class2;
   }
 
@@ -134,7 +135,7 @@ export class D3Renderer implements Renderer {
     const nodes = graph.nodes();
     const selection = this.g
       .selectAll<SVGGElement, LayoutedNode>('g')
-      .data<LayoutedNode>(nodes, (n) => n.data.id);
+      .data<LayoutedNode>(nodes, (n) => n.data.data.id);
     const enteringGroups = selection.enter().append('g');
     // entering groups transition from clicked node old to final position
     enteringGroups
@@ -181,7 +182,10 @@ export class D3Renderer implements Renderer {
     const links = layoutResult.graph.links();
     const selection = this.g
       .selectAll<SVGElement, LayoutedLink>('path')
-      .data<LayoutedLink>(links, (l) => l.source.data.id + l.target.data.id);
+      .data<LayoutedLink>(
+        links,
+        (l) => l.source.data.data.id + l.target.data.data.id
+      );
     // entering links transition from old clicked node position to final position
     selection
       .enter()

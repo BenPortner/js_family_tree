@@ -1,55 +1,101 @@
-import { FamilyTreeDataImporter } from '../src/import/familyTreeData';
-import { type NodeData, PersonType, UnionType } from '../src/import/types';
+import type { ClickableNode } from '../src/clickableNode';
+import { FamilyTreeDataV1Importer } from '../src/import/familyTreeData';
+import { PersonType, UnionType } from '../src/import/types';
 import { SimpleFamilyTree } from './fixtures';
-import { expect } from 'chai';
+import { expect, assert } from 'chai';
 
-let importer: FamilyTreeDataImporter;
-let nodeData: NodeData[];
-const allNodes = { ...SimpleFamilyTree.persons, ...SimpleFamilyTree.unions };
-const allIds = Object.keys(allNodes);
+let importer: FamilyTreeDataV1Importer;
+let nodes: ClickableNode[];
+let root: ClickableNode;
+let neighbors: ClickableNode[];
+let neighborsNeighbors: ClickableNode[];
 const numberPersons = Object.keys(SimpleFamilyTree.persons).length;
 const numberUnions = Object.keys(SimpleFamilyTree.unions).length;
 
-describe('FamilyTreeDataImporter', () => {
-  it('creates a FamilyTreeDataImporter instance', () => {
-    importer = new FamilyTreeDataImporter();
-    expect(importer).to.be.instanceOf(FamilyTreeDataImporter);
+describe('FamilyTreeDataV1Importer', () => {
+  it('creates a FamilyTreeDataV1Importer instance', () => {
+    importer = new FamilyTreeDataV1Importer();
+    expect(importer).to.be.instanceOf(FamilyTreeDataV1Importer);
   });
   it('imports a simple family tree', () => {
     expect(importer).to.have.property('import');
-    nodeData = importer.import(SimpleFamilyTree);
+    nodes = importer.import(SimpleFamilyTree);
   });
   it('imported all nodes', () => {
-    expect(nodeData).to.have.length(numberPersons + numberUnions);
+    expect(nodes).to.have.length(numberPersons + numberUnions);
   });
   it('added valid field: type', () => {
-    nodeData.forEach((node) => {
-      expect(node).to.have.property('type');
-      expect(node.type).to.be.oneOf([PersonType, UnionType]);
+    nodes.forEach((node) => {
+      expect(node.data).to.have.property('type');
+      expect(node.data.type).to.be.oneOf([PersonType, UnionType]);
     });
   });
   it('added valid field: visible', () => {
-    nodeData.forEach((node) => {
-      expect(node).to.have.property('visible');
-      expect(node.visible).to.be.a('boolean');
+    nodes.forEach((node) => {
+      expect(node.data).to.have.property('visible');
+      expect(node.data.visible).to.be.a('boolean');
     });
   });
-  it('added valid field: parentIds', () => {
-    nodeData.forEach((node) => {
-      expect(node).to.have.property('parentIds');
-      expect(node.parentIds).to.be.an('array');
-      // every parentId should refer to an existing node
-      node.parentIds.forEach((id) => expect(allIds).to.include(id));
+  it('added valid field: insertedNodes', () => {
+    nodes.forEach((node) => {
+      expect(node.data).to.have.property('insertedNodes');
+      expect(node.data.insertedNodes).to.be.an('array');
     });
   });
   it('preserved node metadata: id', () => {
-    expect(nodeData.every((node) => node.hasOwnProperty('id'))).to.be.true;
+    expect(nodes.every((node) => node.data.hasOwnProperty('id'))).to.be.true;
   });
   it('preserved node metadata: name', () => {
-    expect(nodeData.some((node) => node.hasOwnProperty('name'))).to.be.true;
+    expect(nodes.some((node) => node.data.hasOwnProperty('name'))).to.be.true;
   });
   it('preserved node metadata: birth year', () => {
-    expect(nodeData.some((node) => node.hasOwnProperty('birthyear'))).to.be
+    expect(nodes.some((node) => node.data.hasOwnProperty('birthyear'))).to.be
       .true;
+  });
+  it('created a root node', () => {
+    root = nodes.find((node) => node.data.visible)!;
+    expect(root).not.undefined;
+    expect(root.data.type).to.equal(PersonType);
+  });
+});
+
+describe('ClickableNode', () => {
+  it('has invisible neighbors', () => {
+    neighbors = root.invisibleNeighbors;
+    expect(neighbors).not.empty;
+    neighbors.forEach((n) => assert(!n.data.visible, `${n} is not invisible`));
+  });
+  it("has invisible neighbors' neighbors", () => {
+    neighborsNeighbors = neighbors.flatMap(
+      (n) => n.invisibleNeighbors
+    );
+    neighborsNeighbors = [...new Set(neighborsNeighbors)];
+    expect(neighbors).not.empty;
+    neighborsNeighbors.forEach((n) =>
+      assert(!n.data.visible, `${n} is not invisible`)
+    );
+  });
+  it('all neighbors are unions', () => {
+    neighbors.forEach((n) =>
+      assert(n.data.type == UnionType, `${n} is not a union`)
+    );
+  });
+  it('throws an error when clicking a union', () => {
+    const node = neighbors[0];
+    expect(node.click.bind(node)).to.throw();
+  });
+  it("all neighbors' neighbors are persons", () => {
+    neighborsNeighbors.forEach((n) =>
+      assert(n.data.type == PersonType, `${n} is not a person`)
+    );
+  });
+  it("makes neighbors and neighbors' neighbors visible when clicked", () => {
+    root.click();
+    neighbors.forEach((n) => {
+      assert(n.data.visible, `${n} is not visible`);
+    });
+    neighborsNeighbors.forEach((n) => {
+      assert(n.data.visible, `${n} is not visible`);
+    });
   });
 });

@@ -1,5 +1,4 @@
-import { D3DAGGraphBuilder } from '../src/graph/d3-dag';
-import { FamilyTreeDataImporter } from '../src/import/familyTreeData';
+import { FamilyTreeDataV1Importer } from '../src/import/familyTreeData';
 import { D3DAGLayoutCalculator } from '../src/layout/d3-dag';
 import { Horizontal, LayoutResult, Vertical } from '../src/layout/types';
 import { SimpleFamilyTree } from './fixtures';
@@ -17,15 +16,10 @@ describe('D3DAGLayoutCalculator', () => {
     expect(calculator).to.be.instanceOf(D3DAGLayoutCalculator);
   });
   it('layouts a simple family tree', () => {
-    const importer = new FamilyTreeDataImporter();
-    const nodeData = importer.import(SimpleFamilyTree);
-    const builder = new D3DAGGraphBuilder();
-    const clickableNodes = builder.buildGraph(nodeData);
-    const visibleNodes = clickableNodes.map((n) => {
-      // show all nodes
-      return { ...n.data, visible: true };
-    });
-    layoutResult = calculator.calculateLayout(visibleNodes);
+    const importer = new FamilyTreeDataV1Importer();
+    const clickableNodes = importer.import(SimpleFamilyTree);
+    for (let n of clickableNodes) n.data.visible = true;
+    layoutResult = calculator.calculateLayout(clickableNodes);
     expect(layoutResult).not.undefined;
   });
   it('result contains width and height of the canvas', () => {
@@ -65,8 +59,8 @@ describe('D3DAGLayoutCalculator', () => {
     const nodes = [...layoutResult.graph.nodes()];
     nodes.forEach((node) => {
       // expect child.x > parent.x for all children
-      const children_x = [...node.children()].map(c => c.x);
-      expect(children_x.every(cx => cx > node.x)).to.be.true;
-    })
+      const children_x = [...node.children()].map((c) => c.x);
+      expect(children_x.every((cx) => cx > node.x)).to.be.true;
+    });
   });
 });

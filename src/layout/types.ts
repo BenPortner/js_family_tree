@@ -1,20 +1,19 @@
-import type {
-  Graph,
-  GraphNode,
-  GraphLink,
-  GraphNodeData,
-} from '../graph/types';
+import type { ClickableNode } from '../clickableNode';
 
-export interface LayoutedNode extends GraphNode {
+export type NodeData = ClickableNode;
+export type LinkData = undefined;
+
+export interface LayoutedNode {
+  data: NodeData;
   x: number;
   y: number;
-  children(): IterableIterator<LayoutedNode>
+  children(): IterableIterator<LayoutedNode>;
 }
-export interface LayoutedLink extends GraphLink {
+export interface LayoutedLink {
   source: LayoutedNode;
   target: LayoutedNode;
 }
-export interface LayoutedGraph extends Graph {
+export interface LayoutedGraph {
   nodes(): IterableIterator<LayoutedNode>;
   links(): IterableIterator<LayoutedLink>;
 }
@@ -31,5 +30,5 @@ export interface LayoutResult {
 }
 
 export interface LayoutCalculator {
-  calculateLayout(nodes: GraphNodeData[], userOpts?: any): LayoutResult;
+  calculateLayout(nodes: ClickableNode[], userOpts?: any): LayoutResult;
 }

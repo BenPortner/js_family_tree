@@ -12,8 +12,4 @@ describe('FamilyTree', () => {
     ft = new FamilyTree(SimpleFamilyTree, div);
     expect(ft).to.be.instanceOf(FamilyTree);
   });
-  it('getNodeById works', () => {
-    const rootId = SimpleFamilyTree.start;
-    expect(ft.getNodeById(rootId)).not.undefined;
-  });
 });

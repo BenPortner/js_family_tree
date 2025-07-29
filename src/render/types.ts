@@ -1,4 +1,3 @@
-import { FamilyTree } from '../familyTree';
 import type { LayoutedNode, LayoutResult } from '../layout/types';
 
 export interface Renderer {

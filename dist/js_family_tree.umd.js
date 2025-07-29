@@ -21,13 +21,10 @@
 `,newlineOrSpace:`
 `,pad:s,indent:s+u}:d={newline:"@@__STRINGIFY_OBJECT_NEW_LINE__@@",newlineOrSpace:"@@__STRINGIFY_OBJECT_NEW_LINE_OR_SPACE__@@",pad:"@@__STRINGIFY_OBJECT_PAD__@@",indent:"@@__STRINGIFY_OBJECT_INDENT__@@"};let l=f=>{if(a.inlineCharacterLimit===void 0)return f;let p=f.replace(new RegExp(d.newline,"g"),"").replace(new RegExp(d.newlineOrSpace,"g")," ").replace(new RegExp(d.pad+"|"+d.indent,"g"),"");return p.length<=a.inlineCharacterLimit?p:f.replace(new RegExp(d.newline+"|"+d.newlineOrSpace,"g"),`
 `).replace(new RegExp(d.pad,"g"),s).replace(new RegExp(d.indent,"g"),s+u)};if(r.includes(o))return '"[Circular]"';if(o==null||typeof o=="number"||typeof o=="boolean"||typeof o=="function"||typeof o=="symbol"||Et(o))return String(o);if(o instanceof Date)return `new Date('${o.toISOString()}')`;if(Array.isArray(o)){if(o.length===0)return "[]";r.push(o);let f="["+d.newline+o.map((p,m)=>{let g=o.length-1===m?d.newline:","+d.newlineOrSpace,c=i(p,a,s+u);return a.transform&&(c=a.transform(o,m,c)),d.indent+c+g}).join("")+d.pad+"]";return r.pop(),l(f)}if(jt(o)){let f=qt(o);if(a.filter&&(f=f.filter(m=>a.filter(o,m))),f.length===0)return "{}";r.push(o);let p="{"+d.newline+f.map((m,g)=>{let c=f.length-1===g?d.newline:","+d.newlineOrSpace,b=typeof m=="symbol",y=!b&&/^[a-z$_][$\w]*$/i.test(m),h=b||y?m:i(m,a),N=i(o[m],a,s+u);return a.transform&&(N=a.transform(o,m,N)),d.indent+String(h)+": "+N+c}).join("")+d.pad+"}";return r.pop(),l(p)}return o=o.replace(/\\/g,"\\\\"),o=String(o).replace(/[\r\n]/g,f=>f===`
-`?"\\n":"\\r"),a.singleQuotes===false?(o=o.replace(/"/g,'\\"'),`"${o}"`):(o=o.replace(/'/g,"\\'"),`'${o}'`)}(e,t,n)}function*Oe(e,...t){let n=new Set,r;for(;(r=t.pop())!==void 0;)n.has(r)||(yield r,n.add(r),t.push(...e(r)));}function Ft(e,t){let n=[];for(let[r,i]of K(t))n.push(e[r]),n.push(i);return n.push(e[e.length-1]),n.join("")}function D(e,...t){let n=A(t,r=>Ht(r,{indent:"  ",singleQuotes:false,inlineCharacterLimit:60}));return new Error(Ft(e,n))}function jn(e){return `internal error: ${e}; if you encounter this please submit an issue at: https://github.com/erikbrinkman/d3-dag/issues`}function te(e,...t){let n=A(t,r=>r.toString());return new Error(jn(Ft(e,n)))}function oe(e,t,...n){let[r,...i]=e,o=A(n,u=>u.toString()),a=Ft(i,o),s=t.name||"anonymous";return new Error("d3dagBuiltin"in t?jn(`builtin ${r}'${s}'${a}`):`custom ${r}'${s}'${a}`)}function*K(e){let t=0;for(let n of e)yield [t++,n];}function*Ne(e,t){for(let[n,r]of K(e))yield*Y(t(r,n));}function*A(e,t){for(let[n,r]of K(e))yield t(r,n);}function*be(e,t){for(let[n,r]of K(e))t(r,n)&&(yield r);}function Zt(e,t){for(let[n,r]of K(e))if(t(r,n))return  true;return  false}function Hn(e,t){return !Zt(e,(n,r)=>!t(n,r))}function*Eo(e,t,n,r){let i=Math.min(n,e.length);for(let o=t;o<i;o+=r)yield e[o];}function*jo(e,t,n,r){let i=Math.max(n,-1);for(let o=t;o>i;o+=r)yield e[o];}function q(e,t=0,n=e.length,r=1){if(r>0)return Eo(e,t,n,r);if(r<0)return jo(e,t,n,r);throw D`can't slice with zero stride`}function*se(...e){for(let t of e)yield*Y(t);}function*Q(e){let t=e[Symbol.iterator](),n=t.next();if(!n.done){let r=n.value,i;for(;!(i=t.next()).done;)yield [r,i.value],r=i.value;}}function dt(e){return typeof e=="object"&&e!==null&&Symbol.iterator in e&&typeof e[Symbol.iterator]=="function"}function Qt(e){let t=[],n,r=new Map;for(let[a,s]of K(e.nodes()))r.set(s,a),t.push({x:s.ux,y:s.uy,data:s.data}),s===e&&(n=a);let i=[];for(let{source:a,target:s,data:u,points:d}of e.links())i.push({source:r.get(a),target:r.get(s),points:d,data:u});return {nodes:t,links:i,index:n,v:1}}var Kt=class{constructor(t,n,r,i="inactive"){this.node=t;this.indeg=n;this.outdeg=r;this.stat=i;}bucket(){let t=this.indeg===0?-1/0:this.outdeg===0?1/0:this.indeg-this.outdeg;return this.stat==="top"?Math.min(t,0):this.stat==="bottom"?Math.max(t,0):t}isTop(){return this.indeg<=this.outdeg&&this.stat!=="bottom"||this.stat==="top"}};function Zn(e,t){let n=e[t];if(n===void 0){let r=new Set;return e[t]=r,r}else return n}function Jn(e){var n;let t;for(;e.length&&!((n=t=e[e.length-1])!=null&&n.size);)e.pop();return t||void 0}function Yn(e,t=()=>{}){let n=new Map,r=new Map,i=new Set,o=new Set,a=[],s=[];function u(N){return N===-1/0?i:N===1/0?o:N<=0?Zn(a,-N):Zn(s,N-1)}for(let N of e){let v=N.nparentLinks(),L=N.nchildLinks(),k=new Kt(N,v,L),w=t(N);n.set(N,k),w===void 0?(k.stat="active",u(k.bucket()).add(k)):ut(r,w,k);}let d=[...r].sort(([N],[v])=>N-v).map(([,N])=>N),l=0,f=d.length,p=d.length?d[l++]:new Set,m=d.length>1?d[--f]:new Set;for(let N of p)N.stat="top",u(N.bucket()).add(N);for(let N of m)N.stat="bottom",u(N.bucket()).add(N);function g(){var k;let N;if(N=(k=je(i))!=null?k:je(o))return N;let v=Jn(a),L=Jn(s);if(L)return je(a.length>s.length?v:L);if(v)return je(v)}let c=Array(n.size),b=0,y=n.size,h;for(;h=g();){let{node:N}=h,v=h.isTop()?b++:--y;h.stat="ranked",c[v]=N;for(let[L,k]of N.parentCounts()){let w=n.get(L);u(w.bucket()).delete(w),w.outdeg-=k,w.stat!=="ranked"&&w.stat!=="inactive"&&u(w.bucket()).add(w);}for(let[L,k]of N.childCounts()){let w=n.get(L);u(w.bucket()).delete(w),w.indeg-=k,w.stat!=="ranked"&&w.stat!=="inactive"&&u(w.bucket()).add(w);}if(p.delete(h),!p.size&&l<f){p=d[l++];for(let L of p)L.stat="top",u(L.bucket()).add(L);}if(m.delete(h),!m.size&&l<f){m=d[--f];for(let L of m)L.stat="bottom",u(L.bucket()).add(L);}}return c}function Qn(e,t){let n=new Set,r=new Set,i=[],o;for(let a of e)if(!r.has(a)){for(i.push(a);o=i.pop();)n.delete(o),!r.has(o)&&(r.add(o),i.push(...t(o)));n.add(a);}return n}function Qo(e){let t=new Map(A(e,i=>[i,i.nparents()])),n=[...A(be(t,([,i])=>i===0),([i])=>i)];for(let i of n)t.delete(i);let r;for(;r=n.pop();)for(let i of r.children()){let o=t.get(i)-1;o?t.set(i,o):(t.delete(i),n.push(i));}return !t.size}var Be,Ve,$e,ce,He,Fe,ft,ct,pt,Yt=class{constructor(){F(this,Be,0);F(this,Ve,0);F(this,$e,0);F(this,ce,true);F(this,He,new Set);F(this,Fe,new Set);F(this,ft,()=>{P(this,Be,C(this,Be)-1);});F(this,ct,(t,n)=>{P(this,Ve,C(this,Ve)+1),t?P(this,$e,C(this,$e)+1):!n&&C(this,ce)===true&&P(this,ce,null);});F(this,pt,t=>{P(this,Ve,C(this,Ve)-1),t?P(this,$e,C(this,$e)-1):C(this,ce)===false&&P(this,ce,null);});}*nodes(){for(let t of this.split())yield*Y(t.nodes());}topological(t){return Yn(this.nodes(),t)}*links(){for(let t of this.nodes())yield*Y(t.childLinks());}nnodes(){return C(this,Be)}nlinks(){return C(this,Ve)}*roots(){for(let t of this.split())yield*Y(t.roots());}*leaves(){for(let t of this.split())yield*Y(t.leaves());}*split(){yield*Y(C(this,He));let t;for(;t=En(C(this,Fe));)yield t,t.nnodes();}connected(){let t=false;for(let n of this.split()){if(t)return  false;t=true;}return  true}multi(){return !!C(this,$e)}acyclic(){if(C(this,ce)===null){for(let t of this.split())if(!t.acyclic())return P(this,ce,false),false;return P(this,ce,true),true}else return C(this,ce)}node(t){return P(this,Be,C(this,Be)+1),new lt(this,C(this,He),C(this,Fe),C(this,ft),C(this,ct),C(this,pt),t)}link(t,n,r){return t.link(t,n,r)}toJSON(){return Qt(this)}};Be=new WeakMap,Ve=new WeakMap,$e=new WeakMap,ce=new WeakMap,He=new WeakMap,Fe=new WeakMap,ft=new WeakMap,ct=new WeakMap,pt=new WeakMap;function Kn(e){for(let t of e.values())for(let n of t)return n}function ze(e){return e instanceof lt}var re,Ze,Je,Qe,xe,we,Ie,Pe,de,_e,le,ie,X,Ce,qe,he,Le,ht,lt=class{constructor(t,n,r,i,o,a,s){this.data=s;F(this,Ce);F(this,he);F(this,re,void 0);F(this,Ze,void 0);F(this,Je,void 0);F(this,Qe,void 0);F(this,xe,void 0);F(this,we,void 0);F(this,Ie,0);F(this,Pe,0);F(this,de,new Map);F(this,_e,0);F(this,le,new Map);F(this,ie,void 0);F(this,X,void 0);F(this,ht,t=>{var o,a;let{source:n,target:r}=t,i=n.nchildLinksTo(r)>1;if(i){P(n,Ie,C(n,Ie)-1);let s=ae(o=n,he,Le).call(o);s.nlinks-=1,s.multis-=1;}else {let s=ae(a=n,Ce,qe).call(a);P(s,X,null),C(this,xe).delete(s),C(this,we).add(n),P(n,ie,n),P(n,X,null),C(this,we).add(r),P(r,ie,r),P(r,X,null);}C(this,Qe).call(this,i),Ut(C(n,le),r,t),P(n,_e,C(n,_e)-1),Ut(C(r,de),n,t),P(r,Pe,C(r,Pe)-1);});P(this,re,t),P(this,xe,n),P(this,we,r),P(this,Ze,i),P(this,Je,o),P(this,Qe,a),P(this,ie,this),P(this,X,{nnodes:1,nlinks:0,multis:0,acyclic:true,roots:[this],leaves:[this]}),C(this,xe).add(this);}get x(){if(this.ux===void 0)throw D`can't get \`x\` when \`ux\` is undefined`;return this.ux}set x(t){this.ux=t;}get y(){if(this.uy===void 0)throw D`can't get \`y\` when \`uy\` is undefined`;return this.uy}set y(t){this.uy=t;}*nodes(){yield*Y(Oe(t=>se(t.children(),t.parents()),this));}topological(t){return Yn(this.nodes(),t)}*links(){for(let t of this.nodes())yield*Y(t.childLinks());}nnodes(){return ae(this,he,Le).call(this).nnodes}nlinks(){return ae(this,he,Le).call(this).nlinks}*split(){yield this;}connected(){return  true}multi(){return ae(this,he,Le).call(this).multis>0}acyclic(){let t=ae(this,he,Le).call(this);return t.acyclic===null?t.acyclic=Qo(this.nodes()):t.acyclic}node(t){if(C(this,re))return C(this,re).node(t);throw D`can't add a node from a deleted node`}link(t,n,r){var i,o;if(C(this,re)){if(t===n)throw D`tried to create a link between the same node, but self loops are not supported`;if(ze(t)&&ze(n)&&C(t,re)===C(n,re)&&C(this,re)===C(t,re)){let a=new Xt(C(this,re),t,n,C(this,ht),r),s=t.nchildLinksTo(n)>0,u=ae(i=t,Ce,qe).call(i),d=C(u,X),l=ae(o=n,Ce,qe).call(o),f=C(l,X);if(s&&d)P(t,Ie,C(t,Ie)+1),d.nlinks+=1,d.multis+=1;else if(s)P(t,Ie,C(t,Ie)+1);else if(u===l&&d)d.nlinks+=1,d.acyclic===true&&(d.acyclic=null);else if(u!==l&&d&&f){let[p,m,g,c]=d.nnodes>f.nnodes?[u,d,l,f]:[l,f,u,d];C(this,xe).delete(g),P(g,ie,p),P(g,X,void 0),m.nnodes+=c.nnodes,m.nlinks+=c.nlinks+1,m.multis+=c.multis,m.acyclic=m.acyclic===false||c.acyclic===false?false:m.acyclic===true&&c.acyclic===true?true:null,m.roots=null,m.leaves=null;}else u!==l&&(P(u,X,null),P(l,X,null));return C(this,Je).call(this,s,u!==l),P(t,_e,C(t,_e)+1),ut(C(t,le),n,a),P(n,Pe,C(n,Pe)+1),ut(C(n,de),t,a),a}else throw D`when creating a link, both source and target must be current members of the same graph, and can't have been deleted`}else throw D`can't add a link from a deleted node`}nparents(){return C(this,de).size}nchildren(){return C(this,le).size}nparentLinks(){return C(this,Pe)}nchildLinks(){return C(this,_e)}nparentLinksTo(t){var n,r;return ze(t)&&(r=(n=C(this,de).get(t))==null?void 0:n.size)!=null?r:0}*parentLinksTo(t){if(ze(t)){let n=C(this,de).get(t);n&&(yield*Y(n));}}nchildLinksTo(t){var n,r;return ze(t)&&(r=(n=C(this,le).get(t))==null?void 0:n.size)!=null?r:0}*childLinksTo(t){if(ze(t)){let n=C(this,le).get(t);n&&(yield*Y(n));}}*parents(){yield*Y(C(this,de).keys());}*children(){yield*Y(C(this,le).keys());}*parentCounts(){for(let[t,n]of C(this,de))yield [t,n.size];}*childCounts(){for(let[t,n]of C(this,le))yield [t,n.size];}*parentLinks(){for(let t of C(this,de).values())yield*Y(t);}*childLinks(){for(let t of C(this,le).values())yield*Y(t);}*ancestors(){yield*Y(Oe(t=>t.parents(),this));}*descendants(){yield*Y(Oe(t=>t.children(),this));}*roots(){let t=ae(this,he,Le).call(this);t.roots||(t.roots=[...Qn(this.nodes(),n=>n.children())]),yield*Y(t.roots);}*leaves(){let t=ae(this,he,Le).call(this);t.leaves||(t.leaves=[...Qn(this.nodes(),n=>n.parents())]),yield*Y(t.leaves);}parent(t,n){return this.link(t,this,n)}child(t,n){return this.link(this,t,n)}delete(){if(C(this,re)){let t;for(;t=Kn(C(this,le));)t.delete();for(;t=Kn(C(this,de));)t.delete();C(this,xe).delete(this),C(this,we).delete(this),C(this,Ze).call(this),P(this,re,null),P(this,X,null);}}toJSON(){return Qt(this)}};re=new WeakMap,Ze=new WeakMap,Je=new WeakMap,Qe=new WeakMap,xe=new WeakMap,we=new WeakMap,Ie=new WeakMap,Pe=new WeakMap,de=new WeakMap,_e=new WeakMap,le=new WeakMap,ie=new WeakMap,X=new WeakMap,Ce=new WeakSet,qe=function(){let t=this;for(;C(t,ie)!==t;)P(t,ie,C(C(t,ie),ie)),t=C(t,ie);return t},he=new WeakSet,Le=function(){let t=ae(this,Ce,qe).call(this);if(C(t,X)===void 0)throw te`undefined cached info`;if(C(t,X)!==null)return C(t,X);{let n=0,r=0,i=0;for(let o of this.nodes())n+=1,r+=o.nchildLinks(),i+=C(o,Ie),P(o,ie,this),P(o,X,void 0),C(this,we).delete(o);return C(this,xe).add(this),P(this,X,{nnodes:n,nlinks:r,multis:i,acyclic:null,roots:null,leaves:null})}},ht=new WeakMap;var We,Ke,Xt=class{constructor(t,n,r,i,o){this.source=n;this.target=r;this.data=o;F(this,We,void 0);F(this,Ke,void 0);this.points=[];P(this,We,t),P(this,Ke,i);}delete(){C(this,We)&&(C(this,Ke).call(this,this),P(this,We,null));}};We=new WeakMap,Ke=new WeakMap;function ue(){return new Yt}function Ye(e){if(typeof e!="string")throw D`id is supposed to be type string but got type ${typeof e}`;return e}function mt(e){function t(o){var d;let a=ue(),s=new Map,u=[];for(let[l,f]of o.entries()){let p=Ye(e.id(f,l)),m=a.node(f),g=(d=e.parentData(f,l))!=null?d:[];for(let[c,b]of g)u.push([c,m,b]);if(s.has(p))throw D`found a duplicate id: ${n}, but ids passed to \`graphStratify()\` must be unique`;s.set(p,m);}for(let[l,f,p]of u){let m=s.get(l);if(!m)throw D`missing id: ${l}; this id was references in a node's parentIds, but no node with that id exists`;a.link(m,f,p);}return a}function n(o){if(o===void 0)return e.id;{let a=e,{id:s}=a,u=V(a,["id"]);return mt(R(T({},u),{id:o}))}}t.id=n;function r(o){if(o===void 0)return e.parentData;{let a=e,{parentIds:s,parentData:u}=a,d=V(a,["parentIds","parentData"]);return mt(R(T({},d),{parentIds:oi(o),parentData:o}))}}t.parentData=r;function i(o){if(o===void 0)return e.parentIds;{let a=e,{parentIds:s,parentData:u}=a,d=V(a,["parentIds","parentData"]);return mt(R(T({},d),{parentIds:o,parentData:nr(o)}))}}return t.parentIds=i,t}function nr(e){function t(n,r){var i;return A((i=e(n,r))!=null?i:[],o=>[o,void 0])}return t.wrapped=e,t}function oi(e){function t(n,r){var i;return A((i=e(n,r))!=null?i:[],([o])=>o)}return t.wrapped=e,t}function ii(e){if(typeof e!="object"||e===null||!("id"in e))throw D`datum did not have an id field, and no id accessor was specified; try calling \`graphStratify().id(d => d...)\` to set a custom id accessor`;let{id:t}=e;if(typeof t=="string")return t;throw D`datum has an id field that was not a string, and no id accessor was specified; try calling \`graphStratify().id(d => d...)\` to set a custom id accessor`}function tr(e){if(typeof e!="object"||e===null)throw D`default parentIds function expected datum to be an object but got: ${e}; try setting a custom accessor for parentIds with \`graphStratify().parentIds(d => ...)\``;if(!("parentIds"in e))return;let{parentIds:t}=e;if(t===void 0||dt(t)&&Hn(t,n=>typeof n=="string"))return t;throw D`default parentIds function expected parentIds to be an iterable of strings but got: ${t}; try setting a custom accessor for parentIds with \`graphStratify().parentIds(d => ...)\``}function ai(...e){if(e.length)throw D`got arguments to graphStratify(${e}), but constructor takes no arguments; these were probably meant as data which should be called as \`graphStratify()(...)\``;return mt({id:ii,parentIds:tr,parentData:nr(tr)})}var qr=An(jr());function fe(e,t,n,r,i={}){let s=qr.Solve.call({},{optimize:e,opType:t,constraints:r,variables:n,ints:i}),{feasible:o}=s,a=V(s,["feasible"]);if(!o)throw te`could not find a feasible simplex solution`;return a}function Tt(e){if(typeof e!="function"){let[t,n]=e;if(t<=0||n<=0)throw D`all node sizes must be positive, but got width ${t} and height ${n}`;return ()=>[t,n]}else {let t=new Map;return r=>{let i=t.get(r);if(i===void 0){i=e(r);let[o,a]=i;if(o<=0||a<=0)throw D`all node sizes must be positive, but got width ${o} and height ${a} for node with data: ${r.data}; make sure the callback passed to \`sugiyama().nodeSize(...)\` is doing that`;t.set(r,i);}return i}}}function bn(e){if(typeof e!="function"){let[t,n]=e;return [()=>t,()=>n]}else {let t=e;return [n=>t(n)[0],n=>t(n)[1]]}}var fo=An(so());function kn(e){let t=0,n=0;for(let r of e)n++,t+=(r-t)/n;return n?t:void 0}function uo(e){let t=[...e];if(t.sort((n,r)=>n-r),t.length!==0){if(t.length===2)return (t[0]+t[1])/2;if(t.length%2===0){let n=t.length/2,r=t[0],i=t[n-1],o=t[n],a=t[t.length-1],s=i-r,u=a-o;return (i*u+o*s)/(s+u)}else return t[(t.length-1)/2]}}function Pi(e,t){let n=new Map;for(let l of e){let f=t.get(l);f!==void 0&&Re(n,f,l);}let r=[...n.entries()].sort(([l],[f])=>l-f).flatMap(([,l])=>l),i=new Map(e.map((l,f)=>[l,f])),o=e.filter(l=>t.get(l)===void 0),a=new Array(o.length).fill(null);function s(l,f,p,m){if(f<=l)return;let g=Math.floor((l+f)/2),c=o[g],b=i.get(c),y=0,h=[y];for(let v=p;v<m;++v)y+=i.get(r[v])<b?-1:1,h.push(y);let N=p+h.indexOf(Math.min(...h));a[g]=N,s(l,g,p,N),s(g+1,f,N,m);}s(0,o.length,0,r.length),a.push(r.length+1);let u=0,d=0;for(let[l,f]of r.entries()){for(;a[d]==l;)e[u++]=o[d++];e[u++]=f;}for(;a[d]==r.length;)e[u++]=o[d++];}function lo({aggregate:e}){function t(r,i,o){let[a,s]=o?[i,r]:[r,i],u=o?f=>f.parents():f=>f.children(),d=new Map(s.map((f,p)=>[f,p])),l=new Map(a.map(f=>{let p=d.get(f),m=p!=null?p:e(A(u(f),g=>d.get(g)));return [f,m]}));Pi(a,l);}function n(r){return r===void 0?e:lo({aggregate:r})}return t.aggregator=n,t.d3dagBuiltin=true,t}function vn(...e){if(e.length)throw D`got arguments to twolayerAgg(${e}); you probably forgot to construct twolayerAgg before passing to order: \`decrossTwoLayer().order(twolayerAgg())\`, note the trailing "()"`;return lo({aggregate:uo})}function _i(e,t,n,r,i){if(!t.length)return [];let o=[[0]],a=[0],s=[[0]],u=[0];for(let f of e){let p=[0];p.push(...f),o.push(p);}a.push(...t),s.push(...t.map(()=>[0]));for(let f of n)for(let[p,m]of f.entries())s[p+1].push(-m);u.push(...r.map(f=>-f));let{solution:d,message:l}=(0, fo.solveQP)(o,a,s,u,i);if(l.length)throw te`quadratic program failed: ${l}`;return d.shift(),d}function Gt(e,t,n,r,i=0){t.pop(),e.pop(),e.forEach(a=>a.pop()),n.forEach(a=>a.pop());let o=_i(e,t,n,r,i);return o.push(0),o}function co(e){let t=new Map,n=0;for(let r of e)for(let i of r)t.has(i)||t.set(i,n++);return t}function Mt(e,t,n,r=0){let i=1+Math.max(...t.values()),o=Array(i).fill(null).map((d,l)=>Array(i).fill(null).map((f,p)=>l===p?r:0)),a=Array(i).fill(0),s=[],u=[];for(let d of e)for(let[l,f]of Q(d)){let p=t.get(l),m=t.get(f),g=Array(i).fill(0);g[p]=1,g[m]=-1,s.push(g),u.push(-n(l,f));}return [o,a,s,u]}function po(e,t,n,r){e[n][n]+=r,e[n][t]-=r,e[t][n]-=r,e[t][t]+=r;}function Rt(e,t,n,r,i,o){let a=i+o;e[r][r]+=o*o,e[r][n]-=o*a,e[r][t]+=o*i,e[n][r]-=a*o,e[n][n]+=a*a,e[n][t]-=a*i,e[t][r]+=i*o,e[t][n]-=i*a,e[t][t]+=i*i;}function zt(e,t,n,r){for(let[a,s]of n)a.x=r[s];let i=1/0,o=-1/0;for(let a of e){let s=a[0],u=a[a.length-1];i=Math.min(i,s.x-t(void 0,s)),o=Math.max(o,u.x+t(u,void 0));}for(let a of n.keys())a.x-=i;return o-i}function Ge(e){return kn(Ne(e,t=>A(t.children(),n=>n.y-t.y)))}function ho([e,t,n]){if(e<=0||t<=0||n<=0)throw D`simplex weights must be positive, but got: ${e}, ${t}, ${n}`}function Wi(e,t){if(typeof t!="function"){let[n,r,i]=t;return (o,a)=>{switch(+(o.data.role==="node")+ +(a.data.role==="node")){case 0:return i;case 1:return r;case 2:return n;default:throw te`invalid count`}}}else {let n=new Map;for(let r of Ne(e,i=>i))if(r.data.role==="node"){let i=r.data.node,o=new Map;for(let a of i.childLinks()){let{target:s}=a,u=t(a);ho(u),o.set(s,u);}n.set(i,o);}return (r,i)=>{if(r.data.role==="link"){let{source:o,target:a}=r.data.link,[,s,u]=n.get(o).get(a);return i.data.role==="link"?u:s}else if(i.data.role==="link"){let{source:o,target:a}=i.data.link,[,s]=n.get(o).get(a);return s}else {let[o]=n.get(r.data.node).get(i.data.node);return o}}}}function mo(e){function t(r,i){var b;let o={},a={},s=Wi(r,e.weight),u=new Map,d=0;for(let y of r)for(let h of y)if(!u.has(h)){let N=`${d++}`;u.set(h,N),o[N]={};}function l(y){return u.get(y)}for(let y of r)for(let[h,N]of Q(y)){let v=l(h),L=l(N),k=`layer ${v} -> ${L}`,w=i(h,N);a[k]={min:w},o[v][k]=-1,o[L][k]=1;}let f=Ge(u.keys());for(let y of u.keys()){let h=l(y);for(let N of y.children()){let v=l(N),L=`link ${h} -> ${v}`,k=`${L} parent`;a[k]={min:0};let w=`${L} child`;a[w]={min:0},o[h][k]=1,o[h][w]=-1,o[v][k]=-1,o[v][w]=1;let S=s(y,N),O=(N.y-y.y)/f;o[L]={opt:S/O,[k]:1,[w]:1};}}let p=fe("opt","min",o,a);for(let[y,h]of u)y.x=(b=p[h])!=null?b:0;let m=0,g=0;for(let y of r){let h=y[0];m=Math.min(m,h.x-i(void 0,h));let N=y[y.length-1];g=Math.max(g,N.x+i(N,void 0));}for(let y of u.keys())y.x-=m;let c=g-m;if(c<=0)throw D`must assign nonzero width to at least one node; double check the callback passed to \`sugiyama().nodeSize(...)\``;return c}function n(r){if(r===void 0)return e.weight;{typeof r!="function"&&ho(r);let i=e,{weight:o}=i,a=V(i,["weight"]);return mo(R(T({},a),{weight:r}))}}return t.weight=n,t.d3dagBuiltin=true,t}function Ln(...e){if(e.length)throw D`got arguments to coordSimplex(${e}); you probably forgot to construct coordSimplex before passing to coord: \`sugiyama().coord(coordSimplex())\`, note the trailing "()"`;return mo({weight:[1,2,8]})}function go(e,t){let n=new Map,r=new Map(e.map((o,a)=>[o,a]));function i(o,a){var u;let s=(u=n.get(o))==null?void 0:u.get(a);if(s!==void 0)return s;if(r.has(o)||r.has(a))return  -1/0;{let d=0;for(let[p,m]of t(o)){let g=r.get(p);for(let[c,b]of t(a)){let y=r.get(c);d+=Math.sign(g-y)*m*b;}}let l=n.get(o);l===void 0?n.set(o,new Map([[a,d]])):l.set(a,d);let f=n.get(a);return f===void 0?n.set(a,new Map([[o,-d]])):f.set(o,-d),d}}return i}function Ai(e,t){let n=[[0,e.length]],r;for(;r=n.pop();){let[i,o]=r;if(i>=o)continue;let a=0,s=o;for(let u=i;u<o-1;++u){let d=t(e[u],e[u+1]);d>a&&(a=d,s=u);}if(s!==o){let u=e[s+1];e[s+1]=e[s],e[s]=u,n.push([i,s],[s+2,o]);}}}function Ui(e,t){let n=Array(e.length*(e.length-1)/2);for(;;){let r=0;for(let d=1;d<e.length;++d){let l=0,f=r;for(let p=d-1;p>=0;--p)n[f]=l,l+=t(e[p],e[d]),f-=e.length-p-1;r+=e.length-d;}let i=0,o=0,a=0,s=0;for(let d=0;d<e.length-1;++d){let l=0;for(let f=d+1;f<e.length;++f){l+=t(e[d],e[f]);let p=n[i++]+l;p>o&&(o=p,a=d,s=f);}}if(o===0)break;let u=e[s];e[s]=e[a],e[a]=u;}}function wn({baseOp:e,doScan:t}){function n(o,a,s){e(o,a,s);let u=s?a:o,d=s?go(o,l=>l.parentCounts()):go(a,l=>l.childCounts());t?Ui(u,d):Ai(u,d);}function r(o){return o===void 0?e:wn({baseOp:o,doScan:t})}n.base=r;function i(o){return o===void 0?t:wn({baseOp:e,doScan:o})}return n.scan=i,n.d3dagBuiltin=true,n}function Dn(...e){if(e.length)throw D`got arguments to twolayerGreedy(${e}); you probably forgot to construct twolayerGreedy before passing to order: \`decrossTwoLayer().order(twolayerGreedy())\`, note the trailing "()"`;return wn({baseOp:()=>{},doScan:false})}function Sn(e,t){function n(r,i){let o=r?e(r):0,a=i?e(i):0,s=(o+a)/2;return r&&i?s+t:s}return n}function Bt(e){let t=0;for(let[n,r]of Q(e)){let i=new Map(r.map((o,a)=>[o,a]));for(let[o,a]of n.entries())for(let s of n.slice(o+1))for(let[u,d]of a.childCounts())for(let[l,f]of s.childCounts())u!==l&&i.get(u)>i.get(l)&&(t+=d*f);}return t}function yo(e){function t(r){let i;e.topDown?i=Oe(o=>[...o.children()].sort((a,s)=>s.nchildren()-a.nchildren()),...Ne(r,o=>[...be(o,a=>!a.nparents())].sort((a,s)=>s.nchildren()-a.nchildren()))):i=Oe(o=>[...o.parents()].sort((a,s)=>s.nparents()-a.nparents()),...Ne(q(r,r.length-1,-1,-1),o=>[...be(o,a=>!a.nchildren())].sort((a,s)=>s.nparents()-a.nparents())));for(let o of r)o.splice(0);for(let o of i){let{data:a}=o;if(a.role==="node")for(let s=a.topLayer;s<=a.bottomLayer;++s)r[s].push(o);else r[a.layer].push(o);}}function n(r){return r===void 0?e.topDown:yo({topDown:r})}return t.topDown=n,t.d3dagBuiltin=true,t}function Vt(...e){if(e.length)throw D`got arguments to decrossDfs(${e}); you probably forgot to construct decrossDfs before passing to decross: \`sugiyama().decross(decrossDfs())\`, note the trailing "()"`;return yo({topDown:true})}function $t(e){function t(o){let a=o.slice().reverse(),s=o.map(l=>l.slice()),u=Bt(s),d=e.inits.length?e.inits:[()=>{}];for(let l of d){l(o);let f=true;for(let p=0;p<e.passes&&f;++p){f=false;for(let[c,b]of Q(o)){let y=b.slice();e.order(c,b,true),b.some((h,N)=>y[N]!==h)&&(f=true);}let m=Bt(o);m<u&&(u=m,s=o.map(c=>c.slice()));for(let[c,b]of Q(a)){let y=b.slice();e.order(b,c,false),b.some((h,N)=>y[N]!==h)&&(f=true);}let g=Bt(o);g<u&&(u=g,s=o.map(c=>c.slice()));}}o.splice(0,o.length,...s);}function n(o){if(o===void 0)return e.order;{let a=e,{order:s}=a,u=V(a,["order"]);return $t(R(T({},u),{order:o}))}}t.order=n;function r(o){if(o===void 0)return [...e.inits];{let a=e,{inits:s}=a,u=V(a,["inits"]);return $t(R(T({},u),{inits:o}))}}t.inits=r;function i(o){if(o===void 0)return e.passes;if(o<=0)throw D`number of passes must be positive`;return $t(R(T({},e),{passes:o}))}return t.passes=i,t.d3dagBuiltin=true,t}function On(...e){if(e.length)throw D`got arguments to decrossTwoLayer(${e}); you probably forgot to construct decrossTwoLayer before passing to decross: \`sugiyama().decross(decrossTwoLayer())\`, note the trailing "()"`;return $t({order:Dn().base(vn()),inits:[Vt().topDown(true),Vt().topDown(false)],passes:24})}function In(e,t){return +!!(e&&t)}function Cn(e){function t(i,o){var y;let a={},s={},u=new Map(A(i.nodes(),(h,N)=>[h,N.toString()]));function d(h){return u.get(h)}function l(h){return a[d(h)]}function f(h,N,v,L,k=0){let w=l(N),S=l(v),O=`${h}: ${d(N)} -> ${d(v)}`;s[O]={min:L},w[O]=-1,S[O]=1,w.opt+=k,S.opt-=k;}function p(h,N,v){f(`${h} before`,N,v,0),f(`${h} after`,v,N,0);}let m=[],g=new Map;for(let h of i.nodes()){let N=d(h);a[N]={opt:0};let v=e.rank(h);v!==void 0&&m.push([v,h]);let L=e.group(h);if(L!==void 0){let k=g.get(L);k?k.push(h):g.set(L,[h]);}}let c=new Set;for(let h of i.topological(e.rank)){for(let[N,v]of h.childCounts())c.has(N)?f("link",N,h,o(N,h),v):f("link",h,N,o(h,N),v);c.add(h);}let b=m.sort(([h],[N])=>h-N);for(let[[h,N],[v,L]]of Q(b))h<v?f("rank",N,L,o(N,L)):p("rank",N,L);for(let h of g.values())for(let[N,v]of Q(h))p("group",N,v);try{let h=fe("opt","max",a,s,{}),N=0,v=0;for(let L of i.nodes()){let k=(y=h[d(L)])!=null?y:0;L.y=k,N=Math.min(N,k-o(void 0,L)),v=Math.max(v,k+o(L,void 0));}for(let L of i.nodes())L.y-=N;return v-N}catch(h){throw g.size?D`could not find a feasible simplex layout; this is likely due to group constraints producing an infeasible layout, try relaxing the functions you're passing to \`layeringSimplex().group(...)\``:te`could not find a feasible simplex solution`}}function n(i){if(i===void 0)return e.rank;{let o=e,{rank:a}=o,s=V(o,["rank"]);return Cn(R(T({},s),{rank:i}))}}t.rank=n;function r(i){if(i===void 0)return e.group;{let o=e,{group:a}=o,s=V(o,["group"]);return Cn(R(T({},s),{group:i}))}}return t.group=r,t.d3dagBuiltin=true,t}function No(){}function Tn(...e){if(e.length)throw D`got arguments to layeringSimplex(${e}); you probably forgot to construct layeringSimplex before passing to layering: \`sugiyama().layering(layeringSimplex())\`, note the trailing "()"`;return Cn({rank:No,group:No})}function bo(e,t,n,r){for(let[o,[a,s]]of t){let u=a.bottomLayer;for(let d of o.childLinks()){let[l,f]=t.get(d.target),p=l.topLayer;if(p>u){let m=s;for(let g=u+1;g<p;++g){let c=e.node({link:d,layer:g,role:"link"});m.child(c,void 0),m=c;}m.child(f);}else if(p<u){let m=f;for(let g=p+1;g<u;++g){let c=e.node({link:d,layer:g,role:"link"});m.child(c,void 0),m=c;}m.child(s);}else throw oe`layering ${r} assigned nodes with an edge to the same layer`}}let i=Array(n).fill(null).map(()=>[]);for(let o of e.nodes()){let{data:a}=o;if(a.role==="node"){let{topLayer:s,bottomLayer:u}=a;for(let d=s;d<=u;++d)i[d].push(o);}else {let{layer:s}=a;i[s].push(o);}}for(let o of i)if(!o.length)throw oe`layering ${r} didn't assign a node to every layer`;return i}function Gn(e,t,n,r,i){let o=ue(),a=Array(r).fill(false),s=new Map;for(let p of e.nodes()){let m=p.uy;if(m===void 0)throw oe`layering ${i} didn't assign a layer to a node`;if(m<0||m>=r)throw oe`layering ${i} assigned node an invalid layer: ${m}`;{let g=se(p.parentCounts(),p.childCounts());!a[m]&&Zt(g,([{uy:b},y])=>y>1&&b===m-1)&&(a[m]=true);let c={node:p,topLayer:m,bottomLayer:m,role:"node"};s.set(p,[c,o.node(c)]);}}let u=0,d=a.map(p=>u+=+p);for(let[p]of s.values()){let m=d[p.topLayer];p.topLayer+=m,p.bottomLayer+=m;}let l=bo(o,s,r+u,i),f=-n;for(let p of l){f+=n;let m=Math.max(-n,...A(p,({data:c})=>c.role==="node"?t(c.node):-1/0)),g=f+m/2;for(let c of p)c.y=g;f+=m;}return [l,f]}function Mn(e){for(let t of e)for(let n of t)if(n.data.role==="node"){let{node:r}=n.data;r.x=n.x,r.y=n.y;for(let i of n.children()){let o=[[n.x,n.y]],a;for(;i.data.role==="link";)a=i.data.link,o.push([i.x,i.y]),[i]=i.children();o.push([i.x,i.y]);let s=i.data.node,u=se(r.childLinksTo(s),r.parentLinksTo(s));a||([a]=u),a.source!==r&&o.reverse(),a.points.splice(0,a.points.length,...o);}}}function Rn(e,t=0){return ({data:n})=>n.role==="node"?e(n.node):t}function xo(e,t,n,r,i=.001){for(let o of e){for(let a of o)if(a.ux===void 0)throw oe`coord ${r} didn't assign an x to every node`;for(let[[a,s],[u,d]]of Q(se([[void 0,0]],A(o,l=>[l,l.x]),[[void 0,n]])))if(d-s<t(a,u)-i)throw oe`coord ${r} assigned nodes too close for separation`}}function Me(e,t){function n(d){let l;if(!d.nnodes())l={width:0,height:0};else {let[f,p]=bn(Tt(e.nodeSize)),[m,g]=t.gap,c=e.layering(d,In)+1,[b,y]=Gn(d,p,g,c,e.layering);e.decross(b);let h=Sn(Rn(f),m),N=e.coord(b,h);xo(b,h,N,e.coord),Mn(b),l={width:N,height:y};}for(let f of e.tweaks)l=f(d,l);return l}function r(d){if(d===void 0)return e.layering;{let l=e,{layering:f}=l,p=V(l,["layering"]);return Me(R(T({},p),{layering:d}),t)}}n.layering=r;function i(d){if(d===void 0)return e.decross;{let l=e,{decross:f}=l,p=V(l,["decross"]);return Me(R(T({},p),{decross:d}),t)}}n.decross=i;function o(d){if(d===void 0)return e.coord;{let l=e,{coord:f}=l,p=V(l,["coord"]);return Me(R(T({},p),{coord:d}),t)}}n.coord=o;function a(d){if(d===void 0)return e.tweaks;{let l=e,{tweaks:f}=l,p=V(l,["tweaks"]);return Me(R(T({},p),{tweaks:d}),t)}}n.tweaks=a;function s(d){if(d===void 0)return e.nodeSize;if(typeof d!="function"&&(d[0]<=0||d[1]<=0)){let[f,p]=d;throw D`constant nodeSize must be positive, but got: [${f}, ${p}]`}else {let l=e,{nodeSize:f}=l,p=V(l,["nodeSize"]);return Me(R(T({},p),{nodeSize:d}),t)}}n.nodeSize=s;function u(d){if(d!==void 0){let[l,f]=d;if(l<0||f<0)throw D`gap width (${l}) and height (${f}) must be non-negative`;return Me(e,R(T({},t),{gap:d}))}else {let[l,f]=t.gap;return [l,f]}}return n.gap=u,n}function ji(...e){if(e.length)throw D`got arguments to sugiyama(${e}), but constructor takes no arguments; these were probably meant as data which should be called as \`sugiyama()(...)\``;return Me({layering:Tn(),decross:On(),coord:Ln(),nodeSize:[1,1],tweaks:[]},{gap:[1,1]})}function Zi(e,t){if(typeof e!="function")return ()=>e;{let n=new Map;for(let r of Ne(t,i=>i))if(r.data.role==="node"){let i=r.data.node,o=new Map;for(let a of i.childLinks()){let s=e(a);if(s<0)throw D`link weights must be non-negative; double check the accessor passed into \`coordQuad().vertWeak(...)\``;o.set(a.target,s);}n.set(i,o);}return (r,i)=>n.get(r).get(i)}}function zn(e,t,n){if(typeof e!="function")return ()=>e;{let r=new Map;return i=>{let o=r.get(i);if(o===void 0){let a=e(i);if(a<0)throw new Error(`${t} weights must be non-negative; double check the accessor passed into \`coordQuad().${n}(...)\``);return r.set(i,a),a}else return o}}}function Ee(e){function t(s,u){let d=co(s),[l,f,p,m]=Mt(s,d,u,e.comp),g=Zi(e.vertWeak,s),c=zn(e.vertStrong,"link","vertStrong"),b=zn(e.linkCurve,"link","linkCurve"),y=zn(e.nodeCurve,"node","nodeCurve"),h=Ge(d.keys());for(let[v,L]of d){let k=v.data,w=k.role==="node"?k.node:k.link.source;for(let S of v.children()){let O=d.get(S),I=S.data,z=I.role==="node"?I.node:I.link.target,M=k.role==="node"?g(w,z):c(k.link),$=I.role==="node"?g(w,z):c(I.link),_=I.role==="node"?y(I.node):b(I.link),W=(S.y-v.y)/h;po(l,L,O,(M+$)/W);for(let B of S.children()){let Z=d.get(B),E=(B.y-S.y)/h;Rt(l,L,O,Z,_/W,_/E);}}}let N;try{let v=Gt(l,f,p,m);N=zt(s,u,d,v);}catch(v){throw typeof v=="string"?te`${v}`:te`undefined quadprog exception`}if(N<=0)throw D`must assign nonzero width to at least one node; double check the callback passed to \`sugiyama().nodeSize(...)\``;return N}function n(s){if(s===void 0)return e.vertWeak;if(typeof s=="number"&&s<0)throw D`vertWeak must be non-negative but was: ${s}`;{let u=e,{vertWeak:d}=u,l=V(u,["vertWeak"]);return Ee(R(T({},l),{vertWeak:s}))}}t.vertWeak=n;function r(s){if(s===void 0)return e.vertStrong;if(typeof s=="number"&&s<0)throw D`vertStrong must be non-negative but was: ${s}`;{let u=e,{vertStrong:d}=u,l=V(u,["vertStrong"]);return Ee(R(T({},l),{vertStrong:s}))}}t.vertStrong=r;function i(s){if(s===void 0)return e.linkCurve;if(typeof s=="number"&&s<0)throw D`linkCurve must be non-negative but was: ${s}`;{let u=e,{linkCurve:d}=u,l=V(u,["linkCurve"]);return Ee(R(T({},l),{linkCurve:s}))}}t.linkCurve=i;function o(s){if(s===void 0)return e.nodeCurve;if(typeof s=="number"&&s<0)throw D`nodeCurve must be non-negative but was: ${s}`;{let u=e,{nodeCurve:d}=u,l=V(u,["nodeCurve"]);return Ee(R(T({},l),{nodeCurve:s}))}}t.nodeCurve=o;function a(s){if(s===void 0)return e.comp;if(s<=0)throw D`compress weight must be positive, but was: ${s}`;return Ee(R(T({},e),{comp:s}))}return t.compress=a,t.d3dagBuiltin=true,t}function Ji(...e){if(e.length)throw D`got arguments to coordQuad(${e}); you probably forgot to construct coordQuad before passing to coord: \`sugiyama().coord(coordQuad())\`, note the trailing "()"`;return Ee({vertWeak:1,vertStrong:0,linkCurve:1,nodeCurve:0,comp:1e-6})}function aa(e,t){for(let i of e.nodes()){let o=i.x;i.x=i.y,i.y=o;}for(let i of e.links())for(let o of i.points){let[a]=o;o[0]=o[1],o[1]=a;}let{width:n,height:r}=t;return {width:r,height:n}}function sa(e,t){let{height:n}=t;for(let r of e.nodes())r.y=n-r.y;for(let r of e.links())for(let i of r.points)i[1]=n-i[1];return t}function ua(e,t){let{width:n}=t;for(let r of e.nodes())r.x=n-r.x;for(let r of e.links())for(let i of r.points)i[0]=n-i[0];return t}function da(e="diagonal"){if(e==="diagonal")return aa;if(e==="vertical")return sa;if(e==="horizontal")return ua;throw D`invalid tweakFlip style: ${e}`}
+`?"\\n":"\\r"),a.singleQuotes===false?(o=o.replace(/"/g,'\\"'),`"${o}"`):(o=o.replace(/'/g,"\\'"),`'${o}'`)}(e,t,n)}function*Oe(e,...t){let n=new Set,r;for(;(r=t.pop())!==void 0;)n.has(r)||(yield r,n.add(r),t.push(...e(r)));}function Ft(e,t){let n=[];for(let[r,i]of K(t))n.push(e[r]),n.push(i);return n.push(e[e.length-1]),n.join("")}function D(e,...t){let n=A(t,r=>Ht(r,{indent:"  ",singleQuotes:false,inlineCharacterLimit:60}));return new Error(Ft(e,n))}function jn(e){return `internal error: ${e}; if you encounter this please submit an issue at: https://github.com/erikbrinkman/d3-dag/issues`}function te(e,...t){let n=A(t,r=>r.toString());return new Error(jn(Ft(e,n)))}function oe(e,t,...n){let[r,...i]=e,o=A(n,u=>u.toString()),a=Ft(i,o),s=t.name||"anonymous";return new Error("d3dagBuiltin"in t?jn(`builtin ${r}'${s}'${a}`):`custom ${r}'${s}'${a}`)}function*K(e){let t=0;for(let n of e)yield [t++,n];}function*Ne(e,t){for(let[n,r]of K(e))yield*Y(t(r,n));}function*A(e,t){for(let[n,r]of K(e))yield t(r,n);}function*be(e,t){for(let[n,r]of K(e))t(r,n)&&(yield r);}function Zt(e,t){for(let[n,r]of K(e))if(t(r,n))return  true;return  false}function Hn(e,t){return !Zt(e,(n,r)=>!t(n,r))}function*Eo(e,t,n,r){let i=Math.min(n,e.length);for(let o=t;o<i;o+=r)yield e[o];}function*jo(e,t,n,r){let i=Math.max(n,-1);for(let o=t;o>i;o+=r)yield e[o];}function q(e,t=0,n=e.length,r=1){if(r>0)return Eo(e,t,n,r);if(r<0)return jo(e,t,n,r);throw D`can't slice with zero stride`}function*se(...e){for(let t of e)yield*Y(t);}function*Q(e){let t=e[Symbol.iterator](),n=t.next();if(!n.done){let r=n.value,i;for(;!(i=t.next()).done;)yield [r,i.value],r=i.value;}}function dt(e){return typeof e=="object"&&e!==null&&Symbol.iterator in e&&typeof e[Symbol.iterator]=="function"}function Qt(e){let t=[],n,r=new Map;for(let[a,s]of K(e.nodes()))r.set(s,a),t.push({x:s.ux,y:s.uy,data:s.data}),s===e&&(n=a);let i=[];for(let{source:a,target:s,data:u,points:d}of e.links())i.push({source:r.get(a),target:r.get(s),points:d,data:u});return {nodes:t,links:i,index:n,v:1}}var Kt=class{constructor(t,n,r,i="inactive"){this.node=t;this.indeg=n;this.outdeg=r;this.stat=i;}bucket(){let t=this.indeg===0?-1/0:this.outdeg===0?1/0:this.indeg-this.outdeg;return this.stat==="top"?Math.min(t,0):this.stat==="bottom"?Math.max(t,0):t}isTop(){return this.indeg<=this.outdeg&&this.stat!=="bottom"||this.stat==="top"}};function Zn(e,t){let n=e[t];if(n===void 0){let r=new Set;return e[t]=r,r}else return n}function Jn(e){var n;let t;for(;e.length&&!((n=t=e[e.length-1])!=null&&n.size);)e.pop();return t||void 0}function Yn(e,t=()=>{}){let n=new Map,r=new Map,i=new Set,o=new Set,a=[],s=[];function u(N){return N===-1/0?i:N===1/0?o:N<=0?Zn(a,-N):Zn(s,N-1)}for(let N of e){let v=N.nparentLinks(),L=N.nchildLinks(),k=new Kt(N,v,L),w=t(N);n.set(N,k),w===void 0?(k.stat="active",u(k.bucket()).add(k)):ut(r,w,k);}let d=[...r].sort(([N],[v])=>N-v).map(([,N])=>N),l=0,f=d.length,p=d.length?d[l++]:new Set,m=d.length>1?d[--f]:new Set;for(let N of p)N.stat="top",u(N.bucket()).add(N);for(let N of m)N.stat="bottom",u(N.bucket()).add(N);function g(){var k;let N;if(N=(k=je(i))!=null?k:je(o))return N;let v=Jn(a),L=Jn(s);if(L)return je(a.length>s.length?v:L);if(v)return je(v)}let c=Array(n.size),b=0,y=n.size,h;for(;h=g();){let{node:N}=h,v=h.isTop()?b++:--y;h.stat="ranked",c[v]=N;for(let[L,k]of N.parentCounts()){let w=n.get(L);u(w.bucket()).delete(w),w.outdeg-=k,w.stat!=="ranked"&&w.stat!=="inactive"&&u(w.bucket()).add(w);}for(let[L,k]of N.childCounts()){let w=n.get(L);u(w.bucket()).delete(w),w.indeg-=k,w.stat!=="ranked"&&w.stat!=="inactive"&&u(w.bucket()).add(w);}if(p.delete(h),!p.size&&l<f){p=d[l++];for(let L of p)L.stat="top",u(L.bucket()).add(L);}if(m.delete(h),!m.size&&l<f){m=d[--f];for(let L of m)L.stat="bottom",u(L.bucket()).add(L);}}return c}function Qn(e,t){let n=new Set,r=new Set,i=[],o;for(let a of e)if(!r.has(a)){for(i.push(a);o=i.pop();)n.delete(o),!r.has(o)&&(r.add(o),i.push(...t(o)));n.add(a);}return n}function Qo(e){let t=new Map(A(e,i=>[i,i.nparents()])),n=[...A(be(t,([,i])=>i===0),([i])=>i)];for(let i of n)t.delete(i);let r;for(;r=n.pop();)for(let i of r.children()){let o=t.get(i)-1;o?t.set(i,o):(t.delete(i),n.push(i));}return !t.size}var Be,Ve,$e,ce,He,Fe,ft,ct,pt,Yt=class{constructor(){F(this,Be,0);F(this,Ve,0);F(this,$e,0);F(this,ce,true);F(this,He,new Set);F(this,Fe,new Set);F(this,ft,()=>{P(this,Be,C(this,Be)-1);});F(this,ct,(t,n)=>{P(this,Ve,C(this,Ve)+1),t?P(this,$e,C(this,$e)+1):!n&&C(this,ce)===true&&P(this,ce,null);});F(this,pt,t=>{P(this,Ve,C(this,Ve)-1),t?P(this,$e,C(this,$e)-1):C(this,ce)===false&&P(this,ce,null);});}*nodes(){for(let t of this.split())yield*Y(t.nodes());}topological(t){return Yn(this.nodes(),t)}*links(){for(let t of this.nodes())yield*Y(t.childLinks());}nnodes(){return C(this,Be)}nlinks(){return C(this,Ve)}*roots(){for(let t of this.split())yield*Y(t.roots());}*leaves(){for(let t of this.split())yield*Y(t.leaves());}*split(){yield*Y(C(this,He));let t;for(;t=En(C(this,Fe));)yield t,t.nnodes();}connected(){let t=false;for(let n of this.split()){if(t)return  false;t=true;}return  true}multi(){return !!C(this,$e)}acyclic(){if(C(this,ce)===null){for(let t of this.split())if(!t.acyclic())return P(this,ce,false),false;return P(this,ce,true),true}else return C(this,ce)}node(t){return P(this,Be,C(this,Be)+1),new lt(this,C(this,He),C(this,Fe),C(this,ft),C(this,ct),C(this,pt),t)}link(t,n,r){return t.link(t,n,r)}toJSON(){return Qt(this)}};Be=new WeakMap,Ve=new WeakMap,$e=new WeakMap,ce=new WeakMap,He=new WeakMap,Fe=new WeakMap,ft=new WeakMap,ct=new WeakMap,pt=new WeakMap;function Kn(e){for(let t of e.values())for(let n of t)return n}function ze(e){return e instanceof lt}var re,Ze,Je,Qe,xe,we,Ie,Pe,de,_e,le,ie,X,Ce,qe,he,Le,ht,lt=class{constructor(t,n,r,i,o,a,s){this.data=s;F(this,Ce);F(this,he);F(this,re,void 0);F(this,Ze,void 0);F(this,Je,void 0);F(this,Qe,void 0);F(this,xe,void 0);F(this,we,void 0);F(this,Ie,0);F(this,Pe,0);F(this,de,new Map);F(this,_e,0);F(this,le,new Map);F(this,ie,void 0);F(this,X,void 0);F(this,ht,t=>{var o,a;let{source:n,target:r}=t,i=n.nchildLinksTo(r)>1;if(i){P(n,Ie,C(n,Ie)-1);let s=ae(o=n,he,Le).call(o);s.nlinks-=1,s.multis-=1;}else {let s=ae(a=n,Ce,qe).call(a);P(s,X,null),C(this,xe).delete(s),C(this,we).add(n),P(n,ie,n),P(n,X,null),C(this,we).add(r),P(r,ie,r),P(r,X,null);}C(this,Qe).call(this,i),Ut(C(n,le),r,t),P(n,_e,C(n,_e)-1),Ut(C(r,de),n,t),P(r,Pe,C(r,Pe)-1);});P(this,re,t),P(this,xe,n),P(this,we,r),P(this,Ze,i),P(this,Je,o),P(this,Qe,a),P(this,ie,this),P(this,X,{nnodes:1,nlinks:0,multis:0,acyclic:true,roots:[this],leaves:[this]}),C(this,xe).add(this);}get x(){if(this.ux===void 0)throw D`can't get \`x\` when \`ux\` is undefined`;return this.ux}set x(t){this.ux=t;}get y(){if(this.uy===void 0)throw D`can't get \`y\` when \`uy\` is undefined`;return this.uy}set y(t){this.uy=t;}*nodes(){yield*Y(Oe(t=>se(t.children(),t.parents()),this));}topological(t){return Yn(this.nodes(),t)}*links(){for(let t of this.nodes())yield*Y(t.childLinks());}nnodes(){return ae(this,he,Le).call(this).nnodes}nlinks(){return ae(this,he,Le).call(this).nlinks}*split(){yield this;}connected(){return  true}multi(){return ae(this,he,Le).call(this).multis>0}acyclic(){let t=ae(this,he,Le).call(this);return t.acyclic===null?t.acyclic=Qo(this.nodes()):t.acyclic}node(t){if(C(this,re))return C(this,re).node(t);throw D`can't add a node from a deleted node`}link(t,n,r){var i,o;if(C(this,re)){if(t===n)throw D`tried to create a link between the same node, but self loops are not supported`;if(ze(t)&&ze(n)&&C(t,re)===C(n,re)&&C(this,re)===C(t,re)){let a=new Xt(C(this,re),t,n,C(this,ht),r),s=t.nchildLinksTo(n)>0,u=ae(i=t,Ce,qe).call(i),d=C(u,X),l=ae(o=n,Ce,qe).call(o),f=C(l,X);if(s&&d)P(t,Ie,C(t,Ie)+1),d.nlinks+=1,d.multis+=1;else if(s)P(t,Ie,C(t,Ie)+1);else if(u===l&&d)d.nlinks+=1,d.acyclic===true&&(d.acyclic=null);else if(u!==l&&d&&f){let[p,m,g,c]=d.nnodes>f.nnodes?[u,d,l,f]:[l,f,u,d];C(this,xe).delete(g),P(g,ie,p),P(g,X,void 0),m.nnodes+=c.nnodes,m.nlinks+=c.nlinks+1,m.multis+=c.multis,m.acyclic=m.acyclic===false||c.acyclic===false?false:m.acyclic===true&&c.acyclic===true?true:null,m.roots=null,m.leaves=null;}else u!==l&&(P(u,X,null),P(l,X,null));return C(this,Je).call(this,s,u!==l),P(t,_e,C(t,_e)+1),ut(C(t,le),n,a),P(n,Pe,C(n,Pe)+1),ut(C(n,de),t,a),a}else throw D`when creating a link, both source and target must be current members of the same graph, and can't have been deleted`}else throw D`can't add a link from a deleted node`}nparents(){return C(this,de).size}nchildren(){return C(this,le).size}nparentLinks(){return C(this,Pe)}nchildLinks(){return C(this,_e)}nparentLinksTo(t){var n,r;return ze(t)&&(r=(n=C(this,de).get(t))==null?void 0:n.size)!=null?r:0}*parentLinksTo(t){if(ze(t)){let n=C(this,de).get(t);n&&(yield*Y(n));}}nchildLinksTo(t){var n,r;return ze(t)&&(r=(n=C(this,le).get(t))==null?void 0:n.size)!=null?r:0}*childLinksTo(t){if(ze(t)){let n=C(this,le).get(t);n&&(yield*Y(n));}}*parents(){yield*Y(C(this,de).keys());}*children(){yield*Y(C(this,le).keys());}*parentCounts(){for(let[t,n]of C(this,de))yield [t,n.size];}*childCounts(){for(let[t,n]of C(this,le))yield [t,n.size];}*parentLinks(){for(let t of C(this,de).values())yield*Y(t);}*childLinks(){for(let t of C(this,le).values())yield*Y(t);}*ancestors(){yield*Y(Oe(t=>t.parents(),this));}*descendants(){yield*Y(Oe(t=>t.children(),this));}*roots(){let t=ae(this,he,Le).call(this);t.roots||(t.roots=[...Qn(this.nodes(),n=>n.children())]),yield*Y(t.roots);}*leaves(){let t=ae(this,he,Le).call(this);t.leaves||(t.leaves=[...Qn(this.nodes(),n=>n.parents())]),yield*Y(t.leaves);}parent(t,n){return this.link(t,this,n)}child(t,n){return this.link(this,t,n)}delete(){if(C(this,re)){let t;for(;t=Kn(C(this,le));)t.delete();for(;t=Kn(C(this,de));)t.delete();C(this,xe).delete(this),C(this,we).delete(this),C(this,Ze).call(this),P(this,re,null),P(this,X,null);}}toJSON(){return Qt(this)}};re=new WeakMap,Ze=new WeakMap,Je=new WeakMap,Qe=new WeakMap,xe=new WeakMap,we=new WeakMap,Ie=new WeakMap,Pe=new WeakMap,de=new WeakMap,_e=new WeakMap,le=new WeakMap,ie=new WeakMap,X=new WeakMap,Ce=new WeakSet,qe=function(){let t=this;for(;C(t,ie)!==t;)P(t,ie,C(C(t,ie),ie)),t=C(t,ie);return t},he=new WeakSet,Le=function(){let t=ae(this,Ce,qe).call(this);if(C(t,X)===void 0)throw te`undefined cached info`;if(C(t,X)!==null)return C(t,X);{let n=0,r=0,i=0;for(let o of this.nodes())n+=1,r+=o.nchildLinks(),i+=C(o,Ie),P(o,ie,this),P(o,X,void 0),C(this,we).delete(o);return C(this,xe).add(this),P(this,X,{nnodes:n,nlinks:r,multis:i,acyclic:null,roots:null,leaves:null})}},ht=new WeakMap;var We,Ke,Xt=class{constructor(t,n,r,i,o){this.source=n;this.target=r;this.data=o;F(this,We,void 0);F(this,Ke,void 0);this.points=[];P(this,We,t),P(this,Ke,i);}delete(){C(this,We)&&(C(this,Ke).call(this,this),P(this,We,null));}};We=new WeakMap,Ke=new WeakMap;function ue(){return new Yt}function Ye(e){if(typeof e!="string")throw D`id is supposed to be type string but got type ${typeof e}`;return e}function Xe(e){function t(a){let s=ue(),u=new Map;for(let[d,l]of a.entries()){let f=Ye(e.sourceId(l,d)),p=u.get(f);p===void 0&&(p=s.node(e.nodeDatum(f,d)),u.set(f,p));let m=Ye(e.targetId(l,d)),g=u.get(m);g===void 0&&(g=s.node(e.nodeDatum(m,d)),u.set(m,g)),(f!==m||!e.single)&&s.link(p,g,l);}return s}function n(a){if(a===void 0)return e.sourceId;{let s=e,{sourceId:u}=s,d=V(s,["sourceId"]);return Xe(R(T({},d),{sourceId:a}))}}t.sourceId=n;function r(a){if(a===void 0)return e.targetId;{let s=e,{targetId:u}=s,d=V(s,["targetId"]);return Xe(R(T({},d),{targetId:a}))}}t.targetId=r;function i(a){if(a===void 0)return e.nodeDatum;{let s=e,{nodeDatum:u}=s,d=V(s,["nodeDatum"]);return Xe(R(T({},d),{nodeDatum:a}))}}t.nodeDatum=i;function o(a){return a===void 0?e.single:Xe(R(T({},e),{single:a}))}return t.single=o,t}function Ko(e){if(typeof e!="object"||e===null||!(0 in e))throw D`default source id expected datum[0] to exist but got datum: ${e}; you should check the data you're passing to \`graphConnect()\` to make sure it looks like \`[[source_id, target_id], ...]\` or set a custom accessor with \`graphConnect().source(d => ...).target(d => ...)\``;let t=e[0];if(typeof t=="string")return t;throw D`default source id expected datum[0] to be a string but got datum: ${e}; you should check the data you're passing to \`graphConnect()\` to make sure it looks like \`[[source_id, target_id], ...]\` or set a custom accessor with \`graphConnect().source(d => ...).target(d => ...)\``}function Yo(e){if(typeof e!="object"||e===null||!(1 in e))throw D`default target id expected datum[1] to exist but got datum: ${e}; you should check the data you're passing to \`graphConnect()\` to make sure it looks like \`[[source_id, target_id], ...]\` or set a custom accessor with \`graphConnect().source(d => ...).target(d => ...)\``;let t=e[1];if(typeof t=="string")return t;throw D`default target id expected datum[1] to be a string but got datum: ${e}; you should check the data you're passing to \`graphConnect()\` to make sure it looks like \`[[source_id, target_id], ...]\` or set a custom accessor with \`graphConnect().source(d => ...).target(d => ...)\``}function Xo(e){return e}function ei(...e){if(e.length)throw D`got arguments to graphConnect(${e}), but constructor takes no arguments; these were probably meant as data which should be called as \`graphConnect()(...)\``;return Xe({sourceId:Ko,targetId:Yo,nodeDatum:Xo,single:false})}function mt(e){function t(o){var d;let a=ue(),s=new Map,u=[];for(let[l,f]of o.entries()){let p=Ye(e.id(f,l)),m=a.node(f),g=(d=e.parentData(f,l))!=null?d:[];for(let[c,b]of g)u.push([c,m,b]);if(s.has(p))throw D`found a duplicate id: ${n}, but ids passed to \`graphStratify()\` must be unique`;s.set(p,m);}for(let[l,f,p]of u){let m=s.get(l);if(!m)throw D`missing id: ${l}; this id was references in a node's parentIds, but no node with that id exists`;a.link(m,f,p);}return a}function n(o){if(o===void 0)return e.id;{let a=e,{id:s}=a,u=V(a,["id"]);return mt(R(T({},u),{id:o}))}}t.id=n;function r(o){if(o===void 0)return e.parentData;{let a=e,{parentIds:s,parentData:u}=a,d=V(a,["parentIds","parentData"]);return mt(R(T({},d),{parentIds:oi(o),parentData:o}))}}t.parentData=r;function i(o){if(o===void 0)return e.parentIds;{let a=e,{parentIds:s,parentData:u}=a,d=V(a,["parentIds","parentData"]);return mt(R(T({},d),{parentIds:o,parentData:nr(o)}))}}return t.parentIds=i,t}function nr(e){function t(n,r){var i;return A((i=e(n,r))!=null?i:[],o=>[o,void 0])}return t.wrapped=e,t}function oi(e){function t(n,r){var i;return A((i=e(n,r))!=null?i:[],([o])=>o)}return t.wrapped=e,t}function ii(e){if(typeof e!="object"||e===null||!("id"in e))throw D`datum did not have an id field, and no id accessor was specified; try calling \`graphStratify().id(d => d...)\` to set a custom id accessor`;let{id:t}=e;if(typeof t=="string")return t;throw D`datum has an id field that was not a string, and no id accessor was specified; try calling \`graphStratify().id(d => d...)\` to set a custom id accessor`}function tr(e){if(typeof e!="object"||e===null)throw D`default parentIds function expected datum to be an object but got: ${e}; try setting a custom accessor for parentIds with \`graphStratify().parentIds(d => ...)\``;if(!("parentIds"in e))return;let{parentIds:t}=e;if(t===void 0||dt(t)&&Hn(t,n=>typeof n=="string"))return t;throw D`default parentIds function expected parentIds to be an iterable of strings but got: ${t}; try setting a custom accessor for parentIds with \`graphStratify().parentIds(d => ...)\``}function ai(...e){if(e.length)throw D`got arguments to graphStratify(${e}), but constructor takes no arguments; these were probably meant as data which should be called as \`graphStratify()(...)\``;return mt({id:ii,parentIds:tr,parentData:nr(tr)})}var qr=An(jr());function fe(e,t,n,r,i={}){let s=qr.Solve.call({},{optimize:e,opType:t,constraints:r,variables:n,ints:i}),{feasible:o}=s,a=V(s,["feasible"]);if(!o)throw te`could not find a feasible simplex solution`;return a}function Tt(e){if(typeof e!="function"){let[t,n]=e;if(t<=0||n<=0)throw D`all node sizes must be positive, but got width ${t} and height ${n}`;return ()=>[t,n]}else {let t=new Map;return r=>{let i=t.get(r);if(i===void 0){i=e(r);let[o,a]=i;if(o<=0||a<=0)throw D`all node sizes must be positive, but got width ${o} and height ${a} for node with data: ${r.data}; make sure the callback passed to \`sugiyama().nodeSize(...)\` is doing that`;t.set(r,i);}return i}}}function bn(e){if(typeof e!="function"){let[t,n]=e;return [()=>t,()=>n]}else {let t=e;return [n=>t(n)[0],n=>t(n)[1]]}}var fo=An(so());function kn(e){let t=0,n=0;for(let r of e)n++,t+=(r-t)/n;return n?t:void 0}function uo(e){let t=[...e];if(t.sort((n,r)=>n-r),t.length!==0){if(t.length===2)return (t[0]+t[1])/2;if(t.length%2===0){let n=t.length/2,r=t[0],i=t[n-1],o=t[n],a=t[t.length-1],s=i-r,u=a-o;return (i*u+o*s)/(s+u)}else return t[(t.length-1)/2]}}function Pi(e,t){let n=new Map;for(let l of e){let f=t.get(l);f!==void 0&&Re(n,f,l);}let r=[...n.entries()].sort(([l],[f])=>l-f).flatMap(([,l])=>l),i=new Map(e.map((l,f)=>[l,f])),o=e.filter(l=>t.get(l)===void 0),a=new Array(o.length).fill(null);function s(l,f,p,m){if(f<=l)return;let g=Math.floor((l+f)/2),c=o[g],b=i.get(c),y=0,h=[y];for(let v=p;v<m;++v)y+=i.get(r[v])<b?-1:1,h.push(y);let N=p+h.indexOf(Math.min(...h));a[g]=N,s(l,g,p,N),s(g+1,f,N,m);}s(0,o.length,0,r.length),a.push(r.length+1);let u=0,d=0;for(let[l,f]of r.entries()){for(;a[d]==l;)e[u++]=o[d++];e[u++]=f;}for(;a[d]==r.length;)e[u++]=o[d++];}function lo({aggregate:e}){function t(r,i,o){let[a,s]=o?[i,r]:[r,i],u=o?f=>f.parents():f=>f.children(),d=new Map(s.map((f,p)=>[f,p])),l=new Map(a.map(f=>{let p=d.get(f),m=p!=null?p:e(A(u(f),g=>d.get(g)));return [f,m]}));Pi(a,l);}function n(r){return r===void 0?e:lo({aggregate:r})}return t.aggregator=n,t.d3dagBuiltin=true,t}function vn(...e){if(e.length)throw D`got arguments to twolayerAgg(${e}); you probably forgot to construct twolayerAgg before passing to order: \`decrossTwoLayer().order(twolayerAgg())\`, note the trailing "()"`;return lo({aggregate:uo})}function _i(e,t,n,r,i){if(!t.length)return [];let o=[[0]],a=[0],s=[[0]],u=[0];for(let f of e){let p=[0];p.push(...f),o.push(p);}a.push(...t),s.push(...t.map(()=>[0]));for(let f of n)for(let[p,m]of f.entries())s[p+1].push(-m);u.push(...r.map(f=>-f));let{solution:d,message:l}=(0, fo.solveQP)(o,a,s,u,i);if(l.length)throw te`quadratic program failed: ${l}`;return d.shift(),d}function Gt(e,t,n,r,i=0){t.pop(),e.pop(),e.forEach(a=>a.pop()),n.forEach(a=>a.pop());let o=_i(e,t,n,r,i);return o.push(0),o}function co(e){let t=new Map,n=0;for(let r of e)for(let i of r)t.has(i)||t.set(i,n++);return t}function Mt(e,t,n,r=0){let i=1+Math.max(...t.values()),o=Array(i).fill(null).map((d,l)=>Array(i).fill(null).map((f,p)=>l===p?r:0)),a=Array(i).fill(0),s=[],u=[];for(let d of e)for(let[l,f]of Q(d)){let p=t.get(l),m=t.get(f),g=Array(i).fill(0);g[p]=1,g[m]=-1,s.push(g),u.push(-n(l,f));}return [o,a,s,u]}function po(e,t,n,r){e[n][n]+=r,e[n][t]-=r,e[t][n]-=r,e[t][t]+=r;}function Rt(e,t,n,r,i,o){let a=i+o;e[r][r]+=o*o,e[r][n]-=o*a,e[r][t]+=o*i,e[n][r]-=a*o,e[n][n]+=a*a,e[n][t]-=a*i,e[t][r]+=i*o,e[t][n]-=i*a,e[t][t]+=i*i;}function zt(e,t,n,r){for(let[a,s]of n)a.x=r[s];let i=1/0,o=-1/0;for(let a of e){let s=a[0],u=a[a.length-1];i=Math.min(i,s.x-t(void 0,s)),o=Math.max(o,u.x+t(u,void 0));}for(let a of n.keys())a.x-=i;return o-i}function Ge(e){return kn(Ne(e,t=>A(t.children(),n=>n.y-t.y)))}function ho([e,t,n]){if(e<=0||t<=0||n<=0)throw D`simplex weights must be positive, but got: ${e}, ${t}, ${n}`}function Wi(e,t){if(typeof t!="function"){let[n,r,i]=t;return (o,a)=>{switch(+(o.data.role==="node")+ +(a.data.role==="node")){case 0:return i;case 1:return r;case 2:return n;default:throw te`invalid count`}}}else {let n=new Map;for(let r of Ne(e,i=>i))if(r.data.role==="node"){let i=r.data.node,o=new Map;for(let a of i.childLinks()){let{target:s}=a,u=t(a);ho(u),o.set(s,u);}n.set(i,o);}return (r,i)=>{if(r.data.role==="link"){let{source:o,target:a}=r.data.link,[,s,u]=n.get(o).get(a);return i.data.role==="link"?u:s}else if(i.data.role==="link"){let{source:o,target:a}=i.data.link,[,s]=n.get(o).get(a);return s}else {let[o]=n.get(r.data.node).get(i.data.node);return o}}}}function mo(e){function t(r,i){var b;let o={},a={},s=Wi(r,e.weight),u=new Map,d=0;for(let y of r)for(let h of y)if(!u.has(h)){let N=`${d++}`;u.set(h,N),o[N]={};}function l(y){return u.get(y)}for(let y of r)for(let[h,N]of Q(y)){let v=l(h),L=l(N),k=`layer ${v} -> ${L}`,w=i(h,N);a[k]={min:w},o[v][k]=-1,o[L][k]=1;}let f=Ge(u.keys());for(let y of u.keys()){let h=l(y);for(let N of y.children()){let v=l(N),L=`link ${h} -> ${v}`,k=`${L} parent`;a[k]={min:0};let w=`${L} child`;a[w]={min:0},o[h][k]=1,o[h][w]=-1,o[v][k]=-1,o[v][w]=1;let S=s(y,N),O=(N.y-y.y)/f;o[L]={opt:S/O,[k]:1,[w]:1};}}let p=fe("opt","min",o,a);for(let[y,h]of u)y.x=(b=p[h])!=null?b:0;let m=0,g=0;for(let y of r){let h=y[0];m=Math.min(m,h.x-i(void 0,h));let N=y[y.length-1];g=Math.max(g,N.x+i(N,void 0));}for(let y of u.keys())y.x-=m;let c=g-m;if(c<=0)throw D`must assign nonzero width to at least one node; double check the callback passed to \`sugiyama().nodeSize(...)\``;return c}function n(r){if(r===void 0)return e.weight;{typeof r!="function"&&ho(r);let i=e,{weight:o}=i,a=V(i,["weight"]);return mo(R(T({},a),{weight:r}))}}return t.weight=n,t.d3dagBuiltin=true,t}function Ln(...e){if(e.length)throw D`got arguments to coordSimplex(${e}); you probably forgot to construct coordSimplex before passing to coord: \`sugiyama().coord(coordSimplex())\`, note the trailing "()"`;return mo({weight:[1,2,8]})}function go(e,t){let n=new Map,r=new Map(e.map((o,a)=>[o,a]));function i(o,a){var u;let s=(u=n.get(o))==null?void 0:u.get(a);if(s!==void 0)return s;if(r.has(o)||r.has(a))return  -1/0;{let d=0;for(let[p,m]of t(o)){let g=r.get(p);for(let[c,b]of t(a)){let y=r.get(c);d+=Math.sign(g-y)*m*b;}}let l=n.get(o);l===void 0?n.set(o,new Map([[a,d]])):l.set(a,d);let f=n.get(a);return f===void 0?n.set(a,new Map([[o,-d]])):f.set(o,-d),d}}return i}function Ai(e,t){let n=[[0,e.length]],r;for(;r=n.pop();){let[i,o]=r;if(i>=o)continue;let a=0,s=o;for(let u=i;u<o-1;++u){let d=t(e[u],e[u+1]);d>a&&(a=d,s=u);}if(s!==o){let u=e[s+1];e[s+1]=e[s],e[s]=u,n.push([i,s],[s+2,o]);}}}function Ui(e,t){let n=Array(e.length*(e.length-1)/2);for(;;){let r=0;for(let d=1;d<e.length;++d){let l=0,f=r;for(let p=d-1;p>=0;--p)n[f]=l,l+=t(e[p],e[d]),f-=e.length-p-1;r+=e.length-d;}let i=0,o=0,a=0,s=0;for(let d=0;d<e.length-1;++d){let l=0;for(let f=d+1;f<e.length;++f){l+=t(e[d],e[f]);let p=n[i++]+l;p>o&&(o=p,a=d,s=f);}}if(o===0)break;let u=e[s];e[s]=e[a],e[a]=u;}}function wn({baseOp:e,doScan:t}){function n(o,a,s){e(o,a,s);let u=s?a:o,d=s?go(o,l=>l.parentCounts()):go(a,l=>l.childCounts());t?Ui(u,d):Ai(u,d);}function r(o){return o===void 0?e:wn({baseOp:o,doScan:t})}n.base=r;function i(o){return o===void 0?t:wn({baseOp:e,doScan:o})}return n.scan=i,n.d3dagBuiltin=true,n}function Dn(...e){if(e.length)throw D`got arguments to twolayerGreedy(${e}); you probably forgot to construct twolayerGreedy before passing to order: \`decrossTwoLayer().order(twolayerGreedy())\`, note the trailing "()"`;return wn({baseOp:()=>{},doScan:false})}function Sn(e,t){function n(r,i){let o=r?e(r):0,a=i?e(i):0,s=(o+a)/2;return r&&i?s+t:s}return n}function Bt(e){let t=0;for(let[n,r]of Q(e)){let i=new Map(r.map((o,a)=>[o,a]));for(let[o,a]of n.entries())for(let s of n.slice(o+1))for(let[u,d]of a.childCounts())for(let[l,f]of s.childCounts())u!==l&&i.get(u)>i.get(l)&&(t+=d*f);}return t}function yo(e){function t(r){let i;e.topDown?i=Oe(o=>[...o.children()].sort((a,s)=>s.nchildren()-a.nchildren()),...Ne(r,o=>[...be(o,a=>!a.nparents())].sort((a,s)=>s.nchildren()-a.nchildren()))):i=Oe(o=>[...o.parents()].sort((a,s)=>s.nparents()-a.nparents()),...Ne(q(r,r.length-1,-1,-1),o=>[...be(o,a=>!a.nchildren())].sort((a,s)=>s.nparents()-a.nparents())));for(let o of r)o.splice(0);for(let o of i){let{data:a}=o;if(a.role==="node")for(let s=a.topLayer;s<=a.bottomLayer;++s)r[s].push(o);else r[a.layer].push(o);}}function n(r){return r===void 0?e.topDown:yo({topDown:r})}return t.topDown=n,t.d3dagBuiltin=true,t}function Vt(...e){if(e.length)throw D`got arguments to decrossDfs(${e}); you probably forgot to construct decrossDfs before passing to decross: \`sugiyama().decross(decrossDfs())\`, note the trailing "()"`;return yo({topDown:true})}function $t(e){function t(o){let a=o.slice().reverse(),s=o.map(l=>l.slice()),u=Bt(s),d=e.inits.length?e.inits:[()=>{}];for(let l of d){l(o);let f=true;for(let p=0;p<e.passes&&f;++p){f=false;for(let[c,b]of Q(o)){let y=b.slice();e.order(c,b,true),b.some((h,N)=>y[N]!==h)&&(f=true);}let m=Bt(o);m<u&&(u=m,s=o.map(c=>c.slice()));for(let[c,b]of Q(a)){let y=b.slice();e.order(b,c,false),b.some((h,N)=>y[N]!==h)&&(f=true);}let g=Bt(o);g<u&&(u=g,s=o.map(c=>c.slice()));}}o.splice(0,o.length,...s);}function n(o){if(o===void 0)return e.order;{let a=e,{order:s}=a,u=V(a,["order"]);return $t(R(T({},u),{order:o}))}}t.order=n;function r(o){if(o===void 0)return [...e.inits];{let a=e,{inits:s}=a,u=V(a,["inits"]);return $t(R(T({},u),{inits:o}))}}t.inits=r;function i(o){if(o===void 0)return e.passes;if(o<=0)throw D`number of passes must be positive`;return $t(R(T({},e),{passes:o}))}return t.passes=i,t.d3dagBuiltin=true,t}function On(...e){if(e.length)throw D`got arguments to decrossTwoLayer(${e}); you probably forgot to construct decrossTwoLayer before passing to decross: \`sugiyama().decross(decrossTwoLayer())\`, note the trailing "()"`;return $t({order:Dn().base(vn()),inits:[Vt().topDown(true),Vt().topDown(false)],passes:24})}function In(e,t){return +!!(e&&t)}function Cn(e){function t(i,o){var y;let a={},s={},u=new Map(A(i.nodes(),(h,N)=>[h,N.toString()]));function d(h){return u.get(h)}function l(h){return a[d(h)]}function f(h,N,v,L,k=0){let w=l(N),S=l(v),O=`${h}: ${d(N)} -> ${d(v)}`;s[O]={min:L},w[O]=-1,S[O]=1,w.opt+=k,S.opt-=k;}function p(h,N,v){f(`${h} before`,N,v,0),f(`${h} after`,v,N,0);}let m=[],g=new Map;for(let h of i.nodes()){let N=d(h);a[N]={opt:0};let v=e.rank(h);v!==void 0&&m.push([v,h]);let L=e.group(h);if(L!==void 0){let k=g.get(L);k?k.push(h):g.set(L,[h]);}}let c=new Set;for(let h of i.topological(e.rank)){for(let[N,v]of h.childCounts())c.has(N)?f("link",N,h,o(N,h),v):f("link",h,N,o(h,N),v);c.add(h);}let b=m.sort(([h],[N])=>h-N);for(let[[h,N],[v,L]]of Q(b))h<v?f("rank",N,L,o(N,L)):p("rank",N,L);for(let h of g.values())for(let[N,v]of Q(h))p("group",N,v);try{let h=fe("opt","max",a,s,{}),N=0,v=0;for(let L of i.nodes()){let k=(y=h[d(L)])!=null?y:0;L.y=k,N=Math.min(N,k-o(void 0,L)),v=Math.max(v,k+o(L,void 0));}for(let L of i.nodes())L.y-=N;return v-N}catch(h){throw g.size?D`could not find a feasible simplex layout; this is likely due to group constraints producing an infeasible layout, try relaxing the functions you're passing to \`layeringSimplex().group(...)\``:te`could not find a feasible simplex solution`}}function n(i){if(i===void 0)return e.rank;{let o=e,{rank:a}=o,s=V(o,["rank"]);return Cn(R(T({},s),{rank:i}))}}t.rank=n;function r(i){if(i===void 0)return e.group;{let o=e,{group:a}=o,s=V(o,["group"]);return Cn(R(T({},s),{group:i}))}}return t.group=r,t.d3dagBuiltin=true,t}function No(){}function Tn(...e){if(e.length)throw D`got arguments to layeringSimplex(${e}); you probably forgot to construct layeringSimplex before passing to layering: \`sugiyama().layering(layeringSimplex())\`, note the trailing "()"`;return Cn({rank:No,group:No})}function bo(e,t,n,r){for(let[o,[a,s]]of t){let u=a.bottomLayer;for(let d of o.childLinks()){let[l,f]=t.get(d.target),p=l.topLayer;if(p>u){let m=s;for(let g=u+1;g<p;++g){let c=e.node({link:d,layer:g,role:"link"});m.child(c,void 0),m=c;}m.child(f);}else if(p<u){let m=f;for(let g=p+1;g<u;++g){let c=e.node({link:d,layer:g,role:"link"});m.child(c,void 0),m=c;}m.child(s);}else throw oe`layering ${r} assigned nodes with an edge to the same layer`}}let i=Array(n).fill(null).map(()=>[]);for(let o of e.nodes()){let{data:a}=o;if(a.role==="node"){let{topLayer:s,bottomLayer:u}=a;for(let d=s;d<=u;++d)i[d].push(o);}else {let{layer:s}=a;i[s].push(o);}}for(let o of i)if(!o.length)throw oe`layering ${r} didn't assign a node to every layer`;return i}function Gn(e,t,n,r,i){let o=ue(),a=Array(r).fill(false),s=new Map;for(let p of e.nodes()){let m=p.uy;if(m===void 0)throw oe`layering ${i} didn't assign a layer to a node`;if(m<0||m>=r)throw oe`layering ${i} assigned node an invalid layer: ${m}`;{let g=se(p.parentCounts(),p.childCounts());!a[m]&&Zt(g,([{uy:b},y])=>y>1&&b===m-1)&&(a[m]=true);let c={node:p,topLayer:m,bottomLayer:m,role:"node"};s.set(p,[c,o.node(c)]);}}let u=0,d=a.map(p=>u+=+p);for(let[p]of s.values()){let m=d[p.topLayer];p.topLayer+=m,p.bottomLayer+=m;}let l=bo(o,s,r+u,i),f=-n;for(let p of l){f+=n;let m=Math.max(-n,...A(p,({data:c})=>c.role==="node"?t(c.node):-1/0)),g=f+m/2;for(let c of p)c.y=g;f+=m;}return [l,f]}function Mn(e){for(let t of e)for(let n of t)if(n.data.role==="node"){let{node:r}=n.data;r.x=n.x,r.y=n.y;for(let i of n.children()){let o=[[n.x,n.y]],a;for(;i.data.role==="link";)a=i.data.link,o.push([i.x,i.y]),[i]=i.children();o.push([i.x,i.y]);let s=i.data.node,u=se(r.childLinksTo(s),r.parentLinksTo(s));a||([a]=u),a.source!==r&&o.reverse(),a.points.splice(0,a.points.length,...o);}}}function Rn(e,t=0){return ({data:n})=>n.role==="node"?e(n.node):t}function xo(e,t,n,r,i=.001){for(let o of e){for(let a of o)if(a.ux===void 0)throw oe`coord ${r} didn't assign an x to every node`;for(let[[a,s],[u,d]]of Q(se([[void 0,0]],A(o,l=>[l,l.x]),[[void 0,n]])))if(d-s<t(a,u)-i)throw oe`coord ${r} assigned nodes too close for separation`}}function Me(e,t){function n(d){let l;if(!d.nnodes())l={width:0,height:0};else {let[f,p]=bn(Tt(e.nodeSize)),[m,g]=t.gap,c=e.layering(d,In)+1,[b,y]=Gn(d,p,g,c,e.layering);e.decross(b);let h=Sn(Rn(f),m),N=e.coord(b,h);xo(b,h,N,e.coord),Mn(b),l={width:N,height:y};}for(let f of e.tweaks)l=f(d,l);return l}function r(d){if(d===void 0)return e.layering;{let l=e,{layering:f}=l,p=V(l,["layering"]);return Me(R(T({},p),{layering:d}),t)}}n.layering=r;function i(d){if(d===void 0)return e.decross;{let l=e,{decross:f}=l,p=V(l,["decross"]);return Me(R(T({},p),{decross:d}),t)}}n.decross=i;function o(d){if(d===void 0)return e.coord;{let l=e,{coord:f}=l,p=V(l,["coord"]);return Me(R(T({},p),{coord:d}),t)}}n.coord=o;function a(d){if(d===void 0)return e.tweaks;{let l=e,{tweaks:f}=l,p=V(l,["tweaks"]);return Me(R(T({},p),{tweaks:d}),t)}}n.tweaks=a;function s(d){if(d===void 0)return e.nodeSize;if(typeof d!="function"&&(d[0]<=0||d[1]<=0)){let[f,p]=d;throw D`constant nodeSize must be positive, but got: [${f}, ${p}]`}else {let l=e,{nodeSize:f}=l,p=V(l,["nodeSize"]);return Me(R(T({},p),{nodeSize:d}),t)}}n.nodeSize=s;function u(d){if(d!==void 0){let[l,f]=d;if(l<0||f<0)throw D`gap width (${l}) and height (${f}) must be non-negative`;return Me(e,R(T({},t),{gap:d}))}else {let[l,f]=t.gap;return [l,f]}}return n.gap=u,n}function ji(...e){if(e.length)throw D`got arguments to sugiyama(${e}), but constructor takes no arguments; these were probably meant as data which should be called as \`sugiyama()(...)\``;return Me({layering:Tn(),decross:On(),coord:Ln(),nodeSize:[1,1],tweaks:[]},{gap:[1,1]})}function Zi(e,t){if(typeof e!="function")return ()=>e;{let n=new Map;for(let r of Ne(t,i=>i))if(r.data.role==="node"){let i=r.data.node,o=new Map;for(let a of i.childLinks()){let s=e(a);if(s<0)throw D`link weights must be non-negative; double check the accessor passed into \`coordQuad().vertWeak(...)\``;o.set(a.target,s);}n.set(i,o);}return (r,i)=>n.get(r).get(i)}}function zn(e,t,n){if(typeof e!="function")return ()=>e;{let r=new Map;return i=>{let o=r.get(i);if(o===void 0){let a=e(i);if(a<0)throw new Error(`${t} weights must be non-negative; double check the accessor passed into \`coordQuad().${n}(...)\``);return r.set(i,a),a}else return o}}}function Ee(e){function t(s,u){let d=co(s),[l,f,p,m]=Mt(s,d,u,e.comp),g=Zi(e.vertWeak,s),c=zn(e.vertStrong,"link","vertStrong"),b=zn(e.linkCurve,"link","linkCurve"),y=zn(e.nodeCurve,"node","nodeCurve"),h=Ge(d.keys());for(let[v,L]of d){let k=v.data,w=k.role==="node"?k.node:k.link.source;for(let S of v.children()){let O=d.get(S),I=S.data,z=I.role==="node"?I.node:I.link.target,M=k.role==="node"?g(w,z):c(k.link),$=I.role==="node"?g(w,z):c(I.link),_=I.role==="node"?y(I.node):b(I.link),W=(S.y-v.y)/h;po(l,L,O,(M+$)/W);for(let B of S.children()){let Z=d.get(B),E=(B.y-S.y)/h;Rt(l,L,O,Z,_/W,_/E);}}}let N;try{let v=Gt(l,f,p,m);N=zt(s,u,d,v);}catch(v){throw typeof v=="string"?te`${v}`:te`undefined quadprog exception`}if(N<=0)throw D`must assign nonzero width to at least one node; double check the callback passed to \`sugiyama().nodeSize(...)\``;return N}function n(s){if(s===void 0)return e.vertWeak;if(typeof s=="number"&&s<0)throw D`vertWeak must be non-negative but was: ${s}`;{let u=e,{vertWeak:d}=u,l=V(u,["vertWeak"]);return Ee(R(T({},l),{vertWeak:s}))}}t.vertWeak=n;function r(s){if(s===void 0)return e.vertStrong;if(typeof s=="number"&&s<0)throw D`vertStrong must be non-negative but was: ${s}`;{let u=e,{vertStrong:d}=u,l=V(u,["vertStrong"]);return Ee(R(T({},l),{vertStrong:s}))}}t.vertStrong=r;function i(s){if(s===void 0)return e.linkCurve;if(typeof s=="number"&&s<0)throw D`linkCurve must be non-negative but was: ${s}`;{let u=e,{linkCurve:d}=u,l=V(u,["linkCurve"]);return Ee(R(T({},l),{linkCurve:s}))}}t.linkCurve=i;function o(s){if(s===void 0)return e.nodeCurve;if(typeof s=="number"&&s<0)throw D`nodeCurve must be non-negative but was: ${s}`;{let u=e,{nodeCurve:d}=u,l=V(u,["nodeCurve"]);return Ee(R(T({},l),{nodeCurve:s}))}}t.nodeCurve=o;function a(s){if(s===void 0)return e.comp;if(s<=0)throw D`compress weight must be positive, but was: ${s}`;return Ee(R(T({},e),{comp:s}))}return t.compress=a,t.d3dagBuiltin=true,t}function Ji(...e){if(e.length)throw D`got arguments to coordQuad(${e}); you probably forgot to construct coordQuad before passing to coord: \`sugiyama().coord(coordQuad())\`, note the trailing "()"`;return Ee({vertWeak:1,vertStrong:0,linkCurve:1,nodeCurve:0,comp:1e-6})}function aa(e,t){for(let i of e.nodes()){let o=i.x;i.x=i.y,i.y=o;}for(let i of e.links())for(let o of i.points){let[a]=o;o[0]=o[1],o[1]=a;}let{width:n,height:r}=t;return {width:r,height:n}}function sa(e,t){let{height:n}=t;for(let r of e.nodes())r.y=n-r.y;for(let r of e.links())for(let i of r.points)i[1]=n-i[1];return t}function ua(e,t){let{width:n}=t;for(let r of e.nodes())r.x=n-r.x;for(let r of e.links())for(let i of r.points)i[0]=n-i[0];return t}function da(e="diagonal"){if(e==="diagonal")return aa;if(e==="vertical")return sa;if(e==="horizontal")return ua;throw D`invalid tweakFlip style: ${e}`}
 
     const Vertical = 'vertical';
     const Horizontal = 'horizontal';
-
-    const PersonType = 'person';
-    const UnionType = 'union';
 
     function translateOrientationToTweak(orientation) {
         if (orientation == Vertical) {
@@ -50,11 +47,10 @@
     };
     class D3DAGLayoutCalculator {
         calculateLayout(nodes, userOpts) {
-            const opts = {
-                ...D3DAGLAyoutCalculatorDefaultOptions,
-                ...userOpts,
-            };
-            const builder = ai();
+            const opts = Object.assign(Object.assign({}, D3DAGLAyoutCalculatorDefaultOptions), userOpts);
+            const builder = ai()
+                .id((n) => n.data.id)
+                .parentIds((n) => n.visibleParentIDs());
             const graph = builder(nodes);
             // calculate the layout
             const layout = ji()
@@ -73,29 +69,120 @@
         }
     }
 
-    class FamilyTreeDataImporter {
+    const PersonType = 'person';
+    const UnionType = 'union';
+
+    function neighbors() {
+        return [...this.children(), ...this.parents()];
+    }
+    function visibleNeighbors() {
+        return this.neighbors.filter((n) => n.data.visible);
+    }
+    function invisibleNeighbors() {
+        return this.neighbors.filter((n) => !n.data.visible);
+    }
+    function extendable() {
+        return this.invisibleNeighbors.length > 0;
+    }
+    function isUnion() {
+        return this.data.type == UnionType;
+    }
+    function isPerson() {
+        return this.data.type == PersonType;
+    }
+    function showNeighbors() {
+        const insertedNodes = this.data.insertedNodes;
+        const invisibleNeighbors = this.invisibleNeighbors;
+        this.data.insertedNodes = insertedNodes.concat(invisibleNeighbors);
+        invisibleNeighbors.forEach((n) => {
+            n.data.visible = true;
+            if (n.data.type == UnionType) {
+                n.showNeighbors();
+            }
+        });
+    }
+    function hideNeighbors() {
+        const insertedNodes = this.data.insertedNodes;
+        this.data.insertedNodes = [];
+        insertedNodes.forEach((n) => {
+            n.data.visible = false;
+            if (n.data.type == UnionType) {
+                n.hideNeighbors();
+            }
+        });
+    }
+    function click() {
+        if (this.data.type == UnionType) {
+            throw Error('Only person nodes can be clicked.');
+        }
+        if (this.extendable) {
+            this.showNeighbors();
+        }
+        else {
+            this.hideNeighbors();
+        }
+    }
+    function visibleParentIDs() {
+        return [...this.parents()]
+            .filter((p) => p.data.visible)
+            .map((p) => p.data.id);
+    }
+    function augmentD3DAGNodeClass(node) {
+        const prototype = node.constructor.prototype;
+        Object.defineProperty(prototype, 'neighbors', {
+            get: neighbors,
+            configurable: true,
+            enumerable: false,
+        });
+        Object.defineProperty(prototype, 'visibleNeighbors', {
+            get: visibleNeighbors,
+            configurable: true,
+            enumerable: false,
+        });
+        Object.defineProperty(prototype, 'invisibleNeighbors', {
+            get: invisibleNeighbors,
+            configurable: true,
+            enumerable: false,
+        });
+        Object.defineProperty(prototype, 'extendable', {
+            get: extendable,
+            configurable: true,
+            enumerable: false,
+        });
+        Object.defineProperty(prototype, 'isUnion', {
+            get: isUnion,
+            configurable: true,
+            enumerable: false,
+        });
+        Object.defineProperty(prototype, 'isPerson', {
+            get: isPerson,
+            configurable: true,
+            enumerable: false,
+        });
+        prototype.showNeighbors = showNeighbors;
+        prototype.hideNeighbors = hideNeighbors;
+        prototype.click = click;
+        prototype.visibleParentIDs = visibleParentIDs;
+    }
+
+    class FamilyTreeDataV1Importer {
         import(data) {
-            const persons = [...Object.values(data.persons)];
-            const mappedPersons = persons.map((person) => {
-                return {
-                    ...person,
-                    type: PersonType,
-                    parentIds: data.links
-                        .filter((link) => link[1] === person.id)
-                        .map((link) => link[0]),
-                    visible: person.id == data.start,
-                };
+            const builder = ei().nodeDatum((id) => {
+                if (id in data.persons) {
+                    return Object.assign(Object.assign({}, data.persons[id]), { type: PersonType, visible: id == data.start, insertedNodes: [] });
+                }
+                else if (id in data.unions) {
+                    return Object.assign(Object.assign({}, data.unions[id]), { type: UnionType, visible: false, insertedNodes: [] });
+                }
+                else {
+                    throw Error(`ID '${id}' not found in data.persons or data.unions.`);
+                }
             });
-            const unions = [...Object.values(data.unions)];
-            const mappedUnions = unions.map((union) => {
-                return {
-                    ...union,
-                    type: UnionType,
-                    parentIds: union.partner,
-                    visible: false,
-                };
-            });
-            return [...mappedPersons, ...mappedUnions];
+            const graph = builder(data.links);
+            const nodes = [...graph.nodes()];
+            // add custom methods (augment)
+            augmentD3DAGNodeClass(nodes[0]);
+            return nodes;
         }
     }
 
@@ -2775,17 +2862,8 @@
     Transform.prototype;
 
     class D3Renderer {
-        svg;
-        g;
-        _tooltipDiv;
-        ft;
-        transitionDuration = 750; // ms
-        nodeLabelFunction;
-        linkPathFunction;
-        nodeTooltipFunction;
-        nodeSizeFunction;
-        nodeCSSClassFunction;
         constructor(container, ft) {
+            this.transitionDuration = 750; // ms
             this.ft = ft;
             // set container class
             select(container).attr('class', 'svg-container');
@@ -2827,58 +2905,59 @@
                 : horizontal_s_bend(s, d);
         }
         static defaultNodeLabelFunction(node, missingData = '?') {
-            if (node.data.type == UnionType)
+            if (node.data.isUnion)
                 return [];
-            const { name, birthyear, deathyear } = node.data;
+            const { name, birthyear, deathyear } = node.data.data;
             const lines = [
                 name,
-                `${birthyear ?? missingData} - ${deathyear ?? missingData}`,
+                `${birthyear !== null && birthyear !== void 0 ? birthyear : missingData} - ${deathyear !== null && deathyear !== void 0 ? deathyear : missingData}`,
             ];
             return lines;
         }
         static defaultNodeTooltipFunction(node, missingData = '?') {
-            if (node.data.type == UnionType)
+            if (node.data.isUnion)
                 return;
+            const { name, birthyear, birthplace, deathyear, deathplace } = node.data
+                .data;
             const content = `
       <span style='margin-left: 2.5px;'>
-        <b>${node.data.name}</b>
+        <b>${name}</b>
       </span><br>
       <table style="margin-top: 2.5px;">
         <tr>
           <td>born</td>
-          <td>${node.data.birthyear} in ${node.data.birthplace}</td>
+          <td>${birthyear} in ${birthplace}</td>
         </tr>
         <tr>
           <td>died</td>
-          <td>${node.data.deathyear} in ${node.data.deathplace}</td>
+          <td>${deathyear} in ${deathplace}</td>
         </tr>
       </table>`;
             // replace undefined entries with ?
             return content.replace(/undefined/g, missingData);
         }
         static defaultNodeSizeFunction(node) {
-            if (node.data.type == UnionType)
+            if (node.data.isUnion)
                 return 0;
-            if (node.data.type == PersonType)
+            if (node.data.isPerson)
                 return 10;
             return 0;
         }
         defaultNodeCSSClassFunction(node) {
-            const clickableNode = this.ft.getNodeById(node.data.id);
-            const class1 = clickableNode.extendable ? 'extendable' : 'non-extendable';
-            const class2 = node.data.type;
+            const class1 = node.data.extendable ? 'extendable' : 'non-extendable';
+            const class2 = node.data.data.type;
             return class1 + ' ' + class2;
         }
         renderNodes(graph, clickedNodeOld, clickedNodeNew) {
             const nodes = graph.nodes();
             const selection = this.g
                 .selectAll('g')
-                .data(nodes, (n) => n.data.id);
+                .data(nodes, (n) => n.data.data.id);
             const enteringGroups = selection.enter().append('g');
             // entering groups transition from clicked node old to final position
             enteringGroups
                 .attr('transform', (d) => {
-                const transitionStart = clickedNodeOld ?? d;
+                const transitionStart = clickedNodeOld !== null && clickedNodeOld !== void 0 ? clickedNodeOld : d;
                 return 'translate(' + transitionStart.x + ',' + transitionStart.y + ')';
             })
                 .transition()
@@ -2898,7 +2977,7 @@
                 .transition()
                 .duration(this.transitionDuration)
                 .attr('transform', (d) => {
-                const transitionEnd = clickedNodeNew ?? d;
+                const transitionEnd = clickedNodeNew !== null && clickedNodeNew !== void 0 ? clickedNodeNew : d;
                 return 'translate(' + transitionEnd.x + ',' + transitionEnd.y + ')';
             })
                 .remove();
@@ -2915,13 +2994,13 @@
             const links = layoutResult.graph.links();
             const selection = this.g
                 .selectAll('path')
-                .data(links, (l) => l.source.data.id + l.target.data.id);
+                .data(links, (l) => l.source.data.data.id + l.target.data.data.id);
             // entering links transition from old clicked node position to final position
             selection
                 .enter()
                 .append('path')
                 .attr('d', (link) => {
-                const transitionStart = clickedNodeOld ?? link.source;
+                const transitionStart = clickedNodeOld !== null && clickedNodeOld !== void 0 ? clickedNodeOld : link.source;
                 const transitionStartLink = {
                     source: transitionStart,
                     target: transitionStart,
@@ -2947,7 +3026,7 @@
                 .transition()
                 .duration(this.transitionDuration)
                 .attr('d', (link) => {
-                const transitionEnd = clickedNodeNew ?? link.target;
+                const transitionEnd = clickedNodeNew !== null && clickedNodeNew !== void 0 ? clickedNodeNew : link.target;
                 const transitionEndLink = {
                     source: transitionEnd,
                     target: transitionEnd,
@@ -3031,108 +3110,23 @@
         }
     }
 
-    class ClickableNode {
-        node;
-        constructor(node) {
-            this.node = node;
-        }
-        get id() {
-            return this.node.data.id;
-        }
-        get children() {
-            return [...this.node.children()];
-        }
-        get parents() {
-            return [...this.node.parents()];
-        }
-        get neighbors() {
-            return this.children.concat(this.parents);
-        }
-        get visibleNeighbors() {
-            return this.neighbors.filter((n) => n.data.visible);
-        }
-        get invisibleNeighbors() {
-            return this.neighbors.filter((n) => !n.data.visible);
-        }
-        get extendable() {
-            return this.invisibleNeighbors.length > 0;
-        }
-        showNeighbors() {
-            const insertedNodes = this.node.data.insertedNodes;
-            const invisibleNeighbors = this.invisibleNeighbors;
-            this.node.data.insertedNodes = insertedNodes.concat(invisibleNeighbors);
-            invisibleNeighbors.forEach((n) => {
-                n.data.visible = true;
-                if (n.data.type == UnionType) {
-                    const cn = new ClickableNode(n);
-                    cn.showNeighbors();
-                }
-            });
-        }
-        hideNeighbors() {
-            const insertedNodes = this.node.data.insertedNodes;
-            this.node.data.insertedNodes = [];
-            insertedNodes.forEach((n) => {
-                n.data.visible = false;
-                if (n.data.type == UnionType) {
-                    const cn = new ClickableNode(n);
-                    cn.hideNeighbors();
-                }
-            });
-        }
-        click() {
-            if (this.node.data.type == UnionType) {
-                throw Error('Only person nodes can be clicked.');
-            }
-            if (this.extendable) {
-                this.showNeighbors();
-            }
-            else {
-                this.hideNeighbors();
-            }
-        }
-    }
-
-    class D3DAGGraphBuilder {
-        buildGraph(nodeData) {
-            const builder = ai();
-            const graph = builder(nodeData);
-            const nodes = [...graph.nodes()];
-            // add field: insertedNodes
-            nodes.forEach((n) => {
-                n.data.insertedNodes = [];
-            });
-            // add custom methods (wrapper)
-            return nodes.map((n) => new ClickableNode(n));
-        }
-    }
-
     class FamilyTree {
-        nodes;
-        root;
-        importer;
-        graphBuilder;
-        layouter;
-        renderer;
         constructor(data, container, layoutOptions) {
-            this.importer = new FamilyTreeDataImporter();
-            this.graphBuilder = new D3DAGGraphBuilder();
+            var _a;
+            this.importer = new FamilyTreeDataV1Importer();
             this.layouter = new D3DAGLayoutCalculator();
             this.renderer = new D3Renderer(container, this);
             // import data
-            const nodeData = this.importer.import(data);
-            // link nodes to create a graph
-            this.nodes = this.graphBuilder.buildGraph(nodeData);
-            this.root = this.getNodeById(data.start);
+            this.nodes = this.importer.import(data);
+            this.root =
+                (_a = this.nodes.find((n) => n.data.id == data.start)) !== null && _a !== void 0 ? _a : this.nodes[0];
             // render
             this.renderVisibleSubgraph(undefined, layoutOptions);
         }
         getVisibleSubgraph() {
             function recursiveVisibleNeighborCollector(node, res) {
-                const foundIDs = res.map((n) => n.node.data.id);
-                const newVisibleNeighbors = node.visibleNeighbors
-                    .filter((n) => !foundIDs.includes(n.data.id))
-                    .map((n) => new ClickableNode(n));
+                const foundIDs = res.map((n) => n.data.id);
+                const newVisibleNeighbors = node.visibleNeighbors.filter((n) => !foundIDs.includes(n.data.id));
                 res = res.concat(newVisibleNeighbors);
                 newVisibleNeighbors.forEach((n) => (res = recursiveVisibleNeighborCollector(n, res)));
                 return res;
@@ -3140,37 +3134,18 @@
             // get visible nodes
             const visibleNodeData = recursiveVisibleNeighborCollector(this.root, [
                 this.root,
-            ]).map((n) => {
-                // return a shallow copy because data is manipulated in the next step
-                return { ...n.node.data };
-            });
-            // remove parent references to invisible nodes
-            const visibleNodeIds = visibleNodeData.map((d) => d.id);
-            visibleNodeData.forEach((d) => {
-                d.parentIds = d.parentIds.filter((pId) => visibleNodeIds.includes(pId));
-            });
+            ]);
             return visibleNodeData;
         }
         renderVisibleSubgraph(clickedNodeOld, layoutOptions) {
             const visibleNodeData = this.getVisibleSubgraph();
             const layoutResult = this.layouter.calculateLayout(visibleNodeData, layoutOptions);
             // get the new position of the clicked node for transitions
-            const clickedNodeNew = [...layoutResult.graph.nodes()].find((n) => n.data.id === clickedNodeOld?.data.id);
+            const clickedNodeNew = [...layoutResult.graph.nodes()].find((n) => n.data.data.id === (clickedNodeOld === null || clickedNodeOld === void 0 ? void 0 : clickedNodeOld.data.data.id));
             this.renderer.render(layoutResult, clickedNodeOld, clickedNodeNew);
         }
-        getNodeById(id) {
-            const result = this.nodes.filter((n) => n.id === id);
-            if (result.length > 1) {
-                throw Error('More than one node found with with id ' + id);
-            }
-            else if (result.length == 0) {
-                throw Error('No node found with id ' + id);
-            }
-            return result[0];
-        }
         nodeClickHandler(node) {
-            const clickableNode = this.getNodeById(node.data.id);
-            clickableNode.click();
+            node.data.click();
             this.renderVisibleSubgraph(node);
         }
     }

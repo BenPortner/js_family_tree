@@ -1,14 +1,18 @@
-import { UnionType } from '../import/types';
-import type { GraphNode } from './types';
+import { NodeID } from './familyTreeData';
+import { PersonType, UnionType, GraphNode } from './import/types';
 
 export interface ClickableNode extends GraphNode {
+  // a ClickableNode is a GraphNode with additional methods
   neighbors: ClickableNode[];
   visibleNeighbors: ClickableNode[];
   invisibleNeighbors: ClickableNode[];
   extendable: boolean;
+  isUnion: boolean;
+  isPerson: boolean;
   showNeighbors(): void;
   hideNeighbors(): void;
   click(): void;
+  visibleParentIDs(): NodeID[];
 }
 
 function neighbors(this: ClickableNode) {
@@ -22,6 +26,12 @@ function invisibleNeighbors(this: ClickableNode) {
 }
 function extendable(this: ClickableNode) {
   return this.invisibleNeighbors.length > 0;
+}
+function isUnion(this: ClickableNode) {
+  return this.data.type == UnionType;
+}
+function isPerson(this: ClickableNode) {
+  return this.data.type == PersonType;
 }
 function showNeighbors(this: ClickableNode) {
   const insertedNodes = this.data.insertedNodes;
@@ -57,6 +67,12 @@ function click(this: ClickableNode) {
   }
 }
 
+function visibleParentIDs(this: ClickableNode) {
+  return [...this.parents()]
+    .filter((p) => p.data.visible)
+    .map((p) => p.data.id);
+}
+
 export function augmentD3DAGNodeClass(node: GraphNode) {
   const prototype = (node.constructor as any).prototype;
   Object.defineProperty(prototype, 'neighbors', {
@@ -79,7 +95,18 @@ export function augmentD3DAGNodeClass(node: GraphNode) {
     configurable: true,
     enumerable: false,
   });
+  Object.defineProperty(prototype, 'isUnion', {
+    get: isUnion,
+    configurable: true,
+    enumerable: false,
+  });
+  Object.defineProperty(prototype, 'isPerson', {
+    get: isPerson,
+    configurable: true,
+    enumerable: false,
+  });
   prototype.showNeighbors = showNeighbors;
   prototype.hideNeighbors = hideNeighbors;
   prototype.click = click;
+  prototype.visibleParentIDs = visibleParentIDs;
 }
