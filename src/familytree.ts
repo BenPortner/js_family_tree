@@ -3,11 +3,7 @@ import { FamilyTreeDataV1Importer } from './import/familyTreeData';
 import type { FamilyTreeData } from './familyTreeData';
 import { D3Renderer } from './render/d3';
 import type { ClickableNode } from './clickableNode';
-import type {
-  LayoutCalculator,
-  LayoutCalculatorOpts,
-  LayoutedNode,
-} from './layout/types';
+import type { LayoutCalculator, LayoutedNode } from './layout/types';
 import type { Renderer } from './render/types';
 import type { Importer } from './import/types';
 
@@ -24,11 +20,10 @@ export class FamilyTree {
     container: HTMLElement,
     importer?: Importer,
     layouter?: LayoutCalculator,
-    layoutOptions?: LayoutCalculatorOpts,
     renderer?: Renderer
   ) {
     this.importer = importer ?? new FamilyTreeDataV1Importer();
-    this.layouter = layouter ?? new D3DAGLayoutCalculator(layoutOptions);
+    this.layouter = layouter ?? new D3DAGLayoutCalculator();
     this.renderer = renderer ?? new D3Renderer(container, this);
 
     // import data

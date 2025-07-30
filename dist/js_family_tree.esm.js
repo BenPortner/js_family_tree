@@ -2859,9 +2859,18 @@ Transform.prototype = {
 Transform.prototype;
 
 class D3Renderer {
-    constructor(container, ft) {
-        this.transitionDuration = 750; // ms
+    constructor(container, ft, opts) {
+        this.opts = {
+            transitionDuration: 750, // ms
+            linkPathFunction: D3Renderer.defaultLinkPathFunction,
+            nodeClickFunction: D3Renderer.defaultNodeClickFunction,
+            nodeCSSClassFunction: D3Renderer.defaultNodeCSSClassFunction,
+            nodeLabelFunction: D3Renderer.defaultNodeLabelFunction,
+            nodeTooltipFunction: D3Renderer.defaultNodeTooltipFunction,
+            nodeSizeFunction: D3Renderer.defaultNodeSizeFunction,
+        };
         this.ft = ft;
+        this.opts = Object.assign(Object.assign({}, this.opts), opts);
         // set container class
         select(container).attr('class', 'svg-container');
         // create svg element in container
@@ -2874,11 +2883,6 @@ class D3Renderer {
             .attr('class', 'tooltip')
             .style('opacity', 0)
             .style('visibility', 'hidden');
-        this.nodeTooltipFunction = D3Renderer.defaultNodeTooltipFunction;
-        this.linkPathFunction = D3Renderer.defaultLinkPathFunction;
-        this.nodeLabelFunction = D3Renderer.defaultNodeLabelFunction;
-        this.nodeSizeFunction = D3Renderer.defaultNodeSizeFunction;
-        this.nodeCSSClassFunction = this.defaultNodeCSSClassFunction;
     }
     static defaultLinkPathFunction(link, orientation) {
         function vertical_s_bend(s, d) {
@@ -2900,6 +2904,9 @@ class D3Renderer {
         return orientation == Vertical
             ? vertical_s_bend(s, d)
             : horizontal_s_bend(s, d);
+    }
+    static defaultNodeClickFunction(node, ft) {
+        ft.nodeClickHandler(node);
     }
     static defaultNodeLabelFunction(node, missingData = '?') {
         if (node.data.isUnion)
@@ -2940,7 +2947,7 @@ class D3Renderer {
             return 10;
         return 0;
     }
-    defaultNodeCSSClassFunction(node) {
+    static defaultNodeCSSClassFunction(node) {
         const class1 = node.data.extendable ? 'extendable' : 'non-extendable';
         const class2 = node.data.data.type;
         return class1 + ' ' + class2;
@@ -2958,21 +2965,21 @@ class D3Renderer {
             return 'translate(' + transitionStart.x + ',' + transitionStart.y + ')';
         })
             .transition()
-            .duration(this.transitionDuration)
+            .duration(this.opts.transitionDuration)
             .attr('class', 'node-group')
             .attr('transform', (d) => 'translate(' + d.x + ',' + d.y + ')');
         enteringGroups
             .append('circle')
-            .on('click', (event, d) => this.ft.nodeClickHandler(d))
+            .on('click', (event, d) => this.opts.nodeClickFunction(d, this.ft))
             .transition()
-            .duration(this.transitionDuration)
-            .attr('r', this.nodeSizeFunction)
-            .attr('class', (d) => this.nodeCSSClassFunction(d));
+            .duration(this.opts.transitionDuration)
+            .attr('r', this.opts.nodeSizeFunction)
+            .attr('class', (d) => this.opts.nodeCSSClassFunction(d));
         // exiting nodes move from current position to clicked node new position
         selection
             .exit()
             .transition()
-            .duration(this.transitionDuration)
+            .duration(this.opts.transitionDuration)
             .attr('transform', (d) => {
             const transitionEnd = clickedNodeNew !== null && clickedNodeNew !== void 0 ? clickedNodeNew : d;
             return 'translate(' + transitionEnd.x + ',' + transitionEnd.y + ')';
@@ -2981,10 +2988,10 @@ class D3Renderer {
         // update existing nodes
         selection
             .transition()
-            .duration(this.transitionDuration)
+            .duration(this.opts.transitionDuration)
             .attr('transform', (d) => 'translate(' + d.x + ',' + d.y + ')')
             .select('circle')
-            .attr('class', (d) => this.nodeCSSClassFunction(d));
+            .attr('class', (d) => this.opts.nodeCSSClassFunction(d));
         return enteringGroups;
     }
     renderLinks(layoutResult, clickedNodeOld, clickedNodeNew) {
@@ -3002,39 +3009,39 @@ class D3Renderer {
                 source: transitionStart,
                 target: transitionStart,
             };
-            return this.linkPathFunction(transitionStartLink, layoutResult.orientation);
+            return this.opts.linkPathFunction(transitionStartLink, layoutResult.orientation);
         })
             .transition()
-            .duration(this.transitionDuration)
+            .duration(this.opts.transitionDuration)
             .attr('d', (link) => {
-            return this.linkPathFunction(link, layoutResult.orientation);
+            return this.opts.linkPathFunction(link, layoutResult.orientation);
         })
             .attr('class', 'link');
         // updated links transition from current position to new position
         selection
             .transition()
-            .duration(this.transitionDuration)
+            .duration(this.opts.transitionDuration)
             .attr('d', (link) => {
-            return this.linkPathFunction(link, layoutResult.orientation);
+            return this.opts.linkPathFunction(link, layoutResult.orientation);
         });
         // exiting links transition from current position to clicked node new position
         selection
             .exit()
             .transition()
-            .duration(this.transitionDuration)
+            .duration(this.opts.transitionDuration)
             .attr('d', (link) => {
             const transitionEnd = clickedNodeNew !== null && clickedNodeNew !== void 0 ? clickedNodeNew : link.target;
             const transitionEndLink = {
                 source: transitionEnd,
                 target: transitionEnd,
             };
-            return this.linkPathFunction(transitionEndLink, layoutResult.orientation);
+            return this.opts.linkPathFunction(transitionEndLink, layoutResult.orientation);
         })
             .remove();
     }
     setupTooltips(nodeSelect) {
         const tooltip_div = this._tooltipDiv;
-        const tooltip_func = this.nodeTooltipFunction;
+        const tooltip_func = this.opts.nodeTooltipFunction;
         nodeSelect.on('mouseover', function (event, node) {
             const tooltipContent = tooltip_func(node);
             if (tooltipContent)
@@ -3059,7 +3066,7 @@ class D3Renderer {
         });
     }
     renderLabels(enteringNodes, cssClass = 'node-label', lineSep = 14, xOffset = 13, dominantBaseline = 'central') {
-        const nodeLabelFunction = this.nodeLabelFunction;
+        const nodeLabelFunction = this.opts.nodeLabelFunction;
         enteringNodes
             .append('text')
             .attr('class', cssClass)
@@ -3108,10 +3115,10 @@ class D3Renderer {
 }
 
 class FamilyTree {
-    constructor(data, container, importer, layouter, layoutOptions, renderer) {
+    constructor(data, container, importer, layouter, renderer) {
         var _a;
         this.importer = importer !== null && importer !== void 0 ? importer : new FamilyTreeDataV1Importer();
-        this.layouter = layouter !== null && layouter !== void 0 ? layouter : new D3DAGLayoutCalculator(layoutOptions);
+        this.layouter = layouter !== null && layouter !== void 0 ? layouter : new D3DAGLayoutCalculator();
         this.renderer = renderer !== null && renderer !== void 0 ? renderer : new D3Renderer(container, this);
         // import data
         this.nodes = this.importer.import(data);
