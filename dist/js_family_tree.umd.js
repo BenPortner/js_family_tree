@@ -2877,14 +2877,24 @@
             };
             this.ft = ft;
             this.opts = Object.assign(Object.assign({}, this.opts), opts);
+            this.container = container;
+        }
+        get container() {
+            return this._container;
+        }
+        set container(c) {
+            this._container = c;
+            this.initializeContainer();
+        }
+        initializeContainer() {
             // set container class
-            select(container).attr('class', 'svg-container');
+            select(this.container).attr('class', 'svg-container');
             // create svg element in container
-            this.svg = select(container).append('svg');
+            this.svg = select(this.container).append('svg');
             // create group element in svg
             this.g = this.svg.append('g').attr('transform', 'translate(0, 0)');
-            // initialize tooltips
-            this._tooltipDiv = select(container)
+            // create tooltip div
+            this.tooltipDiv = select(this.container)
                 .append('div')
                 .attr('class', 'tooltip')
                 .style('opacity', 0)
@@ -3046,7 +3056,7 @@
                 .remove();
         }
         setupTooltips(nodeSelect) {
-            const tooltip_div = this._tooltipDiv;
+            const tooltip_div = this.tooltipDiv;
             const tooltip_func = this.opts.nodeTooltipFunction;
             nodeSelect.on('mouseover', function (event, node) {
                 const tooltipContent = tooltip_func(node);
@@ -3125,6 +3135,7 @@
             var _a;
             this.importer = importer !== null && importer !== void 0 ? importer : new FamilyTreeDataV1Importer();
             this.layouter = layouter !== null && layouter !== void 0 ? layouter : new D3DAGLayoutCalculator();
+            container = renderer ? renderer.container : container;
             this.renderer = renderer !== null && renderer !== void 0 ? renderer : new D3Renderer(container, this);
             // import data
             this.nodes = this.importer.import(data);

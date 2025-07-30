@@ -1,6 +1,7 @@
 import type { LayoutedNode, LayoutResult } from '../layout/types';
 
 export interface Renderer {
+  container: HTMLElement;
   render(
     layoutResult: LayoutResult,
     clickedNodeOld?: LayoutedNode,

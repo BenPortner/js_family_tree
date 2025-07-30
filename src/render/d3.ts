@@ -10,7 +10,7 @@ import {
 import type { DominantBaseline } from './types';
 import type { Renderer } from './types';
 import type { FamilyTree } from '../familyTree';
-import { PersonData } from '../import/types';
+import type { PersonData } from '../import/types';
 
 export interface D3RendererOptions {
   transitionDuration: number;
@@ -26,10 +26,11 @@ export interface D3RendererOptions {
 }
 
 export class D3Renderer implements Renderer {
-  private svg;
-  private g;
-  private _tooltipDiv;
-  private ft;
+  private _container!: HTMLElement;
+  private svg!: Selection<SVGSVGElement, unknown, null, undefined>;
+  private g!: Selection<SVGGElement, unknown, null, undefined>;
+  private tooltipDiv!: Selection<HTMLDivElement, unknown, null, undefined>;
+  private ft: FamilyTree;
 
   public opts: D3RendererOptions = {
     transitionDuration: 750, // ms
@@ -48,18 +49,30 @@ export class D3Renderer implements Renderer {
   ) {
     this.ft = ft;
     this.opts = { ...this.opts, ...opts };
+    this.container = container;
+  }
 
+  get container() {
+    return this._container;
+  }
+
+  set container(c: HTMLElement) {
+    this._container = c;
+    this.initializeContainer();
+  }
+
+  private initializeContainer() {
     // set container class
-    select(container).attr('class', 'svg-container');
+    select(this.container).attr('class', 'svg-container');
 
     // create svg element in container
-    this.svg = select(container).append('svg');
+    this.svg = select(this.container).append('svg');
 
     // create group element in svg
     this.g = this.svg.append('g').attr('transform', 'translate(0, 0)');
 
-    // initialize tooltips
-    this._tooltipDiv = select(container)
+    // create tooltip div
+    this.tooltipDiv = select(this.container)
       .append('div')
       .attr('class', 'tooltip')
       .style('opacity', 0)
@@ -255,7 +268,7 @@ export class D3Renderer implements Renderer {
   private setupTooltips(
     nodeSelect: Selection<SVGGElement, LayoutedNode, SVGGElement, unknown>
   ) {
-    const tooltip_div = this._tooltipDiv;
+    const tooltip_div = this.tooltipDiv;
     const tooltip_func = this.opts.nodeTooltipFunction;
     nodeSelect.on('mouseover', function (event, node) {
       const tooltipContent = tooltip_func(node);

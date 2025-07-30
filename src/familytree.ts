@@ -24,6 +24,7 @@ export class FamilyTree {
   ) {
     this.importer = importer ?? new FamilyTreeDataV1Importer();
     this.layouter = layouter ?? new D3DAGLayoutCalculator();
+    container = renderer ? renderer.container : container;
     this.renderer = renderer ?? new D3Renderer(container, this);
 
     // import data
