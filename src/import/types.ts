@@ -1,9 +1,4 @@
-import type {
-  GraphNode as D3GraphNode,
-  GraphLink as D3GraphLink,
-  Graph as D3Graph,
-} from 'd3-dag';
-import type { NodeID, Person, Union } from '../familyTreeData';
+import type { Person, Union } from '../familyTreeData';
 import type { ClickableNode } from '../clickableNode';
 
 export const CPerson = 'person' as const;
@@ -20,10 +15,20 @@ export interface UnionData extends Union {
   insertedNodes: ClickableNode[];
 }
 export type NodeData = PersonData | UnionData;
-export type LinkData = [NodeID, NodeID];
-export type GraphNode = D3GraphNode<NodeData, LinkData>;
-export type GraphLink = D3GraphLink<NodeData, LinkData>;
-export type Graph = D3Graph<NodeData, LinkData>;
+export type LinkData = any;
+
+export interface GraphNode {
+  data: NodeData;
+  children(): IterableIterator<GraphNode>;
+  parents(): IterableIterator<GraphNode>;
+}
+export interface GraphLink {
+  source: GraphNode;
+  target: GraphNode;
+}
+export interface Graph {
+  nodes(): IterableIterator<GraphNode>;
+}
 
 export interface Importer {
   import(data: any): ClickableNode[];
