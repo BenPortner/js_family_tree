@@ -3108,11 +3108,11 @@ class D3Renderer {
 }
 
 class FamilyTree {
-    constructor(data, container, layoutOptions) {
+    constructor(data, container, importer, layouter, layoutOptions, renderer) {
         var _a;
-        this.importer = new FamilyTreeDataV1Importer();
-        this.layouter = new D3DAGLayoutCalculator(layoutOptions);
-        this.renderer = new D3Renderer(container, this);
+        this.importer = importer !== null && importer !== void 0 ? importer : new FamilyTreeDataV1Importer();
+        this.layouter = layouter !== null && layouter !== void 0 ? layouter : new D3DAGLayoutCalculator(layoutOptions);
+        this.renderer = renderer !== null && renderer !== void 0 ? renderer : new D3Renderer(container, this);
         // import data
         this.nodes = this.importer.import(data);
         this.root =
@@ -3121,18 +3121,16 @@ class FamilyTree {
         this.renderVisibleSubgraph(undefined);
     }
     getVisibleSubgraph() {
-        function recursiveVisibleNeighborCollector(node, res) {
-            const foundIDs = res.map((n) => n.data.id);
+        function recursiveVisibleNeighborCollector(node, result = []) {
+            result = result.concat([node]);
+            const foundIDs = result.map((n) => n.data.id);
             const newVisibleNeighbors = node.visibleNeighbors.filter((n) => !foundIDs.includes(n.data.id));
-            res = res.concat(newVisibleNeighbors);
-            newVisibleNeighbors.forEach((n) => (res = recursiveVisibleNeighborCollector(n, res)));
-            return res;
+            for (let n of newVisibleNeighbors) {
+                result = recursiveVisibleNeighborCollector(n, result);
+            }
+            return result;
         }
-        // get visible nodes
-        const visibleNodeData = recursiveVisibleNeighborCollector(this.root, [
-            this.root,
-        ]);
-        return visibleNodeData;
+        return recursiveVisibleNeighborCollector(this.root);
     }
     renderVisibleSubgraph(nodeOld) {
         const visibleNodes = this.getVisibleSubgraph();

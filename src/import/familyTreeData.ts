@@ -35,6 +35,6 @@ export class FamilyTreeDataV1Importer implements Importer {
     const nodes = [...graph.nodes()];
     // add custom methods (augment)
     augmentD3DAGNodeClass(nodes[0]);
-    return nodes as unknown as ClickableNode[];
+    return nodes as ClickableNode[];
   }
 }

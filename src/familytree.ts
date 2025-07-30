@@ -15,18 +15,21 @@ export class FamilyTree {
   private nodes: ClickableNode[];
   private root: ClickableNode;
 
-  private importer: Importer;
+  public importer: Importer;
   public layouter: LayoutCalculator;
-  private renderer: Renderer;
+  public renderer: Renderer;
 
   constructor(
     data: FamilyTreeData,
     container: HTMLElement,
-    layoutOptions?: LayoutCalculatorOpts
+    importer?: Importer,
+    layouter?: LayoutCalculator,
+    layoutOptions?: LayoutCalculatorOpts,
+    renderer?: Renderer
   ) {
-    this.importer = new FamilyTreeDataV1Importer();
-    this.layouter = new D3DAGLayoutCalculator(layoutOptions);
-    this.renderer = new D3Renderer(container, this);
+    this.importer = importer ?? new FamilyTreeDataV1Importer();
+    this.layouter = layouter ?? new D3DAGLayoutCalculator(layoutOptions);
+    this.renderer = renderer ?? new D3Renderer(container, this);
 
     // import data
     this.nodes = this.importer.import(data);
@@ -40,23 +43,19 @@ export class FamilyTree {
   private getVisibleSubgraph() {
     function recursiveVisibleNeighborCollector(
       node: ClickableNode,
-      res: ClickableNode[]
+      result: ClickableNode[] = []
     ) {
-      const foundIDs = res.map((n) => n.data.id);
+      result = result.concat([node]);
+      const foundIDs = result.map((n) => n.data.id);
       const newVisibleNeighbors = node.visibleNeighbors.filter(
         (n) => !foundIDs.includes(n.data.id)
       );
-      res = res.concat(newVisibleNeighbors);
-      newVisibleNeighbors.forEach(
-        (n) => (res = recursiveVisibleNeighborCollector(n, res))
-      );
-      return res;
+      for (let n of newVisibleNeighbors) {
+        result = recursiveVisibleNeighborCollector(n, result);
+      }
+      return result;
     }
-    // get visible nodes
-    const visibleNodeData = recursiveVisibleNeighborCollector(this.root, [
-      this.root,
-    ]);
-    return visibleNodeData;
+    return recursiveVisibleNeighborCollector(this.root);
   }
 
   public renderVisibleSubgraph(nodeOld?: LayoutedNode) {

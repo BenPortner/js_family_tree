@@ -1,4 +1,5 @@
 import type { ClickableNode } from '../clickableNode';
+import { NodeID } from '../familyTreeData';
 
 export type NodeData = ClickableNode;
 export type LinkData = undefined;
