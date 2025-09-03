@@ -1,4 +1,4 @@
-import { select, descending, type Selection } from 'd3';
+import { select, descending, zoom, type Selection, ZoomBehavior } from 'd3';
 import {
   type LayoutedGraph,
   type LayoutResult,
@@ -30,6 +30,7 @@ export class D3Renderer implements Renderer {
   private svg!: Selection<SVGSVGElement, unknown, null, undefined>;
   private g!: Selection<SVGGElement, unknown, null, undefined>;
   private tooltipDiv!: Selection<HTMLDivElement, unknown, null, undefined>;
+  private zoom!: ZoomBehavior<SVGSVGElement, unknown>;
   private ft: FamilyTree;
 
   public opts: D3RendererOptions = {
@@ -70,6 +71,12 @@ export class D3Renderer implements Renderer {
 
     // create group element in svg
     this.g = this.svg.append('g').attr('transform', 'translate(0, 0)');
+
+    // add zoom and pan behavior
+    this.zoom = zoom<SVGSVGElement, unknown>().on('zoom', (event) => {
+      this.g.attr('transform', event.transform);
+    });
+    this.svg.call(this.zoom);
 
     // create tooltip div
     this.tooltipDiv = select(this.container)
@@ -335,16 +342,6 @@ export class D3Renderer implements Renderer {
     clickedNodeOld?: LayoutedNode,
     clickedNodeNew?: LayoutedNode
   ) {
-    // adapt svg element size
-    const svgWidth = Math.max(
-      this.svg.node()!.clientWidth,
-      layoutResult.width * 1.05
-    );
-    const svgHeight = Math.max(
-      this.svg.node()!.clientHeight,
-      layoutResult.height * 1.05
-    );
-    this.svg.attr('width', svgWidth).attr('height', svgHeight);
     // add / update / remove links and nodes
     const linkSelect = this.renderLinks(
       layoutResult,
@@ -361,6 +358,14 @@ export class D3Renderer implements Renderer {
     // add tooltips and node labels
     this.setupTooltips(nodeSelect);
     this.renderLabels(nodeSelect, 'node-label', 14, 13, 'central');
+    // center view on clicked node
+    const centerNode =
+      clickedNodeNew ?? layoutResult.graph.nodes().next().value;
+    this.zoom.translateTo(
+      this.svg.transition().duration(this.opts.transitionDuration),
+      centerNode.x,
+      centerNode.y
+    );
   }
 
   clear() {

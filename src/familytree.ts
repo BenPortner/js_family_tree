@@ -9,7 +9,7 @@ import type { Importer } from './import/types';
 
 export class FamilyTree {
   private nodes: ClickableNode[];
-  private root: ClickableNode;
+  public readonly root: ClickableNode;
 
   public importer: Importer;
   public layouter: LayoutCalculator;
