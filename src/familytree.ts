@@ -41,10 +41,11 @@ export class FamilyTree {
       node: ClickableNode,
       result: ClickableNode[] = []
     ) {
-      result = result.concat([node]);
-      const foundIDs = result.map((n) => n.data.id);
+      if (!result.includes(node)) {
+        result = result.concat([node]);
+      }
       const newVisibleNeighbors = node.visibleNeighbors.filter(
-        (n) => !foundIDs.includes(n.data.id)
+        (n) => !result.includes(n)
       );
       for (let n of newVisibleNeighbors) {
         result = recursiveVisibleNeighborCollector(n, result);
