@@ -32,7 +32,7 @@ function translateOrientationToTweak(orientation) {
     }
 }
 const D3DAGLAyoutCalculatorDefaultOptions = {
-    nodeSize: [120, 120],
+    nodeSize: [50, 100],
     layering: Tn(),
     // decross: customSugiyamaDecross,
     decross: On(),

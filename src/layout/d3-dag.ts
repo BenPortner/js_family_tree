@@ -57,7 +57,7 @@ function customSugiyamaDecross(layers: SugiNode<NodeData>[][]): void {
 }
 
 const D3DAGLAyoutCalculatorDefaultOptions: D3DAGLayoutCalculatorOptions = {
-  nodeSize: [120, 120],
+  nodeSize: [50, 100],
   layering: layeringSimplex(),
   // decross: customSugiyamaDecross,
   decross: decrossTwoLayer(),
