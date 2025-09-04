@@ -18,14 +18,14 @@ export class FamilyTreeDataV1Importer implements Importer {
           ...data.persons[id],
           type: CPerson,
           visible: id == data.start,
-          insertedNodes: [],
+          insertedBy: null,
         } as PersonData;
       } else if (id in data.unions) {
         return {
           ...data.unions[id],
           type: CUnion,
           visible: false,
-          insertedNodes: [],
+          insertedBy: null,
         } as UnionData;
       } else {
         throw Error(`ID '${id}' not found in data.persons or data.unions.`);

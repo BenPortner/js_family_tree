@@ -78,6 +78,9 @@ function visibleNeighbors() {
 function invisibleNeighbors() {
     return this.neighbors.filter((n) => !n.data.visible);
 }
+function insertedNodes() {
+    return this.neighbors.filter((n) => n.data.insertedBy === this);
+}
 function extendable() {
     return this.invisibleNeighbors.length > 0;
 }
@@ -87,36 +90,36 @@ function isUnion() {
 function isPerson() {
     return this.data.type == CPerson;
 }
-function showNeighbors() {
-    const insertedNodes = this.data.insertedNodes;
-    const invisibleNeighbors = this.invisibleNeighbors;
-    this.data.insertedNodes = insertedNodes.concat(invisibleNeighbors);
-    invisibleNeighbors.forEach((n) => {
+function showNeighbors(addInsertedNodes = false) {
+    if (addInsertedNodes) {
+        for (let n of this.invisibleNeighbors) {
+            n.data.insertedBy = this;
+        }
+    }
+    for (let n of this.insertedNodes) {
         n.data.visible = true;
-        if (n.isUnion) {
-            n.showNeighbors();
-        }
-    });
+        // addInsertedNodes only for the clicked person and it's neighbor unions
+        n.showNeighbors(addInsertedNodes && n.isUnion);
+    }
 }
-function hideNeighbors() {
-    const insertedNodes = this.data.insertedNodes;
-    this.data.insertedNodes = [];
-    insertedNodes.forEach((n) => {
-        n.data.visible = false;
-        if (n.isUnion) {
-            n.hideNeighbors();
+function hideNeighbors(resetInsertedNodes = false) {
+    for (let n of this.insertedNodes) {
+        if (resetInsertedNodes) {
+            n.data.insertedBy = null;
         }
-    });
+        n.data.visible = false;
+        n.hideNeighbors(false);
+    }
 }
 function click() {
     if (this.isUnion) {
         throw Error('Only person nodes can be clicked.');
     }
     if (this.extendable) {
-        this.showNeighbors();
+        this.showNeighbors(true);
     }
     else {
-        this.hideNeighbors();
+        this.hideNeighbors(true);
     }
 }
 function visibleParentIDs() {
@@ -138,6 +141,11 @@ function augmentD3DAGNodeClass(node) {
     });
     Object.defineProperty(prototype, 'invisibleNeighbors', {
         get: invisibleNeighbors,
+        configurable: true,
+        enumerable: false,
+    });
+    Object.defineProperty(prototype, 'insertedNodes', {
+        get: insertedNodes,
         configurable: true,
         enumerable: false,
     });
@@ -166,10 +174,10 @@ class FamilyTreeDataV1Importer {
     import(data) {
         const builder = ei().nodeDatum((id) => {
             if (id in data.persons) {
-                return Object.assign(Object.assign({}, data.persons[id]), { type: CPerson, visible: id == data.start, insertedNodes: [] });
+                return Object.assign(Object.assign({}, data.persons[id]), { type: CPerson, visible: id == data.start, insertedBy: null });
             }
             else if (id in data.unions) {
-                return Object.assign(Object.assign({}, data.unions[id]), { type: CUnion, visible: false, insertedNodes: [] });
+                return Object.assign(Object.assign({}, data.unions[id]), { type: CUnion, visible: false, insertedBy: null });
             }
             else {
                 throw Error(`ID '${id}' not found in data.persons or data.unions.`);

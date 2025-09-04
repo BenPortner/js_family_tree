@@ -38,8 +38,8 @@ describe('FamilyTreeDataV1Importer', () => {
   });
   it('added valid field: insertedNodes', () => {
     nodes.forEach((node) => {
-      expect(node.data).to.have.property('insertedNodes');
-      expect(node.data.insertedNodes).to.be.an('array');
+      expect(node).to.have.property('insertedNodes');
+      expect(node.insertedNodes).to.be.a('Array');
     });
   });
   it('preserved node metadata: id', () => {

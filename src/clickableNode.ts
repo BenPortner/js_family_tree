@@ -6,11 +6,12 @@ export interface ClickableNode extends GraphNode {
   neighbors: ClickableNode[];
   visibleNeighbors: ClickableNode[];
   invisibleNeighbors: ClickableNode[];
+  insertedNodes: ClickableNode[];
   extendable: boolean;
   isUnion: boolean;
   isPerson: boolean;
-  showNeighbors(): void;
-  hideNeighbors(): void;
+  showNeighbors(addInsertedNodes: boolean): void;
+  hideNeighbors(resetInsertedNodes: boolean): void;
   click(): void;
   visibleParentIDs(): NodeID[];
 }
@@ -24,6 +25,9 @@ function visibleNeighbors(this: ClickableNode) {
 function invisibleNeighbors(this: ClickableNode) {
   return this.neighbors.filter((n) => !n.data.visible);
 }
+function insertedNodes(this: ClickableNode) {
+  return this.neighbors.filter((n) => n.data.insertedBy === this);
+}
 function extendable(this: ClickableNode) {
   return this.invisibleNeighbors.length > 0;
 }
@@ -33,27 +37,30 @@ function isUnion(this: ClickableNode) {
 function isPerson(this: ClickableNode) {
   return this.data.type == CPerson;
 }
-function showNeighbors(this: ClickableNode) {
-  const insertedNodes = this.data.insertedNodes;
-  const invisibleNeighbors = this.invisibleNeighbors;
-  this.data.insertedNodes = insertedNodes.concat(invisibleNeighbors);
-  invisibleNeighbors.forEach((n) => {
-    n.data.visible = true;
-    if (n.isUnion) {
-      n.showNeighbors();
+function showNeighbors(this: ClickableNode, addInsertedNodes: boolean = false) {
+  if (addInsertedNodes) {
+    for (let n of this.invisibleNeighbors) {
+      n.data.insertedBy = this;
     }
-  });
+  }
+  for (let n of this.insertedNodes) {
+    n.data.visible = true;
+    // addInsertedNodes only for the clicked person and it's neighbor unions
+    n.showNeighbors(addInsertedNodes && n.isUnion);
+  }
 }
 
-function hideNeighbors(this: ClickableNode) {
-  const insertedNodes = this.data.insertedNodes as ClickableNode[];
-  this.data.insertedNodes = [];
-  insertedNodes.forEach((n) => {
-    n.data.visible = false;
-    if (n.isUnion) {
-      n.hideNeighbors();
+function hideNeighbors(
+  this: ClickableNode,
+  resetInsertedNodes: boolean = false
+) {
+  for (let n of this.insertedNodes) {
+    if (resetInsertedNodes) {
+      n.data.insertedBy = null;
     }
-  });
+    n.data.visible = false;
+    n.hideNeighbors(false);
+  }
 }
 
 function click(this: ClickableNode) {
@@ -61,9 +68,9 @@ function click(this: ClickableNode) {
     throw Error('Only person nodes can be clicked.');
   }
   if (this.extendable) {
-    this.showNeighbors();
+    this.showNeighbors(true);
   } else {
-    this.hideNeighbors();
+    this.hideNeighbors(true);
   }
 }
 
@@ -87,6 +94,11 @@ export function augmentD3DAGNodeClass(node: GraphNode) {
   });
   Object.defineProperty(prototype, 'invisibleNeighbors', {
     get: invisibleNeighbors,
+    configurable: true,
+    enumerable: false,
+  });
+  Object.defineProperty(prototype, 'insertedNodes', {
+    get: insertedNodes,
     configurable: true,
     enumerable: false,
   });

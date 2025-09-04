@@ -7,12 +7,12 @@ export const CUnion = 'union' as const;
 export interface PersonData extends Person {
   type: typeof CPerson;
   visible: boolean;
-  insertedNodes: ClickableNode[];
+  insertedBy: ClickableNode | null;
 }
 export interface UnionData extends Union {
   type: typeof CUnion;
   visible: boolean;
-  insertedNodes: ClickableNode[];
+  insertedBy: ClickableNode | null;
 }
 export type NodeData = PersonData | UnionData;
 export type LinkData = any;
