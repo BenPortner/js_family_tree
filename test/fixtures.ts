@@ -25,3 +25,8 @@ export const GoTFamilyTree: FamilyTreeData = JSON.parse(fileContent);
 fixtureFile = join(__dirname, "../data/data_circle.js");
 fileContent = readFileSync(fixtureFile, "utf-8").replace("data = ", "");
 export const CircleFamilyTree: FamilyTreeData = JSON.parse(fileContent);
+
+fixtureFile = join(__dirname, "../data/data_single-parent.js");
+fileContent = readFileSync(fixtureFile, "utf-8").replace("data = ", "");
+fileContent = removeComments(fileContent);
+export const SingleParentFamilyTree: FamilyTreeData = JSON.parse(fileContent);
