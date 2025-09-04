@@ -9,6 +9,20 @@
       "file": "${workspaceFolder}/index.html"
     },
     {
+      "name": "Launch index_circle.html",
+      "type": "firefox",
+      "request": "launch",
+      "reAttach": true,
+      "file": "${workspaceFolder}/data/index_circle.html"
+    },
+    {
+      "name": "Launch index_simple.html",
+      "type": "firefox",
+      "request": "launch",
+      "reAttach": true,
+      "file": "${workspaceFolder}/data/index_simple.html"
+    },
+    {
       "name": "Launch Test File",
       "type": "node",
       "request": "launch",
