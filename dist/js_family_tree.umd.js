@@ -38,7 +38,7 @@
         }
     }
     const D3DAGLAyoutCalculatorDefaultOptions = {
-        nodeSize: [50, 100],
+        nodeSize: (node) => [50, 100],
         layering: Tn(),
         // decross: customSugiyamaDecross,
         decross: On(),
@@ -47,27 +47,26 @@
     };
     class D3DAGLayoutCalculator {
         constructor(opts) {
-            this.opts = opts;
+            this.opts = Object.assign(Object.assign({}, D3DAGLAyoutCalculatorDefaultOptions), opts);
         }
         calculateLayout(nodes) {
-            const opts = Object.assign(Object.assign({}, D3DAGLAyoutCalculatorDefaultOptions), this.opts);
             const builder = ai()
                 .id((n) => n.data.id)
                 .parentIds((n) => n.visibleParentIDs());
             const graph = builder(nodes);
             // calculate the layout
             const layout = ji()
-                .nodeSize(opts.nodeSize)
-                .layering(opts.layering)
-                .decross(opts.decross)
-                .coord(opts.coord)
-                .tweaks(translateOrientationToTweak(opts.orientation));
+                .nodeSize(this.opts.nodeSize)
+                .layering(this.opts.layering)
+                .decross(this.opts.decross)
+                .coord(this.opts.coord)
+                .tweaks(translateOrientationToTweak(this.opts.orientation));
             const layoutResult = layout(graph);
             return {
                 graph: graph,
                 width: layoutResult.width,
                 height: layoutResult.height,
-                orientation: opts.orientation,
+                orientation: this.opts.orientation,
             };
         }
     }

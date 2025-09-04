@@ -63,4 +63,18 @@ describe('D3DAGLayoutCalculator', () => {
       expect(children_x.every((cx) => cx > node.x)).to.be.true;
     });
   });
+  it('can be set to vertical layout', () => {
+    calculator = new D3DAGLayoutCalculator({ orientation: Vertical });
+    const importer = new FamilyTreeDataV1Importer();
+    const clickableNodes = importer.import(SimpleFamilyTree);
+    for (let n of clickableNodes) n.data.visible = true;
+    layoutResult = calculator.calculateLayout(clickableNodes);
+    expect(layoutResult.orientation).to.equal(Vertical);
+    const nodes = [...layoutResult.graph.nodes()];
+    nodes.forEach((node) => {
+      // expect child.y > parent.y for all children
+      const children_y = [...node.children()].map((c) => c.y);
+      expect(children_y.every((cy) => cy > node.y)).to.be.true;
+    }); 
+  });
 });

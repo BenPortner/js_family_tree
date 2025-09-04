@@ -20,7 +20,7 @@ import type { NodeData, LinkData, LayoutCalculatorOpts } from './types';
 import type { PersonData } from '../import/types';
 
 export interface D3DAGLayoutCalculatorOptions extends LayoutCalculatorOpts {
-  nodeSize: [number, number];
+  nodeSize: (node: any) => [number, number];
   layering: Layering<NodeData, LinkData>;
   decross: Decross<NodeData, LinkData>;
   coord: Coord<NodeData, LinkData>;
@@ -56,8 +56,8 @@ function customSugiyamaDecross(layers: SugiNode<NodeData>[][]): void {
   }
 }
 
-const D3DAGLAyoutCalculatorDefaultOptions: D3DAGLayoutCalculatorOptions = {
-  nodeSize: [50, 100],
+const D3DAGLAyoutCalculatorDefaultOptions = {
+  nodeSize: (node: any) => [50, 100] as [number, number],
   layering: layeringSimplex(),
   // decross: customSugiyamaDecross,
   decross: decrossTwoLayer(),
@@ -66,33 +66,32 @@ const D3DAGLAyoutCalculatorDefaultOptions: D3DAGLayoutCalculatorOptions = {
 };
 
 export class D3DAGLayoutCalculator implements LayoutCalculator {
-  public opts?: D3DAGLayoutCalculatorOptions;
+  public opts: D3DAGLayoutCalculatorOptions;
 
-  constructor(opts?: D3DAGLayoutCalculatorOptions) {
-    this.opts = opts;
+  constructor(opts?: Partial<D3DAGLayoutCalculatorOptions>) {
+    this.opts = {
+      ...D3DAGLAyoutCalculatorDefaultOptions,
+      ...opts,
+    };
   }
   calculateLayout(nodes: ClickableNode[]): LayoutResult {
-    const opts = {
-      ...D3DAGLAyoutCalculatorDefaultOptions,
-      ...this.opts,
-    };
     const builder = graphStratify()
       .id((n: ClickableNode) => n.data.id)
       .parentIds((n: ClickableNode) => n.visibleParentIDs());
     const graph = builder(nodes);
     // calculate the layout
     const layout = sugiyama()
-      .nodeSize(opts.nodeSize)
-      .layering(opts.layering)
-      .decross(opts.decross)
-      .coord(opts.coord)
-      .tweaks(translateOrientationToTweak(opts.orientation));
+      .nodeSize(this.opts.nodeSize)
+      .layering(this.opts.layering)
+      .decross(this.opts.decross)
+      .coord(this.opts.coord)
+      .tweaks(translateOrientationToTweak(this.opts.orientation));
     const layoutResult = layout(graph);
     return {
       graph: graph,
       width: layoutResult.width,
       height: layoutResult.height,
-      orientation: opts.orientation,
+      orientation: this.opts.orientation,
     };
   }
 }
