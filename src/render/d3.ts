@@ -62,6 +62,12 @@ export class D3Renderer implements Renderer {
     this.initializeContainer();
   }
 
+  private get isJSDOM() {
+    return /jsdom/i.test(
+      this.container.ownerDocument.defaultView!.navigator.userAgent
+    );
+  }
+
   private initializeContainer() {
     // set container class
     select(this.container).attr('class', 'svg-container');
@@ -361,11 +367,14 @@ export class D3Renderer implements Renderer {
     // center view on clicked node
     const centerNode =
       clickedNodeNew ?? layoutResult.graph.nodes().next().value;
-    this.zoom.translateTo(
-      this.svg.transition().duration(this.opts.transitionDuration),
-      centerNode.x,
-      centerNode.y
-    );
+    // work-around because JSDOM+d3-zoom throws errors
+    if (!this.isJSDOM) {
+      this.zoom.translateTo(
+        this.svg.transition().duration(this.opts.transitionDuration),
+        centerNode.x,
+        centerNode.y
+      );
+    }
   }
 
   clear() {

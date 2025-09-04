@@ -3491,6 +3491,9 @@
             this._container = c;
             this.initializeContainer();
         }
+        get isJSDOM() {
+            return /jsdom/i.test(this.container.ownerDocument.defaultView.navigator.userAgent);
+        }
         initializeContainer() {
             // set container class
             select(this.container).attr('class', 'svg-container');
@@ -3732,7 +3735,10 @@
             this.renderLabels(nodeSelect, 'node-label', 14, 13, 'central');
             // center view on clicked node
             const centerNode = clickedNodeNew !== null && clickedNodeNew !== void 0 ? clickedNodeNew : layoutResult.graph.nodes().next().value;
-            this.zoom.translateTo(this.svg.transition().duration(this.opts.transitionDuration), centerNode.x, centerNode.y);
+            // work-around because JSDOM+d3-zoom throws errors
+            if (!this.isJSDOM) {
+                this.zoom.translateTo(this.svg.transition().duration(this.opts.transitionDuration), centerNode.x, centerNode.y);
+            }
         }
         clear() {
             this.g.selectAll('*').remove();
