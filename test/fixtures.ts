@@ -17,7 +17,11 @@ let fixtureFile = join(__dirname, "../data/data_simple.js");
 let fileContent = readFileSync(fixtureFile, "utf-8").replace("data = ", "");
 export const SimpleFamilyTree: FamilyTreeData = JSON.parse(fileContent);
 
-fixtureFile = join(__dirname, "../data/data.js");
+fixtureFile = join(__dirname, "../data/data_GoT.js");
 fileContent = readFileSync(fixtureFile, "utf-8").replace("data = ", "");
 fileContent = removeComments(fileContent);
 export const GoTFamilyTree: FamilyTreeData = JSON.parse(fileContent);
+
+fixtureFile = join(__dirname, "../data/data_circle.js");
+fileContent = readFileSync(fixtureFile, "utf-8").replace("data = ", "");
+export const CircleFamilyTree: FamilyTreeData = JSON.parse(fileContent);

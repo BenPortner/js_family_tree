@@ -8,7 +8,7 @@ import type { Renderer } from './render/types';
 import type { Importer } from './import/types';
 
 export class FamilyTree {
-  private nodes: ClickableNode[];
+  public readonly nodes: ClickableNode[];
   public readonly root: ClickableNode;
 
   public importer: Importer;
