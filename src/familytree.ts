@@ -1,11 +1,20 @@
-import { D3DAGLayoutCalculator } from './layout/d3-dag';
+import {
+  D3DAGLayoutCalculator,
+  D3DAGLayoutCalculatorOptions,
+} from './layout/d3-dag';
 import { FamilyTreeDataV1Importer } from './import/familyTreeData';
 import type { FamilyTreeData } from './familyTreeData';
-import { D3Renderer } from './render/d3';
+import { D3Renderer, D3RendererOptions } from './render/d3';
 import type { ClickableNode } from './clickableNode';
 import type { LayoutCalculator, LayoutedNode } from './layout/types';
 import type { Renderer } from './render/types';
 import type { Importer } from './import/types';
+
+export interface FamilyTreeOptions
+  extends D3DAGLayoutCalculatorOptions,
+    D3RendererOptions {
+  showAll: boolean;
+}
 
 export class FamilyTree {
   public readonly nodes: ClickableNode[];
@@ -18,19 +27,23 @@ export class FamilyTree {
   constructor(
     data: FamilyTreeData,
     container: HTMLElement,
-    importer?: Importer,
-    layouter?: LayoutCalculator,
-    renderer?: Renderer
+    opts?: Partial<FamilyTreeOptions>
   ) {
-    this.importer = importer ?? new FamilyTreeDataV1Importer();
-    this.layouter = layouter ?? new D3DAGLayoutCalculator();
-    container = renderer ? renderer.container : container;
-    this.renderer = renderer ?? new D3Renderer(container, this);
+    this.importer = new FamilyTreeDataV1Importer();
+    this.layouter = new D3DAGLayoutCalculator(opts);
+    this.renderer = new D3Renderer(container, this, opts);
 
     // import data
     this.nodes = this.importer.import(data);
     this.root =
       this.nodes.find((n) => n.data.id == data.start) ?? this.nodes[0];
+
+    // set all nodes visible if specified
+    if (opts?.showAll) {
+      for (let n of this.nodes) {
+        n.data.visible = true;
+      }
+    }
 
     // render
     this.renderVisibleSubgraph(undefined);

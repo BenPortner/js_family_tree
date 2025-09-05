@@ -37,17 +37,17 @@
             throw Error('Invalid orientation: ' + orientation);
         }
     }
-    const D3DAGLAyoutCalculatorDefaultOptions = {
-        nodeSize: (node) => [50, 100],
-        layering: Tn(),
-        // decross: customSugiyamaDecross,
-        decross: On(),
-        coord: Ji(),
-        orientation: Horizontal,
-    };
     class D3DAGLayoutCalculator {
         constructor(opts) {
-            this.opts = Object.assign(Object.assign({}, D3DAGLAyoutCalculatorDefaultOptions), opts);
+            this.opts = {
+                nodeSize: (node) => [50, 100],
+                layering: Tn(),
+                // decross: customSugiyamaDecross,
+                decross: On(),
+                coord: Ji(),
+                orientation: Horizontal,
+            };
+            this.opts = Object.assign(Object.assign({}, this.opts), opts);
         }
         calculateLayout(nodes) {
             const builder = ai()
@@ -3745,16 +3745,21 @@
     }
 
     class FamilyTree {
-        constructor(data, container, importer, layouter, renderer) {
+        constructor(data, container, opts) {
             var _a;
-            this.importer = importer !== null && importer !== void 0 ? importer : new FamilyTreeDataV1Importer();
-            this.layouter = layouter !== null && layouter !== void 0 ? layouter : new D3DAGLayoutCalculator();
-            container = renderer ? renderer.container : container;
-            this.renderer = renderer !== null && renderer !== void 0 ? renderer : new D3Renderer(container, this);
+            this.importer = new FamilyTreeDataV1Importer();
+            this.layouter = new D3DAGLayoutCalculator(opts);
+            this.renderer = new D3Renderer(container, this, opts);
             // import data
             this.nodes = this.importer.import(data);
             this.root =
                 (_a = this.nodes.find((n) => n.data.id == data.start)) !== null && _a !== void 0 ? _a : this.nodes[0];
+            // set all nodes visible if specified
+            if (opts === null || opts === void 0 ? void 0 : opts.showAll) {
+                for (let n of this.nodes) {
+                    n.data.visible = true;
+                }
+            }
             // render
             this.renderVisibleSubgraph(undefined);
         }

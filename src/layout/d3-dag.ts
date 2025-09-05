@@ -1,4 +1,4 @@
-import type { Layering, Decross, Coord, SugiNode } from 'd3-dag';
+import type { Layering, Decross, Coord, SugiNode, NodeSize } from 'd3-dag';
 import {
   tweakFlip,
   decrossOpt,
@@ -16,11 +16,11 @@ import {
   type Orientation,
 } from './types';
 import type { ClickableNode } from '../clickableNode';
-import type { NodeData, LinkData, LayoutCalculatorOpts } from './types';
+import type { NodeData, LinkData, LayoutCalculatorOpts, LayoutedNode } from './types';
 import type { PersonData } from '../import/types';
 
 export interface D3DAGLayoutCalculatorOptions extends LayoutCalculatorOpts {
-  nodeSize: (node: any) => [number, number];
+  nodeSize: NodeSize<NodeData, LinkData>;
   layering: Layering<NodeData, LinkData>;
   decross: Decross<NodeData, LinkData>;
   coord: Coord<NodeData, LinkData>;
@@ -56,24 +56,21 @@ function customSugiyamaDecross(layers: SugiNode<NodeData>[][]): void {
   }
 }
 
-const D3DAGLAyoutCalculatorDefaultOptions = {
-  nodeSize: (node: any) => [50, 100] as [number, number],
-  layering: layeringSimplex(),
-  // decross: customSugiyamaDecross,
-  decross: decrossTwoLayer(),
-  coord: coordQuad(),
-  orientation: Horizontal,
-};
-
 export class D3DAGLayoutCalculator implements LayoutCalculator {
-  public opts: D3DAGLayoutCalculatorOptions;
+
+  public opts: D3DAGLayoutCalculatorOptions = {
+    nodeSize: (node: LayoutedNode) => [50, 100] as [number, number],
+    layering: layeringSimplex(),
+    // decross: customSugiyamaDecross,
+    decross: decrossTwoLayer(),
+    coord: coordQuad(),
+    orientation: Horizontal,
+  };
 
   constructor(opts?: Partial<D3DAGLayoutCalculatorOptions>) {
-    this.opts = {
-      ...D3DAGLAyoutCalculatorDefaultOptions,
-      ...opts,
-    };
+    this.opts = { ...this.opts, ...opts };
   }
+
   calculateLayout(nodes: ClickableNode[]): LayoutResult {
     const builder = graphStratify()
       .id((n: ClickableNode) => n.data.id)

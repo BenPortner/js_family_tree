@@ -17,10 +17,12 @@
   <script src="../dist/js_family_tree.umd.js"></script>
   <script>
     const container = document.getElementById("container");
-    const familytree = new FamilyTreeJS.FamilyTree(data, container);
-    familytree.layouter.opts.orientation = 'vertical';
-    familytree.nodes.forEach(n => n.data.visible = true);
-    familytree.renderVisibleSubgraph();
+    const opts = {
+      showAll: true,
+      orientation: 'vertical',
+      nodeSize: (node) => [150, 50]
+    };
+    const familytree = new FamilyTreeJS.FamilyTree(data, container, opts);
   </script>
 </body>
 
