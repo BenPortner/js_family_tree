@@ -3467,6 +3467,7 @@ class D3Renderer {
         this.opts = {
             transitionDuration: 750, // ms
             linkPathFunction: D3Renderer.defaultLinkPathFunction,
+            linkCSSClassFunction: D3Renderer.defaultLinkCSSClassFunction,
             nodeClickFunction: D3Renderer.defaultNodeClickFunction,
             nodeCSSClassFunction: D3Renderer.defaultNodeCSSClassFunction,
             nodeLabelFunction: D3Renderer.defaultNodeLabelFunction,
@@ -3574,6 +3575,9 @@ class D3Renderer {
         const class2 = node.data.data.type;
         return class1 + ' ' + class2;
     }
+    static defaultLinkCSSClassFunction(link) {
+        return 'link';
+    }
     renderNodes(graph, clickedNodeOld, clickedNodeNew) {
         const nodes = graph.nodes();
         const selection = this.g
@@ -3638,7 +3642,7 @@ class D3Renderer {
             .attr('d', (link) => {
             return this.opts.linkPathFunction(link, layoutResult.orientation);
         })
-            .attr('class', 'link');
+            .attr('class', this.opts.linkCSSClassFunction);
         // updated links transition from current position to new position
         selection
             .transition()

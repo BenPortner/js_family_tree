@@ -15,6 +15,7 @@ import type { PersonData } from '../import/types';
 export interface D3RendererOptions {
   transitionDuration: number;
   linkPathFunction(link: LayoutedLink, orientation: Orientation): string;
+  linkCSSClassFunction(link: LayoutedLink): string;
   nodeClickFunction(node: LayoutedNode, ft: FamilyTree): void;
   nodeCSSClassFunction(node: LayoutedNode): string;
   nodeLabelFunction(node: LayoutedNode, missingData?: string): string[];
@@ -36,6 +37,7 @@ export class D3Renderer implements Renderer {
   public opts: D3RendererOptions = {
     transitionDuration: 750, // ms
     linkPathFunction: D3Renderer.defaultLinkPathFunction,
+    linkCSSClassFunction: D3Renderer.defaultLinkCSSClassFunction,
     nodeClickFunction: D3Renderer.defaultNodeClickFunction,
     nodeCSSClassFunction: D3Renderer.defaultNodeCSSClassFunction,
     nodeLabelFunction: D3Renderer.defaultNodeLabelFunction,
@@ -172,6 +174,10 @@ export class D3Renderer implements Renderer {
     return class1 + ' ' + class2;
   }
 
+  private static defaultLinkCSSClassFunction(link: LayoutedLink) {
+    return 'link';
+  }
+
   private renderNodes(
     graph: LayoutedGraph,
     clickedNodeOld?: LayoutedNode,
@@ -251,7 +257,7 @@ export class D3Renderer implements Renderer {
       .attr('d', (link) => {
         return this.opts.linkPathFunction(link, layoutResult.orientation);
       })
-      .attr('class', 'link');
+      .attr('class', this.opts.linkCSSClassFunction);
     // updated links transition from current position to new position
     selection
       .transition()
