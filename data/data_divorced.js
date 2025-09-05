@@ -1,15 +1,15 @@
 data = {
     "start": "p2",
     "persons": {
-        "p1": {"id": "p1", "name": "p1"},
-        "p2": {"id": "p2", "name": "p2"},
-        "p3": {"id": "p3", "name": "p3"},
-        "p4": {"id": "p4", "name": "p4"},
-        "p5": {"id": "p5", "name": "p5"}
+        "p1": {"name": "p1"},
+        "p2": {"name": "p2"},
+        "p3": {"name": "p3"},
+        "p4": {"name": "p4"},
+        "p5": {"name": "p5"}
     },
     "unions": {
-        "u1": {"id": "u1", "status": "divorced"},
-        "u2": {"id": "u2", "status": "married"}
+        "u1": {"status": "divorced"},
+        "u2": {"status": "married"}
     },
     "links": [
         ["p1", "u1"],

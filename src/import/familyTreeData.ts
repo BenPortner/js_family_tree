@@ -16,6 +16,7 @@ export class FamilyTreeDataV1Importer implements Importer {
       if (id in data.persons) {
         return {
           ...data.persons[id],
+          id: id,
           type: CPerson,
           visible: id == data.start,
           insertedBy: null,
@@ -23,6 +24,7 @@ export class FamilyTreeDataV1Importer implements Importer {
       } else if (id in data.unions) {
         return {
           ...data.unions[id],
+          id: id,
           type: CUnion,
           visible: false,
           insertedBy: null,

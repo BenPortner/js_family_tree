@@ -179,10 +179,10 @@
         import(data) {
             const builder = ei().nodeDatum((id) => {
                 if (id in data.persons) {
-                    return Object.assign(Object.assign({}, data.persons[id]), { type: CPerson, visible: id == data.start, insertedBy: null });
+                    return Object.assign(Object.assign({}, data.persons[id]), { id: id, type: CPerson, visible: id == data.start, insertedBy: null });
                 }
                 else if (id in data.unions) {
-                    return Object.assign(Object.assign({}, data.unions[id]), { type: CUnion, visible: false, insertedBy: null });
+                    return Object.assign(Object.assign({}, data.unions[id]), { id: id, type: CUnion, visible: false, insertedBy: null });
                 }
                 else {
                     throw Error(`ID '${id}' not found in data.persons or data.unions.`);
