@@ -45,8 +45,7 @@ export class FamilyTree {
       }
     }
 
-    // render
-    this.renderVisibleSubgraph(undefined);
+    this.render(undefined);
   }
 
   private getVisibleSubgraph() {
@@ -68,7 +67,7 @@ export class FamilyTree {
     return recursiveVisibleNeighborCollector(this.root);
   }
 
-  public renderVisibleSubgraph(nodeOld?: LayoutedNode) {
+  public render(nodeOld?: LayoutedNode) {
     const visibleNodes = this.getVisibleSubgraph();
     const layoutResult = this.layouter.calculateLayout(visibleNodes);
     // get the new position of the clicked node for transitions
@@ -80,6 +79,6 @@ export class FamilyTree {
 
   public nodeClickHandler(node: LayoutedNode) {
     node.data.click();
-    this.renderVisibleSubgraph(node);
+    this.render(node);
   }
 }

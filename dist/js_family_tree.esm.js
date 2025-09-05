@@ -3758,8 +3758,7 @@ class FamilyTree {
                 n.data.visible = true;
             }
         }
-        // render
-        this.renderVisibleSubgraph(undefined);
+        this.render(undefined);
     }
     getVisibleSubgraph() {
         function recursiveVisibleNeighborCollector(node, result = []) {
@@ -3774,7 +3773,7 @@ class FamilyTree {
         }
         return recursiveVisibleNeighborCollector(this.root);
     }
-    renderVisibleSubgraph(nodeOld) {
+    render(nodeOld) {
         const visibleNodes = this.getVisibleSubgraph();
         const layoutResult = this.layouter.calculateLayout(visibleNodes);
         // get the new position of the clicked node for transitions
@@ -3783,7 +3782,7 @@ class FamilyTree {
     }
     nodeClickHandler(node) {
         node.data.click();
-        this.renderVisibleSubgraph(node);
+        this.render(node);
     }
 }
 
