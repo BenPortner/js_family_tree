@@ -191,22 +191,66 @@
 
     class FamilyTreeDataV1Importer {
         import(data) {
+            let graph;
+            if (data.links && data.links.length > 0) {
+                graph = this.buildGraphFromLinks(data);
+            }
+            else {
+                graph = this.buildGraphFromParentIds(data);
+            }
+            const nodes = [...graph.nodes()];
+            // add custom methods (augment)
+            augmentD3DAGNodeClass(nodes[0]);
+            return nodes;
+        }
+        buildGraphFromLinks(data) {
             const builder = ei().nodeDatum((id) => {
+                var _a, _b, _c, _d;
                 if (id in data.persons) {
-                    return Object.assign(Object.assign({}, data.persons[id]), { id: id, type: CPerson, visible: id == data.start, insertedBy: null });
+                    const person = data.persons[id];
+                    Object.assign(person, {
+                        id: id,
+                        type: CPerson,
+                        visible: (_a = person.visible) !== null && _a !== void 0 ? _a : id == data.start,
+                        insertedBy: (_b = person.insertedBy) !== null && _b !== void 0 ? _b : null,
+                    });
+                    return person;
                 }
                 else if (id in data.unions) {
-                    return Object.assign(Object.assign({}, data.unions[id]), { id: id, type: CUnion, visible: false, insertedBy: null });
+                    const union = data.unions[id];
+                    Object.assign(union, Object.assign(Object.assign({}, data.unions[id]), { id: id, type: CUnion, visible: (_c = union.visible) !== null && _c !== void 0 ? _c : false, insertedBy: (_d = union.insertedBy) !== null && _d !== void 0 ? _d : null }));
+                    return union;
                 }
                 else {
                     throw Error(`ID '${id}' not found in data.persons or data.unions.`);
                 }
             });
-            const graph = builder(data.links);
-            const nodes = [...graph.nodes()];
-            // add custom methods (augment)
-            augmentD3DAGNodeClass(nodes[0]);
-            return nodes;
+            return builder(data.links);
+        }
+        buildGraphFromParentIds(data) {
+            const builder = ai();
+            const personArr = Object.entries(data.persons).map(([id, person]) => {
+                var _a, _b;
+                Object.assign(person, {
+                    id: id,
+                    type: CPerson,
+                    visible: (_a = person.visible) !== null && _a !== void 0 ? _a : id == data.start,
+                    insertedBy: (_b = person.insertedBy) !== null && _b !== void 0 ? _b : null,
+                });
+                return person;
+            });
+            const unionArr = Object.entries(data.unions).map(([id, union]) => {
+                var _a, _b;
+                Object.assign(union, {
+                    id: id,
+                    type: CUnion,
+                    visible: (_a = union.visible) !== null && _a !== void 0 ? _a : false,
+                    insertedBy: (_b = union.insertedBy) !== null && _b !== void 0 ? _b : null,
+                });
+                return union;
+            });
+            const allNodes = [...personArr, ...unionArr];
+            return builder(allNodes);
         }
     }
 
@@ -3763,12 +3807,13 @@
     class FamilyTree {
         constructor(data, container, opts) {
             var _a;
+            this.data = data;
             this.importer = new FamilyTreeDataV1Importer();
             this.layouter = new D3DAGLayoutCalculator(opts);
             this.renderer = new D3Renderer(container, this, opts);
             // import data
-            this.nodes = this.importer.import(data);
-            this.root =
+            this._nodes = this.importer.import(data);
+            this._root =
                 (_a = this.nodes.find((n) => n.data.id == data.start)) !== null && _a !== void 0 ? _a : this.nodes[0];
             // set all nodes visible if specified
             if (opts === null || opts === void 0 ? void 0 : opts.showAll) {
@@ -3777,6 +3822,18 @@
                 }
             }
             this.render(undefined);
+        }
+        get nodes() {
+            return this._nodes;
+        }
+        set nodes(nodes) {
+            this._nodes = nodes;
+        }
+        get root() {
+            return this._root;
+        }
+        set root(node) {
+            this._root = node;
         }
         getVisibleSubgraph() {
             function recursiveVisibleNeighborCollector(node, result = []) {
@@ -3791,27 +3848,74 @@
             }
             return recursiveVisibleNeighborCollector(this.root);
         }
-        render(nodeOld) {
+        render(clickedNode) {
             const visibleNodes = this.getVisibleSubgraph();
-            const previousPosition = nodeOld
-                ? { x: nodeOld.x, y: nodeOld.y }
+            // get the old position of the clicked node for transitions
+            const previousPosition = clickedNode
+                ? { x: clickedNode.x, y: clickedNode.y }
                 : undefined;
+            // calculate new positions for all nodes
             const layoutResult = this.layouter.calculateLayout(visibleNodes);
             // get the new position of the clicked node for transitions
-            const newPosition = nodeOld ? { x: nodeOld.x, y: nodeOld.y } : undefined;
+            const newPosition = clickedNode
+                ? { x: clickedNode.x, y: clickedNode.y }
+                : undefined;
+            // render graph
             this.renderer.render(layoutResult, previousPosition, newPosition);
         }
         nodeClickHandler(node) {
             node.click();
             this.render(node);
         }
-        addNode(data) {
-            // todo:
-            // - store data in family tree
-            // - to ensure that tree status is conserved:
-            //    - importer must use original data structs, not copies
-            //    - importer must not overwrite fields unless they are undefined
-            // add node = add person or union, re-import, re-layout, re-render
+        reimportData() {
+            var _a;
+            this.nodes = this.importer.import(this.data);
+            this.root =
+                (_a = this.nodes.find((n) => n.data.id == this.data.start)) !== null && _a !== void 0 ? _a : this.nodes[0];
+            this.render(undefined);
+        }
+        getRandomId() {
+            return `${Math.random().toString(36).substring(2, 9)}`;
+        }
+        addPerson(data, render = true) {
+            var _a;
+            const id = (_a = data.id) !== null && _a !== void 0 ? _a : `p${this.getRandomId()}`;
+            this.data.persons[id] = data;
+            data.visible = true;
+            if (render)
+                this.reimportData();
+        }
+        deletePerson(id, render = true) {
+            delete this.data.persons[id];
+            this.data.links = this.data.links.filter((l) => l[0] != id && l[1] != id // remove all links to/from this person
+            );
+            if (render)
+                this.reimportData();
+        }
+        addUnion(data, render = true) {
+            var _a;
+            const id = (_a = data.id) !== null && _a !== void 0 ? _a : `u${this.getRandomId()}`;
+            this.data.unions[id] = data;
+            data.visible = true;
+            if (render)
+                this.reimportData();
+        }
+        deleteUnion(id, render = true) {
+            delete this.data.unions[id];
+            this.data.links = this.data.links.filter((l) => l[0] != id && l[1] != id // remove all links to/from this union
+            );
+            if (render)
+                this.reimportData();
+        }
+        addLink(sourceId, targetId, render = true) {
+            this.data.links.push([sourceId, targetId]);
+            if (render)
+                this.reimportData();
+        }
+        deleteLink(sourceId, targetId, render = true) {
+            this.data.links = this.data.links.filter((l) => !(l[0] == sourceId && l[1] == targetId));
+            if (render)
+                this.reimportData();
         }
     }
 

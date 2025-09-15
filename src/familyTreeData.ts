@@ -11,8 +11,8 @@ export interface Person extends Object {
 }
 export interface Union {
   id: NodeID;
-  partner: NodeID[]; // IDs of the persons involved in the union
-  children: NodeID[]; // IDs of the children of the union
+  partner?: NodeID[]; // IDs of the persons involved in the union
+  children?: NodeID[]; // IDs of the children of the union
 }
 export interface FamilyTreeData {
   start: NodeID;

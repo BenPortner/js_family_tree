@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Family Tree Visualization</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <script src="data_add-remove.js"></script> <!-- Replace with your data file -->
+</head>
+
+<body>
+  <div id="container">
+    <button id="addPersonBtn">Add Person</button>
+    <button id="removePersonBtn" onclick="">Remove Person</button>
+    <!-- The family tree visualization will be rendered here -->
+  </div>
+
+  <script src="../dist/js_family_tree.umd.js"></script>
+  <script>
+    function addPerson(ft) {
+        const newPersonId = `p2`;
+        ft.addPerson({ id: newPersonId, name: newPersonId }, false);
+        const newUnionId = `u1`;
+        ft.addUnion({ id: newUnionId }, false);
+        ft.addLink(ft.root.data.id, newUnionId, false);
+        ft.addLink(newUnionId, newPersonId, true);
+    }
+    function removePerson(ft) {
+        ft.deleteUnion('u1'); // links are auto-deleted
+    }
+    const container = document.getElementById("container");
+    const familytree = new FamilyTreeJS.FamilyTree(data, container);
+    document.getElementById('addPersonBtn').onclick = () => addPerson(familytree);
+    document.getElementById('removePersonBtn').onclick = () => removePerson(familytree);
+  </script>
+</body>
+
+</html>
