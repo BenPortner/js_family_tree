@@ -31,8 +31,8 @@
     const opts = {
       showAll: true,
       linkCSSClassFunction: (link) => {
-        const union = link.source.data.isUnion ? link.source : link.target;
-        return union.data.data.status;
+        const union = link.source.isUnion ? link.source : link.target;
+        return union.data.status;
       },
     };
     const familytree = new FamilyTreeJS.FamilyTree(data, container, opts);

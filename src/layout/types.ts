@@ -1,22 +1,23 @@
 import type { ClickableNode } from '../clickableNode';
-import { NodeID } from '../familyTreeData';
+import { LinkData, NodeData } from '../import/types';
 
-export type NodeData = ClickableNode;
-export type LinkData = undefined;
+export interface Coordinates {
+  x: number;
+  y: number;
+}
 
-export interface LayoutedNode {
+export type LayoutedLinkData = LinkData;
+
+export interface LayoutedNode extends ClickableNode {
   data: NodeData;
   x: number;
   y: number;
   children(): IterableIterator<LayoutedNode>;
 }
+
 export interface LayoutedLink {
   source: LayoutedNode;
   target: LayoutedNode;
-}
-export interface LayoutedGraph {
-  nodes(): IterableIterator<LayoutedNode>;
-  links(): IterableIterator<LayoutedLink>;
 }
 
 export const Vertical = 'vertical' as const;
@@ -24,10 +25,10 @@ export const Horizontal = 'horizontal' as const;
 export type Orientation = typeof Vertical | typeof Horizontal;
 
 export type LayoutCalculatorOpts = any;
+
 export interface LayoutResult {
-  graph: LayoutedGraph;
-  width: number;
-  height: number;
+  nodes: LayoutedNode[];
+  links: LayoutedLink[];
   orientation: Orientation;
 }
 

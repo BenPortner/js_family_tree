@@ -67,18 +67,24 @@ export class FamilyTree {
     return recursiveVisibleNeighborCollector(this.root);
   }
 
-  public render(nodeOld?: LayoutedNode) {
+  public render(clickedNode?: LayoutedNode) {
     const visibleNodes = this.getVisibleSubgraph();
+    // get the old position of the clicked node for transitions
+    const previousPosition = clickedNode
+      ? { x: clickedNode.x, y: clickedNode.y }
+      : undefined;
+    // calculate new positions for all nodes
     const layoutResult = this.layouter.calculateLayout(visibleNodes);
     // get the new position of the clicked node for transitions
-    const nodeNew = [...layoutResult.graph.nodes()].find(
-      (n) => n.data === nodeOld?.data
-    );
-    this.renderer.render(layoutResult, nodeOld, nodeNew);
+    const newPosition = clickedNode
+      ? { x: clickedNode.x, y: clickedNode.y }
+      : undefined;
+    // render graph
+    this.renderer.render(layoutResult, previousPosition, newPosition);
   }
 
   public nodeClickHandler(node: LayoutedNode) {
-    node.data.click();
+    node.click();
     this.render(node);
   }
 }

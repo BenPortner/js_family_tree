@@ -1,6 +1,6 @@
 import { select, descending, zoom, type Selection, ZoomBehavior } from 'd3';
 import {
-  type LayoutedGraph,
+  type Coordinates,
   type LayoutResult,
   type LayoutedLink,
   type LayoutedNode,
@@ -14,7 +14,7 @@ import type { PersonData } from '../import/types';
 
 export interface D3RendererOptions {
   transitionDuration: number;
-  linkPathFunction(link: LayoutedLink, orientation: Orientation): string;
+  linkPathFunction(link: CoordLink, orientation: Orientation): string;
   linkCSSClassFunction(link: LayoutedLink): string;
   nodeClickFunction(node: LayoutedNode, ft: FamilyTree): void;
   nodeCSSClassFunction(node: LayoutedNode): string;
@@ -24,6 +24,11 @@ export interface D3RendererOptions {
     node: LayoutedNode,
     missingData?: string
   ): string | undefined;
+}
+
+export interface CoordLink {
+  source: Coordinates;
+  target: Coordinates;
 }
 
 export class D3Renderer implements Renderer {
@@ -95,10 +100,10 @@ export class D3Renderer implements Renderer {
   }
 
   private static defaultLinkPathFunction(
-    link: LayoutedLink,
+    link: CoordLink,
     orientation: Orientation
   ) {
-    function vertical_s_bend(s: LayoutedNode, d: LayoutedNode) {
+    function vertical_s_bend(s: Coordinates, d: Coordinates) {
       // Creates a diagonal curve fit for vertically oriented trees
       return `M ${s.x} ${s.y} 
         C ${s.x} ${(s.y + d.y) / 2},
@@ -106,7 +111,7 @@ export class D3Renderer implements Renderer {
         ${d.x} ${d.y}`;
     }
 
-    function horizontal_s_bend(s: LayoutedNode, d: LayoutedNode) {
+    function horizontal_s_bend(s: Coordinates, d: Coordinates) {
       // Creates a diagonal curve fit for horizontally oriented trees
       return `M ${s.x} ${s.y}
         C ${(s.x + d.x) / 2} ${s.y},
@@ -128,8 +133,8 @@ export class D3Renderer implements Renderer {
     node: LayoutedNode,
     missingData: string = '?'
   ) {
-    if (node.data.isUnion) return [];
-    const { name, birthyear, deathyear } = node.data.data as PersonData;
+    if (node.isUnion) return [];
+    const { name, birthyear, deathyear } = node.data as PersonData;
     const lines = [
       name,
       `${birthyear ?? missingData} - ${deathyear ?? missingData}`,
@@ -141,9 +146,9 @@ export class D3Renderer implements Renderer {
     node: LayoutedNode,
     missingData: string = '?'
   ) {
-    if (node.data.isUnion) return;
-    const { name, birthyear, birthplace, deathyear, deathplace } = node.data
-      .data as PersonData;
+    if (node.isUnion) return;
+    const { name, birthyear, birthplace, deathyear, deathplace } =
+      node.data as PersonData;
     const content = `
       <span style='margin-left: 2.5px;'>
         <b>${name}</b>
@@ -163,14 +168,14 @@ export class D3Renderer implements Renderer {
   }
 
   private static defaultNodeSizeFunction(node: LayoutedNode) {
-    if (node.data.isUnion) return 0;
-    if (node.data.isPerson) return 10;
+    if (node.isUnion) return 0;
+    if (node.isPerson) return 10;
     return 0;
   }
 
   private static defaultNodeCSSClassFunction(node: LayoutedNode) {
-    const class1 = node.data.extendable ? 'extendable' : 'non-extendable';
-    const class2 = node.data.data.type;
+    const class1 = node.extendable ? 'extendable' : 'non-extendable';
+    const class2 = node.data.type;
     return class1 + ' ' + class2;
   }
 
@@ -179,19 +184,18 @@ export class D3Renderer implements Renderer {
   }
 
   private renderNodes(
-    graph: LayoutedGraph,
-    clickedNodeOld?: LayoutedNode,
-    clickedNodeNew?: LayoutedNode
+    nodes: LayoutedNode[],
+    previousPosition?: Coordinates,
+    newPosition?: Coordinates
   ) {
-    const nodes = graph.nodes();
     const selection = this.g
       .selectAll<SVGGElement, LayoutedNode>('g')
-      .data<LayoutedNode>(nodes, (n) => n.data.data.id);
+      .data<LayoutedNode>(nodes, (n) => n.data.id);
     const enteringGroups = selection.enter().append('g');
     // entering groups transition from clicked node old to final position
     enteringGroups
       .attr('transform', (d) => {
-        const transitionStart = clickedNodeOld ?? d;
+        const transitionStart = previousPosition ?? d;
         return 'translate(' + transitionStart.x + ',' + transitionStart.y + ')';
       })
       .transition()
@@ -211,7 +215,7 @@ export class D3Renderer implements Renderer {
       .transition()
       .duration(this.opts.transitionDuration)
       .attr('transform', (d) => {
-        const transitionEnd = clickedNodeNew ?? d;
+        const transitionEnd = newPosition ?? d;
         return 'translate(' + transitionEnd.x + ',' + transitionEnd.y + ')';
       })
       .remove();
@@ -227,22 +231,19 @@ export class D3Renderer implements Renderer {
 
   private renderLinks(
     layoutResult: LayoutResult,
-    clickedNodeOld?: LayoutedNode,
-    clickedNodeNew?: LayoutedNode
+    previousPosition?: Coordinates,
+    newPosition?: Coordinates
   ) {
-    const links = layoutResult.graph.links();
+    const links = layoutResult.links;
     const selection = this.g
       .selectAll<SVGElement, LayoutedLink>('path')
-      .data<LayoutedLink>(
-        links,
-        (l) => l.source.data.data.id + l.target.data.data.id
-      );
+      .data<LayoutedLink>(links, (l) => l.source.data.id + l.target.data.id);
     // entering links transition from old clicked node position to final position
     selection
       .enter()
       .append('path')
       .attr('d', (link) => {
-        const transitionStart = clickedNodeOld ?? link.source;
+        const transitionStart = previousPosition ?? link.source;
         const transitionStartLink = {
           source: transitionStart,
           target: transitionStart,
@@ -271,7 +272,7 @@ export class D3Renderer implements Renderer {
       .transition()
       .duration(this.opts.transitionDuration)
       .attr('d', (link) => {
-        const transitionEnd = clickedNodeNew ?? link.target;
+        const transitionEnd = newPosition ?? link.target;
         const transitionEndLink = {
           source: transitionEnd,
           target: transitionEnd,
@@ -351,19 +352,19 @@ export class D3Renderer implements Renderer {
 
   render(
     layoutResult: LayoutResult,
-    clickedNodeOld?: LayoutedNode,
-    clickedNodeNew?: LayoutedNode
+    previousPosition?: Coordinates,
+    newPosition?: Coordinates
   ) {
     // add / update / remove links and nodes
     const linkSelect = this.renderLinks(
       layoutResult,
-      clickedNodeOld,
-      clickedNodeNew
+      previousPosition,
+      newPosition
     );
     const nodeSelect = this.renderNodes(
-      layoutResult.graph,
-      clickedNodeOld,
-      clickedNodeNew
+      layoutResult.nodes,
+      previousPosition,
+      newPosition
     );
     // ensure that nodes are drawn on top of links
     this.sortDomElements();
@@ -371,10 +372,9 @@ export class D3Renderer implements Renderer {
     this.setupTooltips(nodeSelect);
     this.renderLabels(nodeSelect, 'node-label', 14, 13, 'central');
     // center view on clicked node
-    const centerNode =
-      clickedNodeNew ?? layoutResult.graph.nodes().next().value;
     // work-around because JSDOM+d3-zoom throws errors
     if (!this.isJSDOM) {
+      const centerNode = newPosition ?? layoutResult.nodes[0];
       this.zoom.translateTo(
         this.svg.transition().duration(this.opts.transitionDuration),
         centerNode.x,

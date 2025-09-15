@@ -1,11 +1,11 @@
-import type { LayoutedNode, LayoutResult } from '../layout/types';
+import type { Coordinates, LayoutResult } from '../layout/types';
 
 export interface Renderer {
   container: HTMLElement;
   render(
     layoutResult: LayoutResult,
-    clickedNodeOld?: LayoutedNode,
-    clickedNodeNew?: LayoutedNode
+    previousPosition?: Coordinates,
+    newPosition?: Coordinates
   ): any;
 }
 

@@ -50,22 +50,36 @@
             this.opts = Object.assign(Object.assign({}, this.opts), opts);
         }
         calculateLayout(nodes) {
+            // build a temporary graph from the visible nodes
             const builder = ai()
                 .id((n) => n.data.id)
                 .parentIds((n) => n.visibleParentIDs());
             const graph = builder(nodes);
-            // calculate the layout
+            // define the layout
             const layout = ji()
                 .nodeSize(this.opts.nodeSize)
                 .layering(this.opts.layering)
                 .decross(this.opts.decross)
                 .coord(this.opts.coord)
                 .tweaks(translateOrientationToTweak(this.opts.orientation));
-            const layoutResult = layout(graph);
+            // calculate the layout
+            layout(graph);
+            // write x and y back to original nodes
+            const layoutedNodes = [...graph.nodes()].map((n) => {
+                n.data.x = n.x;
+                n.data.y = n.y;
+                return n.data;
+            });
+            // unwrap links: replace source and target with ClickableNodes
+            const layoutedLinks = [...graph.links()].map((l) => {
+                return {
+                    source: l.source.data,
+                    target: l.target.data,
+                };
+            });
             return {
-                graph: graph,
-                width: layoutResult.width,
-                height: layoutResult.height,
+                nodes: layoutedNodes,
+                links: layoutedLinks,
                 orientation: this.opts.orientation,
             };
         }
@@ -3538,9 +3552,9 @@
             ft.nodeClickHandler(node);
         }
         static defaultNodeLabelFunction(node, missingData = '?') {
-            if (node.data.isUnion)
+            if (node.isUnion)
                 return [];
-            const { name, birthyear, deathyear } = node.data.data;
+            const { name, birthyear, deathyear } = node.data;
             const lines = [
                 name,
                 `${birthyear !== null && birthyear !== void 0 ? birthyear : missingData} - ${deathyear !== null && deathyear !== void 0 ? deathyear : missingData}`,
@@ -3548,10 +3562,9 @@
             return lines;
         }
         static defaultNodeTooltipFunction(node, missingData = '?') {
-            if (node.data.isUnion)
+            if (node.isUnion)
                 return;
-            const { name, birthyear, birthplace, deathyear, deathplace } = node.data
-                .data;
+            const { name, birthyear, birthplace, deathyear, deathplace } = node.data;
             const content = `
       <span style='margin-left: 2.5px;'>
         <b>${name}</b>
@@ -3570,30 +3583,29 @@
             return content.replace(/undefined/g, missingData);
         }
         static defaultNodeSizeFunction(node) {
-            if (node.data.isUnion)
+            if (node.isUnion)
                 return 0;
-            if (node.data.isPerson)
+            if (node.isPerson)
                 return 10;
             return 0;
         }
         static defaultNodeCSSClassFunction(node) {
-            const class1 = node.data.extendable ? 'extendable' : 'non-extendable';
-            const class2 = node.data.data.type;
+            const class1 = node.extendable ? 'extendable' : 'non-extendable';
+            const class2 = node.data.type;
             return class1 + ' ' + class2;
         }
         static defaultLinkCSSClassFunction(link) {
             return 'link';
         }
-        renderNodes(graph, clickedNodeOld, clickedNodeNew) {
-            const nodes = graph.nodes();
+        renderNodes(nodes, previousPosition, newPosition) {
             const selection = this.g
                 .selectAll('g')
-                .data(nodes, (n) => n.data.data.id);
+                .data(nodes, (n) => n.data.id);
             const enteringGroups = selection.enter().append('g');
             // entering groups transition from clicked node old to final position
             enteringGroups
                 .attr('transform', (d) => {
-                const transitionStart = clickedNodeOld !== null && clickedNodeOld !== void 0 ? clickedNodeOld : d;
+                const transitionStart = previousPosition !== null && previousPosition !== void 0 ? previousPosition : d;
                 return 'translate(' + transitionStart.x + ',' + transitionStart.y + ')';
             })
                 .transition()
@@ -3613,7 +3625,7 @@
                 .transition()
                 .duration(this.opts.transitionDuration)
                 .attr('transform', (d) => {
-                const transitionEnd = clickedNodeNew !== null && clickedNodeNew !== void 0 ? clickedNodeNew : d;
+                const transitionEnd = newPosition !== null && newPosition !== void 0 ? newPosition : d;
                 return 'translate(' + transitionEnd.x + ',' + transitionEnd.y + ')';
             })
                 .remove();
@@ -3626,17 +3638,17 @@
                 .attr('class', (d) => this.opts.nodeCSSClassFunction(d));
             return enteringGroups;
         }
-        renderLinks(layoutResult, clickedNodeOld, clickedNodeNew) {
-            const links = layoutResult.graph.links();
+        renderLinks(layoutResult, previousPosition, newPosition) {
+            const links = layoutResult.links;
             const selection = this.g
                 .selectAll('path')
-                .data(links, (l) => l.source.data.data.id + l.target.data.data.id);
+                .data(links, (l) => l.source.data.id + l.target.data.id);
             // entering links transition from old clicked node position to final position
             selection
                 .enter()
                 .append('path')
                 .attr('d', (link) => {
-                const transitionStart = clickedNodeOld !== null && clickedNodeOld !== void 0 ? clickedNodeOld : link.source;
+                const transitionStart = previousPosition !== null && previousPosition !== void 0 ? previousPosition : link.source;
                 const transitionStartLink = {
                     source: transitionStart,
                     target: transitionStart,
@@ -3662,7 +3674,7 @@
                 .transition()
                 .duration(this.opts.transitionDuration)
                 .attr('d', (link) => {
-                const transitionEnd = clickedNodeNew !== null && clickedNodeNew !== void 0 ? clickedNodeNew : link.target;
+                const transitionEnd = newPosition !== null && newPosition !== void 0 ? newPosition : link.target;
                 const transitionEndLink = {
                     source: transitionEnd,
                     target: transitionEnd,
@@ -3727,19 +3739,19 @@
                 .sort((a, b) => descending(a.tagName, b.tagName));
             nodes_and_links.forEach((el) => el.parentNode.appendChild(el));
         }
-        render(layoutResult, clickedNodeOld, clickedNodeNew) {
+        render(layoutResult, previousPosition, newPosition) {
             // add / update / remove links and nodes
-            this.renderLinks(layoutResult, clickedNodeOld, clickedNodeNew);
-            const nodeSelect = this.renderNodes(layoutResult.graph, clickedNodeOld, clickedNodeNew);
+            this.renderLinks(layoutResult, previousPosition, newPosition);
+            const nodeSelect = this.renderNodes(layoutResult.nodes, previousPosition, newPosition);
             // ensure that nodes are drawn on top of links
             this.sortDomElements();
             // add tooltips and node labels
             this.setupTooltips(nodeSelect);
             this.renderLabels(nodeSelect, 'node-label', 14, 13, 'central');
             // center view on clicked node
-            const centerNode = clickedNodeNew !== null && clickedNodeNew !== void 0 ? clickedNodeNew : layoutResult.graph.nodes().next().value;
             // work-around because JSDOM+d3-zoom throws errors
             if (!this.isJSDOM) {
+                const centerNode = newPosition !== null && newPosition !== void 0 ? newPosition : layoutResult.nodes[0];
                 this.zoom.translateTo(this.svg.transition().duration(this.opts.transitionDuration), centerNode.x, centerNode.y);
             }
         }
@@ -3781,14 +3793,25 @@
         }
         render(nodeOld) {
             const visibleNodes = this.getVisibleSubgraph();
+            const previousPosition = nodeOld
+                ? { x: nodeOld.x, y: nodeOld.y }
+                : undefined;
             const layoutResult = this.layouter.calculateLayout(visibleNodes);
             // get the new position of the clicked node for transitions
-            const nodeNew = [...layoutResult.graph.nodes()].find((n) => n.data === (nodeOld === null || nodeOld === void 0 ? void 0 : nodeOld.data));
-            this.renderer.render(layoutResult, nodeOld, nodeNew);
+            const newPosition = nodeOld ? { x: nodeOld.x, y: nodeOld.y } : undefined;
+            this.renderer.render(layoutResult, previousPosition, newPosition);
         }
         nodeClickHandler(node) {
-            node.data.click();
+            node.click();
             this.render(node);
+        }
+        addNode(data) {
+            // todo:
+            // - store data in family tree
+            // - to ensure that tree status is conserved:
+            //    - importer must use original data structs, not copies
+            //    - importer must not overwrite fields unless they are undefined
+            // add node = add person or union, re-import, re-layout, re-render
         }
     }
 

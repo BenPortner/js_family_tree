@@ -1,4 +1,11 @@
-import type { Layering, Decross, Coord, SugiNode, NodeSize } from 'd3-dag';
+import type {
+  Layering,
+  Decross,
+  Coord,
+  SugiNode,
+  NodeSize,
+  GraphNode,
+} from 'd3-dag';
 import {
   tweakFlip,
   decrossOpt,
@@ -8,22 +15,23 @@ import {
   graphStratify,
   sugiyama,
 } from 'd3-dag';
-import {
-  Horizontal,
-  Vertical,
-  type LayoutResult,
-  type LayoutCalculator,
-  type Orientation,
-} from './types';
+import { Horizontal, Vertical } from './types';
 import type { ClickableNode } from '../clickableNode';
-import type { NodeData, LinkData, LayoutCalculatorOpts, LayoutedNode } from './types';
-import type { PersonData } from '../import/types';
+import type {
+  LayoutResult,
+  LayoutCalculator,
+  Orientation,
+  LayoutCalculatorOpts,
+  LayoutedNode,
+  LayoutedLink,
+} from './types';
+import type { LinkData, PersonData } from '../import/types';
 
 export interface D3DAGLayoutCalculatorOptions extends LayoutCalculatorOpts {
-  nodeSize: NodeSize<NodeData, LinkData>;
-  layering: Layering<NodeData, LinkData>;
-  decross: Decross<NodeData, LinkData>;
-  coord: Coord<NodeData, LinkData>;
+  nodeSize: NodeSize<ClickableNode, LinkData>;
+  layering: Layering<ClickableNode, LinkData>;
+  decross: Decross<ClickableNode, LinkData>;
+  coord: Coord<ClickableNode, LinkData>;
   orientation: Orientation;
 }
 
@@ -37,7 +45,7 @@ function translateOrientationToTweak(orientation: Orientation) {
   }
 }
 
-function customSugiyamaDecross(layers: SugiNode<NodeData>[][]): void {
+function customSugiyamaDecross(layers: SugiNode<ClickableNode>[][]): void {
   // apply optimal decrossing algorithm
   decrossOpt()(layers);
   // then re-arrange to make sure that union partners are next to each other
@@ -57,9 +65,8 @@ function customSugiyamaDecross(layers: SugiNode<NodeData>[][]): void {
 }
 
 export class D3DAGLayoutCalculator implements LayoutCalculator {
-
   public opts: D3DAGLayoutCalculatorOptions = {
-    nodeSize: (node: LayoutedNode) => [50, 100] as [number, number],
+    nodeSize: (node: GraphNode<ClickableNode>) => [50, 100] as [number, number],
     layering: layeringSimplex(),
     // decross: customSugiyamaDecross,
     decross: decrossTwoLayer(),
@@ -72,22 +79,36 @@ export class D3DAGLayoutCalculator implements LayoutCalculator {
   }
 
   calculateLayout(nodes: ClickableNode[]): LayoutResult {
+    // build a temporary graph from the visible nodes
     const builder = graphStratify()
       .id((n: ClickableNode) => n.data.id)
       .parentIds((n: ClickableNode) => n.visibleParentIDs());
     const graph = builder(nodes);
-    // calculate the layout
+    // define the layout
     const layout = sugiyama()
       .nodeSize(this.opts.nodeSize)
       .layering(this.opts.layering)
       .decross(this.opts.decross)
       .coord(this.opts.coord)
       .tweaks(translateOrientationToTweak(this.opts.orientation));
-    const layoutResult = layout(graph);
+    // calculate the layout
+    layout(graph);
+    // write x and y back to original nodes
+    const layoutedNodes = [...graph.nodes()].map((n) => {
+      (n.data as LayoutedNode).x = n.x;
+      (n.data as LayoutedNode).y = n.y;
+      return n.data as LayoutedNode;
+    });
+    // unwrap links: replace source and target with ClickableNodes
+    const layoutedLinks = [...graph.links()].map((l) => {
+      return {
+        source: l.source.data,
+        target: l.target.data,
+      } as LayoutedLink;
+    });
     return {
-      graph: graph,
-      width: layoutResult.width,
-      height: layoutResult.height,
+      nodes: layoutedNodes,
+      links: layoutedLinks,
       orientation: this.opts.orientation,
     };
   }

@@ -22,14 +22,6 @@ describe('D3DAGLayoutCalculator', () => {
     layoutResult = calculator.calculateLayout(clickableNodes);
     expect(layoutResult).not.undefined;
   });
-  it('result contains width and height of the canvas', () => {
-    // width and height
-    expect(layoutResult).to.haveOwnProperty('width');
-    expect(layoutResult.width).to.be.greaterThan(0);
-    expect(layoutResult).to.haveOwnProperty('height');
-    expect(layoutResult.height).to.be.greaterThan(0);
-    expect(layoutResult).to.haveOwnProperty('graph');
-  });
   it('result has a valid orientation', () => {
     // orientation
     expect(layoutResult).to.haveOwnProperty('orientation');
@@ -37,27 +29,25 @@ describe('D3DAGLayoutCalculator', () => {
   });
   it('result contains the graph', () => {
     // graph
-    expect([...layoutResult.graph.nodes()]).to.have.length(
+    expect(layoutResult.nodes).to.have.length(
       numberPersons + numberUnions
     );
-    expect([...layoutResult.graph.links()]).to.have.length(numberLinks);
+    expect(layoutResult.links).to.have.length(numberLinks);
   });
   it('assigned x and y coordinates to all nodes', () => {
-    [...layoutResult.graph.nodes()].forEach((n) => {
+    layoutResult.nodes.forEach((n) => {
       expect(n.x).greaterThan(0);
       expect(n.y).greaterThan(0);
     });
   });
   it('assigned source and target to all links', () => {
-    const nodes = [...layoutResult.graph.nodes()];
-    [...layoutResult.graph.links()].forEach((l) => {
-      expect(nodes).to.include(l.source);
-      expect(nodes).to.include(l.target);
+    layoutResult.links.forEach((l) => {
+      expect(layoutResult.nodes).to.include(l.source);
+      expect(layoutResult.nodes).to.include(l.target);
     });
   });
   it('defaults to horizontal layout', () => {
-    const nodes = [...layoutResult.graph.nodes()];
-    nodes.forEach((node) => {
+    layoutResult.nodes.forEach((node) => {
       // expect child.x > parent.x for all children
       const children_x = [...node.children()].map((c) => c.x);
       expect(children_x.every((cx) => cx > node.x)).to.be.true;
@@ -70,8 +60,7 @@ describe('D3DAGLayoutCalculator', () => {
     for (let n of clickableNodes) n.data.visible = true;
     layoutResult = calculator.calculateLayout(clickableNodes);
     expect(layoutResult.orientation).to.equal(Vertical);
-    const nodes = [...layoutResult.graph.nodes()];
-    nodes.forEach((node) => {
+    layoutResult.nodes.forEach((node) => {
       // expect child.y > parent.y for all children
       const children_y = [...node.children()].map((c) => c.y);
       expect(children_y.every((cy) => cy > node.y)).to.be.true;
