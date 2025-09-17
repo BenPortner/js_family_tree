@@ -13,7 +13,7 @@ function removeComments(content: string): string {
     .replace(/\/\*[\s\S]*?\*\//g, ""); // Remove multi-line comments
 }
 
-let fixtureFile = join(__dirname, "../data/data_simple.js");
+let fixtureFile = join(__dirname, "../data/data.js");
 let fileContent = readFileSync(fixtureFile, "utf-8").replace("data = ", "");
 export const SimpleFamilyTree: FamilyTreeData = JSON.parse(fileContent);
 
