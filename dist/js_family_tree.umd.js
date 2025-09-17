@@ -37,13 +37,44 @@
             throw Error('Invalid orientation: ' + orientation);
         }
     }
+    function customSugiyamaDecross(layers) {
+        // apply two layer decrossing algorithm
+        On()(layers);
+        // then re-arrange to make sure that union partners are next to each other
+        for (let layer of layers) {
+            const layerBefore = [...layer];
+            for (let node of layerBefore) {
+                if (node.data.role === 'link' || node.data.node.data.isUnion)
+                    continue;
+                const clickableNode = node.data.node.data;
+                // nodes without visible parents are most likely someone's partner
+                if (clickableNode.visibleParents.length > 0)
+                    continue;
+                const partners = clickableNode.visiblePartners;
+                if (partners.length == 0)
+                    continue;
+                const partner = partners[0];
+                const nodePartner = layer.find((n) => n.data.role == 'node' && n.data.node.data == partner);
+                if (!nodePartner)
+                    continue;
+                const nodePosition = layer.indexOf(node);
+                const partnerPosition = layer.indexOf(nodePartner);
+                // don't do anything if they are already next to each other
+                if (Math.abs(nodePosition - partnerPosition) == 1)
+                    continue;
+                // else remove node from current position
+                // and insert below partner
+                layer.splice(nodePosition, 1);
+                layer.splice(layer.indexOf(nodePartner) + 1, 0, node);
+            }
+        }
+    }
     class D3DAGLayoutCalculator {
         constructor(opts) {
             this.opts = {
                 nodeSize: (node) => [50, 100],
                 layering: Tn(),
-                // decross: customSugiyamaDecross,
-                decross: On(),
+                decross: customSugiyamaDecross,
                 coord: Ji(),
                 orientation: Horizontal,
             };
@@ -96,6 +127,18 @@
     }
     function invisibleNeighbors() {
         return this.neighbors.filter((n) => !n.data.visible);
+    }
+    function visibleChildren() {
+        return [...this.children()].filter((n) => n.data.visible);
+    }
+    function visibleParents() {
+        return [...this.parents()].filter((n) => n.data.visible);
+    }
+    function visiblePartners() {
+        return this.visibleChildren
+            .map((c) => c.visibleParents)
+            .flat()
+            .filter((p) => p != this);
     }
     function insertedNodes() {
         return this.neighbors.filter((n) => n.data.insertedBy === this);
@@ -160,6 +203,21 @@
         });
         Object.defineProperty(prototype, 'invisibleNeighbors', {
             get: invisibleNeighbors,
+            configurable: true,
+            enumerable: false,
+        });
+        Object.defineProperty(prototype, 'visibleChildren', {
+            get: visibleChildren,
+            configurable: true,
+            enumerable: false,
+        });
+        Object.defineProperty(prototype, 'visibleParents', {
+            get: visibleParents,
+            configurable: true,
+            enumerable: false,
+        });
+        Object.defineProperty(prototype, 'visiblePartners', {
+            get: visiblePartners,
             configurable: true,
             enumerable: false,
         });

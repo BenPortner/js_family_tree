@@ -5,6 +5,9 @@ export interface ClickableNode extends GraphNode {
   // a ClickableNode is a GraphNode with additional methods
   neighbors: ClickableNode[];
   visibleNeighbors: ClickableNode[];
+  visibleChildren: ClickableNode[];
+  visibleParents: ClickableNode[];
+  visiblePartners: ClickableNode[];
   invisibleNeighbors: ClickableNode[];
   insertedNodes: ClickableNode[];
   extendable: boolean;
@@ -24,6 +27,18 @@ function visibleNeighbors(this: ClickableNode) {
 }
 function invisibleNeighbors(this: ClickableNode) {
   return this.neighbors.filter((n) => !n.data.visible);
+}
+function visibleChildren(this: ClickableNode) {
+  return [...this.children()].filter((n) => n.data.visible);
+}
+function visibleParents(this: ClickableNode) {
+  return [...this.parents()].filter((n) => n.data.visible);
+}
+function visiblePartners(this: ClickableNode) {
+  return this.visibleChildren
+    .map((c) => c.visibleParents)
+    .flat()
+    .filter((p) => p != this);
 }
 function insertedNodes(this: ClickableNode) {
   return this.neighbors.filter((n) => n.data.insertedBy === this);
@@ -94,6 +109,21 @@ export function augmentD3DAGNodeClass(node: GraphNode) {
   });
   Object.defineProperty(prototype, 'invisibleNeighbors', {
     get: invisibleNeighbors,
+    configurable: true,
+    enumerable: false,
+  });
+  Object.defineProperty(prototype, 'visibleChildren', {
+    get: visibleChildren,
+    configurable: true,
+    enumerable: false,
+  });
+  Object.defineProperty(prototype, 'visibleParents', {
+    get: visibleParents,
+    configurable: true,
+    enumerable: false,
+  });
+  Object.defineProperty(prototype, 'visiblePartners', {
+    get: visiblePartners,
     configurable: true,
     enumerable: false,
   });

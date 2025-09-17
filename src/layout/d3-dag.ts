@@ -46,21 +46,32 @@ function translateOrientationToTweak(orientation: Orientation) {
 }
 
 function customSugiyamaDecross(layers: SugiNode<ClickableNode>[][]): void {
-  // apply optimal decrossing algorithm
-  decrossOpt()(layers);
+  // apply two layer decrossing algorithm
+  decrossTwoLayer()(layers);
   // then re-arrange to make sure that union partners are next to each other
   for (let layer of layers) {
-    layer.sort((a, b) => {
-      if (a.data.role === 'link') return 0;
-      if (b.data.role === 'link') return 0;
-      if (a.data.node.data.isUnion) return 0;
-      if (b.data.node.data.isUnion) return 0;
-      const aPerson = a.data.node.data.data as PersonData;
-      const bPerson = b.data.node.data.data as PersonData;
-      if (aPerson.own_unions?.length === 0) return 1;
-      if (bPerson.own_unions?.length === 0) return -1;
-      return 0;
-    });
+    const layerBefore = [...layer];
+    for (let node of layerBefore) {
+      if (node.data.role === 'link' || node.data.node.data.isUnion) continue;
+      const clickableNode = node.data.node.data;
+      // nodes without visible parents are most likely someone's partner
+      if (clickableNode.visibleParents.length > 0) continue;
+      const partners = clickableNode.visiblePartners;
+      if (partners.length == 0) continue;
+      const partner = partners[0];
+      const nodePartner = layer.find(
+        (n) => n.data.role == 'node' && n.data.node.data == partner
+      );
+      if (!nodePartner) continue;
+      const nodePosition = layer.indexOf(node);
+      const partnerPosition = layer.indexOf(nodePartner);
+      // don't do anything if they are already next to each other
+      if (Math.abs(nodePosition - partnerPosition) == 1) continue;
+      // else remove node from current position
+      // and insert below partner
+      layer.splice(nodePosition, 1);
+      layer.splice(layer.indexOf(nodePartner) + 1, 0, node);
+    }
   }
 }
 
@@ -68,8 +79,7 @@ export class D3DAGLayoutCalculator implements LayoutCalculator {
   public opts: D3DAGLayoutCalculatorOptions = {
     nodeSize: (node: GraphNode<ClickableNode>) => [50, 100] as [number, number],
     layering: layeringSimplex(),
-    // decross: customSugiyamaDecross,
-    decross: decrossTwoLayer(),
+    decross: customSugiyamaDecross,
     coord: coordQuad(),
     orientation: Horizontal,
   };
