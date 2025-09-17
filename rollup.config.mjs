@@ -10,7 +10,7 @@ export default [
     input: "src/index.ts",
     output: [
       {
-        name: "FamilyTreeJS",
+        name: "FT",
         file: pkg.browser,
         format: "umd",
         sourcemap: true

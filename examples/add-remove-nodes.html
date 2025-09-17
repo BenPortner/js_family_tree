@@ -30,7 +30,7 @@
         ft.deleteUnion('u1'); // links are auto-deleted
     }
     const container = document.getElementById("container");
-    const familytree = new FamilyTreeJS.FamilyTree(data, container);
+    const familytree = new FT.FamilyTree(data, container);
     document.getElementById('addPersonBtn').onclick = () => addPerson(familytree);
     document.getElementById('removePersonBtn').onclick = () => removePerson(familytree);
   </script>
