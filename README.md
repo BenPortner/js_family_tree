@@ -2,19 +2,20 @@
 
 A simplistic app for displaying family trees in your browser.
 
-Author: Benjamin W. Portner
-
-[Live example here.](https://html-preview.github.io/?url=https://github.com/BenPortner/js_family_tree/blob/typescript/examples/simple-tree.html)
-
-[JSFiddle here.](https://jsfiddle.net/BenPortner/6mnt1wy4/18/)
-
-## Features
-
+Features:
 - visualize family tree data in your browser
 - expand and collapse the tree by clicking on nodes
 - hover over nodes to display additional information in tooltips 
 - move around the tree by zooming and panning
 - uses [d3-dag](https://github.com/erikbrinkman/d3-dag) for layout calculation and [d3](https://d3js.org/) for rendering
+
+[Live example here.](https://html-preview.github.io/?url=https://github.com/BenPortner/js_family_tree/blob/typescript/examples/simple-tree.html)
+
+[JSFiddle here.](https://jsfiddle.net/BenPortner/6mnt1wy4/18/)
+
+| :exclamation:  Note for developers |
+|----------------------------------------------|
+| v1.0.0 introduced significant changes to the codebase. Read more [here](CHANGELOG.md). |
 
 ## Quickstart
 
@@ -22,11 +23,9 @@ Author: Benjamin W. Portner
 - Open `index.html`
 - Done!
 
-## Data format
+## Custom data format
 
-The file `data.js` should define a single JavaScript object named `data` that represents your family tree. The structure is as follows:
-
-Top-Level Fields
+The file `data/data.js` defines a single JavaScript object named `data` that represents your family tree. The structure is as follows:
 - `start`: The ID of the person who should be the starting point of the family tree. Only this person will be visible, initially. Further family members become visible when clicking on it.
 - `persons`: An object where each key is a unique person ID, and each value is an object with metadata about that person. It is recommended to at least add `name`, `birthyear`, `birthplace`, `deathyear` and `deathplace`, as these information are shown in the tooltip by default.
 - `unions`: An object where each key is a unique union ID, and each value is an object with metadata about the union. The object may be empty.
