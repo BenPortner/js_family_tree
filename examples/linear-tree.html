@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Family Tree Visualization</title>
   <link rel="stylesheet" href="../css/main.css">
-  <script src="data_simple.js"></script> <!-- Replace with your data file -->
+  <script src="../data/data_single-parent.js"></script> <!-- Replace with your data file -->
 </head>
 
 <body>
@@ -17,12 +17,7 @@
   <script src="../dist/js_family_tree.umd.js"></script>
   <script>
     const container = document.getElementById("container");
-    const opts = {
-      showAll: true,
-      orientation: 'vertical',
-      nodeSize: (node) => [150, 50]
-    };
-    const familytree = new FamilyTreeJS.FamilyTree(data, container, opts);
+    const familytree = new FamilyTreeJS.FamilyTree(data, container);
   </script>
 </body>
 
