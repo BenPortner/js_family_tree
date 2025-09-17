@@ -1,7 +1,7 @@
 {
   "name": "js_family_tree",
   "version": "1.0.0",
-  "description": "An interactive family tree visualization using sigma",
+  "description": "An interactive family tree visualization using d3-dag",
   "main": "src/index.ts",
   "type": "module",
   "module": "dist/js_family_tree.esm.js",
@@ -32,6 +32,11 @@
     "url": "https://github.com/BenPortner/js_family_tree/issues"
   },
   "homepage": "https://github.com/BenPortner/js_family_tree#readme",
+  "dependencies": {
+    "d3": "^7.9.0",
+    "d3-dag": "^1.1.0",
+    "tslib": "^2.8.1"
+  },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.3",
     "@rollup/plugin-node-resolve": "^16.0.1",
@@ -48,10 +53,5 @@
     "rollup": "^4.40.1",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
-  },
-  "dependencies": {
-    "d3": "^7.9.0",
-    "d3-dag": "^1.1.0",
-    "tslib": "^2.8.1"
   }
 }
