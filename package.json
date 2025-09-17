@@ -1,5 +1,5 @@
 {
-  "name": "js_family_tree",
+  "name": "@benportner/js_family_tree",
   "version": "1.0.0",
   "description": "An interactive family tree visualization using d3-dag",
   "main": "src/index.ts",
