@@ -11,7 +11,7 @@ Features:
 
 [Live example here.](https://html-preview.github.io/?url=https://github.com/BenPortner/js_family_tree/blob/typescript/examples/simple-tree.html)
 
-[JSFiddle here.](https://jsfiddle.net/BenPortner/6mnt1wy4/18/)
+[JSFiddle here.](https://jsfiddle.net/BenPortner/6mnt1wy4/)
 
 | :exclamation:  Note for developers |
 |----------------------------------------------|
