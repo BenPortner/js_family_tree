@@ -4037,6 +4037,10 @@ class D3Renderer {
     }
 }
 
+/**
+ * Main class for managing, rendering, and interacting with a family tree.
+ * Handles data import, layout calculation, rendering, and runtime modifications.
+ */
 class FamilyTree {
     /**
      * Constructs a new FamilyTree instance.

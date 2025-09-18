@@ -10,12 +10,21 @@ import type { LayoutCalculator, LayoutedNode } from './layout/types';
 import type { Renderer } from './render/types';
 import type { Importer, PersonData, UnionData } from './import/types';
 
+/**
+ * Options for configuring the FamilyTree.
+ * Combines layout and rendering options, plus additional controls.
+ */
 export interface FamilyTreeOptions
   extends D3DAGLayoutCalculatorOptions,
     D3RendererOptions {
+  /** If true, all nodes are set to visible on initialization. */
   showAll: boolean;
 }
 
+/**
+ * Main class for managing, rendering, and interacting with a family tree.
+ * Handles data import, layout calculation, rendering, and runtime modifications.
+ */
 export class FamilyTree {
   /** The raw family tree data object. */
   public data: FamilyTreeData;
