@@ -8,7 +8,6 @@ import type {
 } from 'd3-dag';
 import {
   tweakFlip,
-  decrossOpt,
   layeringSimplex,
   decrossTwoLayer,
   coordQuad,
@@ -25,7 +24,7 @@ import type {
   LayoutedNode,
   LayoutedLink,
 } from './types';
-import type { LinkData, PersonData } from '../import/types';
+import type { LinkData } from '../import/types';
 
 export interface D3DAGLayoutCalculatorOptions extends LayoutCalculatorOpts {
   nodeSize: NodeSize<ClickableNode, LinkData>;
