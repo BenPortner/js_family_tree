@@ -18,7 +18,7 @@ export interface LayoutedLink {
 export declare const Vertical: "vertical";
 export declare const Horizontal: "horizontal";
 export type Orientation = typeof Vertical | typeof Horizontal;
-export type LayoutCalculatorOpts = any;
+export type LayoutCalculatorOpts = {};
 export interface LayoutResult {
     nodes: LayoutedNode[];
     links: LayoutedLink[];

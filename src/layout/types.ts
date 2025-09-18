@@ -24,7 +24,7 @@ export const Vertical = 'vertical' as const;
 export const Horizontal = 'horizontal' as const;
 export type Orientation = typeof Vertical | typeof Horizontal;
 
-export type LayoutCalculatorOpts = any;
+export type LayoutCalculatorOpts = {};
 
 export interface LayoutResult {
   nodes: LayoutedNode[];
