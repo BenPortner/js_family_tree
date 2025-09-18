@@ -1,18 +1,15 @@
 export type NodeID = string;
 export type Link = [NodeID, NodeID]; // A link is a tuple of two NodeIDs, where one is a person and the other is a union
-export interface Person extends Object {
-  id: NodeID;
+export interface Person {
+  id?: NodeID;
   name: string;
   birthyear?: number;
   deathyear?: number;
-  own_unions?: NodeID[];
   birthplace?: string;
   deathplace?: string;
 }
 export interface Union {
-  id: NodeID;
-  partner?: NodeID[]; // IDs of the persons involved in the union
-  children?: NodeID[]; // IDs of the children of the union
+  id?: NodeID;
 }
 export interface FamilyTreeData {
   start: NodeID;

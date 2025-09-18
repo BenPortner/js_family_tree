@@ -1,13 +1,15 @@
-import type { Person, Union } from '../familyTreeData';
+import type { NodeID, Person, Union } from '../familyTreeData';
 import type { ClickableNode } from '../clickableNode';
 export declare const CPerson: "person";
 export declare const CUnion: "union";
 export interface PersonData extends Person {
+    id: NodeID;
     type: typeof CPerson;
     visible: boolean;
     insertedBy: ClickableNode | null;
 }
 export interface UnionData extends Union {
+    id: NodeID;
     type: typeof CUnion;
     visible: boolean;
     insertedBy: ClickableNode | null;

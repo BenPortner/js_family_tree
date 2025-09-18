@@ -1,18 +1,15 @@
 export type NodeID = string;
 export type Link = [NodeID, NodeID];
-export interface Person extends Object {
-    id: NodeID;
+export interface Person {
+    id?: NodeID;
     name: string;
     birthyear?: number;
     deathyear?: number;
-    own_unions?: NodeID[];
     birthplace?: string;
     deathplace?: string;
 }
 export interface Union {
-    id: NodeID;
-    partner?: NodeID[];
-    children?: NodeID[];
+    id?: NodeID;
 }
 export interface FamilyTreeData {
     start: NodeID;
