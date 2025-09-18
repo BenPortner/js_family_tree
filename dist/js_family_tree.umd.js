@@ -260,9 +260,7 @@
      * Returns the IDs of all visible parent nodes.
      */
     function visibleParentIDs() {
-        return [...this.parents()]
-            .filter((p) => p.data.visible)
-            .map((p) => p.data.id);
+        return this.visibleParents.map((p) => p.data.id);
     }
     /**
      * Augments the prototype of a d3-dag GraphNode to add ClickableNode properties and methods.

@@ -182,9 +182,7 @@ function click(this: ClickableNode) {
  * Returns the IDs of all visible parent nodes.
  */
 function visibleParentIDs(this: ClickableNode) {
-  return [...this.parents()]
-    .filter((p) => p.data.visible)
-    .map((p) => p.data.id);
+  return this.visibleParents.map((p) => p.data.id);
 }
 
 /**
