@@ -17,14 +17,26 @@ export interface FamilyTreeOptions
 }
 
 export class FamilyTree {
+  /** The raw family tree data object. */
   public data: FamilyTreeData;
+  /** The current array of nodes in the graph. */
   private _nodes: ClickableNode[];
+  /** The current root node (starting point for rendering). */
   private _root: ClickableNode;
 
+  /** The importer instance used to convert raw data into nodes. */
   public importer: Importer;
+  /** The layout calculator instance used to assign coordinates to the nodes. */
   public layouter: LayoutCalculator;
+  /** The renderer instance used to draw the tree. */
   public renderer: Renderer;
 
+  /**
+   * Constructs a new FamilyTree instance.
+   * @param data - The family tree data object.
+   * @param container - The HTML element to render the tree into.
+   * @param opts - Optional configuration for layout, rendering, and styling.
+   */
   constructor(
     data: FamilyTreeData,
     container: HTMLElement,
@@ -50,22 +62,31 @@ export class FamilyTree {
     this.render(undefined);
   }
 
+  /** Returns the current array of nodes. */
   get nodes() {
     return this._nodes;
   }
 
+  /** Sets the array of nodes. (private) */
   private set nodes(nodes: ClickableNode[]) {
     this._nodes = nodes;
   }
 
+  /** Returns the current root node. */
   get root() {
     return this._root;
   }
 
+  /** Sets the root node. (private) */
   private set root(node: ClickableNode) {
     this._root = node;
   }
 
+  /**
+   * Collects all nodes in the currently visible subgraph, starting from the root.
+   * Uses a recursive depth-first search to gather all visible neighbors.
+   * @returns An array of visible ClickableNodes.
+   */
   private getVisibleSubgraph() {
     function recursiveVisibleNeighborCollector(
       node: ClickableNode,
@@ -85,6 +106,10 @@ export class FamilyTree {
     return recursiveVisibleNeighborCollector(this.root);
   }
 
+  /**
+   * Renders the visible parts of the graph.
+   * @param clickedNode - The node that was clicked, if any (used for transitions).
+   */
   public render(clickedNode?: LayoutedNode) {
     const visibleNodes = this.getVisibleSubgraph();
     // get the old position of the clicked node for transitions
@@ -101,11 +126,20 @@ export class FamilyTree {
     this.renderer.render(layoutResult, previousPosition, newPosition);
   }
 
+  /**
+   * Handles a click event on a node.
+   * Expands or collapses the node and re-renders the tree.
+   * @param node - The node that was clicked.
+   */
   public nodeClickHandler(node: LayoutedNode) {
     node.click();
     this.render(node);
   }
 
+  /**
+   * Re-imports the data and re-renders the tree.
+   * Useful after modifying the underlying data (e.g. adding or removing nodes and links).
+   */
   public reimportData() {
     this.nodes = this.importer.import(this.data);
     this.root =
@@ -113,16 +147,33 @@ export class FamilyTree {
     this.render(undefined);
   }
 
+  /**
+   * Generates a random string ID.
+   * @returns A random string suitable for use as a person or union ID.
+   */
   private getRandomId() {
     return `${Math.random().toString(36).substring(2, 9)}`;
   }
 
+  /**
+   * Adds a new person to the family tree data and optionally re-renders. Assigns a
+   * random ID if `data` doesn't contain one.
+   * @param data - The person data to add.
+   * @param render - If true, re-imports and re-renders the tree (default: true).
+   */
   public addPerson(data: Person, render: boolean = true) {
     const id = data.id ?? `p${this.getRandomId()}`;
     this.data.persons[id] = data;
     (data as PersonData).visible = true;
     if (render) this.reimportData();
   }
+
+  /**
+   * Removes a person and all associated links from the family tree data.
+   * Optionally re-renders.
+   * @param id - The ID of the person to remove.
+   * @param render - If true, re-imports and re-renders the tree (default: true).
+   */
   public deletePerson(id: string, render: boolean = true) {
     delete this.data.persons[id];
     this.data.links = this.data.links.filter(
@@ -130,12 +181,26 @@ export class FamilyTree {
     );
     if (render) this.reimportData();
   }
+
+  /**
+   * Adds a new union (family) to the family tree data and optionally re-renders. Assigns a
+   * random ID if `data` doesn't contain one.
+   * @param data - The union data to add.
+   * @param render - If true, re-imports and re-renders the tree (default: true).
+   */
   public addUnion(data: Union, render: boolean = true) {
     const id = data.id ?? `u${this.getRandomId()}`;
     this.data.unions[id] = data;
     (data as UnionData).visible = true;
     if (render) this.reimportData();
   }
+
+  /**
+   * Removes a union and all associated links from the family tree data.
+   * Optionally re-renders.
+   * @param id - The ID of the union to remove.
+   * @param render - If true, re-imports and re-renders the tree (default: true).
+   */
   public deleteUnion(id: string, render: boolean = true) {
     delete this.data.unions[id];
     this.data.links = this.data.links.filter(
@@ -143,10 +208,26 @@ export class FamilyTree {
     );
     if (render) this.reimportData();
   }
+
+  /**
+   * Adds a new link (edge) between two nodes in the family tree data.
+   * Optionally re-renders.
+   * @param sourceId - The source node ID.
+   * @param targetId - The target node ID.
+   * @param render - If true, re-imports and re-renders the tree (default: true).
+   */
   public addLink(sourceId: string, targetId: string, render: boolean = true) {
     this.data.links.push([sourceId, targetId]);
     if (render) this.reimportData();
   }
+
+  /**
+   * Removes a link (edge) between two nodes in the family tree data.
+   * Optionally re-renders.
+   * @param sourceId - The source node ID.
+   * @param targetId - The target node ID.
+   * @param render - If true, re-imports and re-renders the tree (default: true).
+   */
   public deleteLink(
     sourceId: string,
     targetId: string,

@@ -26,6 +26,9 @@
     const Vertical = 'vertical';
     const Horizontal = 'horizontal';
 
+    /**
+     * Translates 'horizontal' and 'vertical' to whatever D3-DAG needs.
+     */
     function translateOrientationToTweak(orientation) {
         if (orientation == Vertical) {
             return [];
@@ -37,6 +40,12 @@
             throw Error('Invalid orientation: ' + orientation);
         }
     }
+    /**
+     * Custom decrossing function for the Sugiyama layout.
+     * First applies the standard two-layer decrossing algorithm,
+     * then rearranges nodes to ensure that union partners are placed
+     * next to each other in the same layer.
+     */
     function customSugiyamaDecross(layers) {
         // apply two layer decrossing algorithm
         On()(layers);
@@ -69,8 +78,18 @@
             }
         }
     }
+    /**
+     * Layout calculator using d3-dag's Sugiyama algorithm.
+     * Responsible for computing node and link positions for the
+     * family tree visualization.
+     */
     class D3DAGLayoutCalculator {
         constructor(opts) {
+            /**
+             * Default options for configuring the layout algorithm.
+             * Can be overwritten by passing `opts` argument to the
+             * `D3DAGLayoutCalculator` constructor.
+             */
             this.opts = {
                 nodeSize: (node) => [50, 100],
                 layering: Tn(),
@@ -80,6 +99,11 @@
             };
             this.opts = Object.assign(Object.assign({}, this.opts), opts);
         }
+        /**
+         * Calculates the layout for the given nodes.
+         * Builds a temporary graph from the visible nodes, applies the Sugiyama layout,
+         * and writes the computed x/y coordinates back to the nodes.
+         */
         calculateLayout(nodes) {
             // build a temporary graph from the visible nodes
             const builder = ai()
@@ -119,39 +143,78 @@
     const CPerson = 'person';
     const CUnion = 'union';
 
+    /**
+     * Returns all neighboring nodes (upstream and downstream) of this node.
+     */
     function neighbors() {
         return [...this.children(), ...this.parents()];
     }
+    /**
+     * Returns all visible neighboring nodes.
+     * Will be unions if this is a person. Will be persons if this is a union.
+     */
     function visibleNeighbors() {
         return this.neighbors.filter((n) => n.data.visible);
     }
+    /**
+     * Returns all invisible neighboring nodes.
+     * Will be unions if this is a person. Will be persons if this is a union.
+     */
     function invisibleNeighbors() {
         return this.neighbors.filter((n) => !n.data.visible);
     }
+    /**
+     * Returns all visible downstream nodes.
+     * Will be unions if this is a person. Will be persons if this is a union.
+     */
     function visibleChildren() {
         return [...this.children()].filter((n) => n.data.visible);
     }
+    /**
+     * Returns all visible upstream nodes.
+     * Will be unions if this is a person. Will be persons if this is a union.
+     */
     function visibleParents() {
         return [...this.parents()].filter((n) => n.data.visible);
     }
+    /**
+     * Returns all visible partner nodes (other parents of shared children).
+     * Will always be persons.
+     */
     function visiblePartners() {
         return this.visibleChildren
             .map((c) => c.visibleParents)
             .flat()
             .filter((p) => p != this);
     }
+    /**
+     * Returns all neighboring nodes that were inserted by expanding this node.
+     */
     function insertedNodes() {
         return this.neighbors.filter((n) => n.data.insertedBy === this);
     }
+    /**
+     * Returns true if this node can be expanded to show more neighbors.
+     */
     function extendable() {
         return this.invisibleNeighbors.length > 0;
     }
+    /**
+     * Returns true if this node represents a union (family).
+     */
     function isUnion() {
         return this.data.type == CUnion;
     }
+    /**
+     * Returns true if this node represents a person.
+     */
     function isPerson() {
         return this.data.type == CPerson;
     }
+    /**
+     * Expands this node to show its neighbors. Recursively expands inserted nodes if applicable.
+     * If `addInsertedNodes` is true, marks newly visible neighbors as inserted by this node.
+     */
     function showNeighbors(addInsertedNodes = false) {
         if (addInsertedNodes) {
             for (let n of this.invisibleNeighbors) {
@@ -160,10 +223,14 @@
         }
         for (let n of this.insertedNodes) {
             n.data.visible = true;
-            // addInsertedNodes only for the clicked person and it's neighbor unions
+            // `addInsertedNodes` only for the clicked person and it's neighbor unions
             n.showNeighbors(addInsertedNodes && n.isUnion);
         }
     }
+    /**
+     * Recursively collapses this node and all inserted nodes.
+     * If `resetInsertedNodes` is true, resets the `insertedBy` property of the hidden nodes.
+     */
     function hideNeighbors(resetInsertedNodes = false) {
         for (let n of this.insertedNodes) {
             if (resetInsertedNodes) {
@@ -173,6 +240,11 @@
             n.hideNeighbors(false);
         }
     }
+    /**
+     * Handles a click event on this node.
+     * Expands the node if it is extendable, otherwise collapses it.
+     * Throws an error if called on a union node.
+     */
     function click() {
         if (this.isUnion) {
             throw Error('Only person nodes can be clicked.');
@@ -184,11 +256,19 @@
             this.hideNeighbors(true);
         }
     }
+    /**
+     * Returns the IDs of all visible parent nodes.
+     */
     function visibleParentIDs() {
         return [...this.parents()]
             .filter((p) => p.data.visible)
             .map((p) => p.data.id);
     }
+    /**
+     * Augments the prototype of a d3-dag GraphNode to add ClickableNode properties and methods.
+     * This enables interactive features such as expanding/collapsing nodes and partner/neighbor queries.
+     * @param node - A GraphNode instance (any instance will do)
+     */
     function augmentD3DAGNodeClass(node) {
         const prototype = node.constructor.prototype;
         Object.defineProperty(prototype, 'neighbors', {
@@ -247,7 +327,18 @@
         prototype.visibleParentIDs = visibleParentIDs;
     }
 
+    /**
+     * Imports family tree data (declarations see [familyTreeData](src/familyTreeData.ts))
+     * and converts it into a graph of `ClickableNodes`.
+     */
     class FamilyTreeDataV1Importer {
+        /**
+         * Imports the provided family tree data and returns an array of ClickableNodes.
+         * The graph is constructed from the
+         * `links` array of the `data` object by default. If no links are found, the `parentIds`
+         * fields of each `person` and `union` are used as a fallback. Uses JavaScript's
+         * prototype augmentation feature to add methods to `d3-dag`'s native node class.
+         */
         import(data) {
             let graph;
             if (data.links && data.links.length > 0) {
@@ -257,10 +348,14 @@
                 graph = this.buildGraphFromParentIds(data);
             }
             const nodes = [...graph.nodes()];
-            // add custom methods (augment)
+            // add custom methods (augment prototype)
             augmentD3DAGNodeClass(nodes[0]);
             return nodes;
         }
+        /**
+         * Builds a graph from the provided data using the links array.
+         * Each node is assigned its type, id, visibility, and insertedBy fields.
+         */
         buildGraphFromLinks(data) {
             const builder = ei().nodeDatum((id) => {
                 var _a, _b, _c, _d;
@@ -285,6 +380,10 @@
             });
             return builder(data.links);
         }
+        /**
+         * Builds a graph from the provided data using parentId relationships.
+         * Each node is assigned its type, id, visibility, and insertedBy fields.
+         */
         buildGraphFromParentIds(data) {
             const builder = ai();
             const personArr = Object.entries(data.persons).map(([id, person]) => {
@@ -3584,8 +3683,19 @@
       return zoom;
     }
 
+    /**
+     * D3Renderer is responsible for rendering the family tree using D3.
+     * It handles SVG creation, zoom/pan, node and link rendering, tooltips, and labels.
+     */
     class D3Renderer {
+        /**
+         * Constructs a new D3Renderer.
+         * @param container - The HTML element to render into.
+         * @param ft - The FamilyTree instance to visualize.
+         * @param opts - Optional renderer options to override defaults.
+         */
         constructor(container, ft, opts) {
+            /** Default renderer options, can be overwritten via the constructor. */
             this.opts = {
                 transitionDuration: 750, // ms
                 linkPathFunction: D3Renderer.defaultLinkPathFunction,
@@ -3600,16 +3710,22 @@
             this.opts = Object.assign(Object.assign({}, this.opts), opts);
             this.container = container;
         }
+        /** Gets the current container element. */
         get container() {
             return this._container;
         }
+        /** Sets the container element and initializes the SVG and tooltip. */
         set container(c) {
             this._container = c;
             this.initializeContainer();
         }
+        /** Returns true if running in a JSDOM environment (used for testing). */
         get isJSDOM() {
             return /jsdom/i.test(this.container.ownerDocument.defaultView.navigator.userAgent);
         }
+        /**
+         * Initializes the SVG, group, zoom behavior, and tooltip div in the container.
+         */
         initializeContainer() {
             // set container class
             select(this.container).attr('class', 'svg-container');
@@ -3629,6 +3745,10 @@
                 .style('opacity', 0)
                 .style('visibility', 'hidden');
         }
+        /**
+         * Default function to generate the SVG path for a link, using S-bends
+         * for vertical or horizontal orientation.
+         */
         static defaultLinkPathFunction(link, orientation) {
             function vertical_s_bend(s, d) {
                 // Creates a diagonal curve fit for vertically oriented trees
@@ -3650,9 +3770,17 @@
                 ? vertical_s_bend(s, d)
                 : horizontal_s_bend(s, d);
         }
+        /**
+         * Default node click handler: delegates to the FamilyTree's nodeClickHandler.
+         */
         static defaultNodeClickFunction(node, ft) {
             ft.nodeClickHandler(node);
         }
+        /**
+         * Default function to generate labels for a node.
+         * Returns an array of strings containing name, birthyear and deathyear.
+         * Each array entry representing a line of the label.
+         */
         static defaultNodeLabelFunction(node, missingData = '?') {
             if (node.isUnion)
                 return [];
@@ -3663,6 +3791,10 @@
             ];
             return lines;
         }
+        /**
+         * Default function to generate the tooltip for a node.
+         * Returns a formatted HTML string with name, birth, and death info.
+         */
         static defaultNodeTooltipFunction(node, missingData = '?') {
             if (node.isUnion)
                 return;
@@ -3684,6 +3816,10 @@
             // replace undefined entries with ?
             return content.replace(/undefined/g, missingData);
         }
+        /**
+         * Default function to determine the size of a node.
+         * Returns 10 for persons, 0 for unions.
+         */
         static defaultNodeSizeFunction(node) {
             if (node.isUnion)
                 return 0;
@@ -3691,14 +3827,29 @@
                 return 10;
             return 0;
         }
+        /**
+         * Default function to determine the CSS class for a node.
+         * Combines extendability (can be extended/collapsed) and type (person/union).
+         */
         static defaultNodeCSSClassFunction(node) {
             const class1 = node.extendable ? 'extendable' : 'non-extendable';
             const class2 = node.data.type;
             return class1 + ' ' + class2;
         }
+        /**
+         * Default function to determine the CSS class for a link.
+         * Returns 'link' for all links.
+         */
         static defaultLinkCSSClassFunction(link) {
             return 'link';
         }
+        /**
+         * Renders the nodes (persons and unions), handling enter, update, and exit transitions.
+         * @param nodes - The nodes to render.
+         * @param previousPosition - Optional previous position for transitions.
+         * @param newPosition - Optional new position for transitions.
+         * @returns The selection of entering node groups.
+         */
         renderNodes(nodes, previousPosition, newPosition) {
             const selection = this.g
                 .selectAll('g')
@@ -3740,6 +3891,12 @@
                 .attr('class', (d) => this.opts.nodeCSSClassFunction(d));
             return enteringGroups;
         }
+        /**
+         * Renders the links as SVG paths, handling enter, update, and exit transitions.
+         * @param layoutResult - The layout result containing links.
+         * @param previousPosition - Optional previous position for transitions.
+         * @param newPosition - Optional new position for transitions.
+         */
         renderLinks(layoutResult, previousPosition, newPosition) {
             const links = layoutResult.links;
             const selection = this.g
@@ -3785,6 +3942,11 @@
             })
                 .remove();
         }
+        /**
+         * Sets up tooltips for the given node selection.
+         * Shows and hides the tooltip div on mouseover/mouseout.
+         * @param nodeSelect - The d3 selection containing all nodes.
+         */
         setupTooltips(nodeSelect) {
             const tooltip_div = this.tooltipDiv;
             const tooltip_func = this.opts.nodeTooltipFunction;
@@ -3811,6 +3973,15 @@
                     .style('visibility', 'hidden');
             });
         }
+        /**
+         * Renders multi-line labels for entering nodes.
+         * Each line is rendered as a separate <tspan> element.
+         * @param enteringNodes - The selection of entering nodes.
+         * @param cssClass - CSS class for the text element.
+         * @param lineSep - Vertical separation between lines.
+         * @param xOffset - Horizontal offset for the text.
+         * @param dominantBaseline - SVG dominant-baseline attribute value.
+         */
         renderLabels(enteringNodes, cssClass = 'node-label', lineSep = 14, xOffset = 13, dominantBaseline = 'central') {
             const nodeLabelFunction = this.opts.nodeLabelFunction;
             enteringNodes
@@ -3832,15 +4003,24 @@
                 .attr('x', xOffset)
                 .attr('dy', (d) => d.dy);
         }
+        /**
+         * Sorts the DOM elements in the main group so that nodes are drawn on top of links.
+         * Ensures correct visual stacking order.
+         */
         sortDomElements() {
-            // will sort elements of this.g based on their tag name
-            // --> ensures that nodes (g) are drawn on top of links (link)
             const nodes_and_links = this.g
                 .selectChildren()
                 .nodes()
                 .sort((a, b) => descending(a.tagName, b.tagName));
             nodes_and_links.forEach((el) => el.parentNode.appendChild(el));
         }
+        /**
+         * Main render function. Draws the current layout, updates nodes and links, tooltips, and labels.
+         * Also centers the view on the clicked node unless running in JSDOM.
+         * @param layoutResult - The layout result to render.
+         * @param previousPosition - Optional previous position for transitions.
+         * @param newPosition - Optional new position for transitions.
+         */
         render(layoutResult, previousPosition, newPosition) {
             // add / update / remove links and nodes
             this.renderLinks(layoutResult, previousPosition, newPosition);
@@ -3857,12 +4037,21 @@
                 this.zoom.translateTo(this.svg.transition().duration(this.opts.transitionDuration), centerNode.x, centerNode.y);
             }
         }
+        /**
+         * Deletes all rendered elements from the SVG.
+         */
         clear() {
             this.g.selectAll('*').remove();
         }
     }
 
     class FamilyTree {
+        /**
+         * Constructs a new FamilyTree instance.
+         * @param data - The family tree data object.
+         * @param container - The HTML element to render the tree into.
+         * @param opts - Optional configuration for layout, rendering, and styling.
+         */
         constructor(data, container, opts) {
             var _a;
             this.data = data;
@@ -3881,18 +4070,27 @@
             }
             this.render(undefined);
         }
+        /** Returns the current array of nodes. */
         get nodes() {
             return this._nodes;
         }
+        /** Sets the array of nodes. (private) */
         set nodes(nodes) {
             this._nodes = nodes;
         }
+        /** Returns the current root node. */
         get root() {
             return this._root;
         }
+        /** Sets the root node. (private) */
         set root(node) {
             this._root = node;
         }
+        /**
+         * Collects all nodes in the currently visible subgraph, starting from the root.
+         * Uses a recursive depth-first search to gather all visible neighbors.
+         * @returns An array of visible ClickableNodes.
+         */
         getVisibleSubgraph() {
             function recursiveVisibleNeighborCollector(node, result = []) {
                 if (!result.includes(node)) {
@@ -3906,6 +4104,10 @@
             }
             return recursiveVisibleNeighborCollector(this.root);
         }
+        /**
+         * Renders the visible parts of the graph.
+         * @param clickedNode - The node that was clicked, if any (used for transitions).
+         */
         render(clickedNode) {
             const visibleNodes = this.getVisibleSubgraph();
             // get the old position of the clicked node for transitions
@@ -3921,10 +4123,19 @@
             // render graph
             this.renderer.render(layoutResult, previousPosition, newPosition);
         }
+        /**
+         * Handles a click event on a node.
+         * Expands or collapses the node and re-renders the tree.
+         * @param node - The node that was clicked.
+         */
         nodeClickHandler(node) {
             node.click();
             this.render(node);
         }
+        /**
+         * Re-imports the data and re-renders the tree.
+         * Useful after modifying the underlying data (e.g. adding or removing nodes and links).
+         */
         reimportData() {
             var _a;
             this.nodes = this.importer.import(this.data);
@@ -3932,9 +4143,19 @@
                 (_a = this.nodes.find((n) => n.data.id == this.data.start)) !== null && _a !== void 0 ? _a : this.nodes[0];
             this.render(undefined);
         }
+        /**
+         * Generates a random string ID.
+         * @returns A random string suitable for use as a person or union ID.
+         */
         getRandomId() {
             return `${Math.random().toString(36).substring(2, 9)}`;
         }
+        /**
+         * Adds a new person to the family tree data and optionally re-renders. Assigns a
+         * random ID if `data` doesn't contain one.
+         * @param data - The person data to add.
+         * @param render - If true, re-imports and re-renders the tree (default: true).
+         */
         addPerson(data, render = true) {
             var _a;
             const id = (_a = data.id) !== null && _a !== void 0 ? _a : `p${this.getRandomId()}`;
@@ -3943,6 +4164,12 @@
             if (render)
                 this.reimportData();
         }
+        /**
+         * Removes a person and all associated links from the family tree data.
+         * Optionally re-renders.
+         * @param id - The ID of the person to remove.
+         * @param render - If true, re-imports and re-renders the tree (default: true).
+         */
         deletePerson(id, render = true) {
             delete this.data.persons[id];
             this.data.links = this.data.links.filter((l) => l[0] != id && l[1] != id // remove all links to/from this person
@@ -3950,6 +4177,12 @@
             if (render)
                 this.reimportData();
         }
+        /**
+         * Adds a new union (family) to the family tree data and optionally re-renders. Assigns a
+         * random ID if `data` doesn't contain one.
+         * @param data - The union data to add.
+         * @param render - If true, re-imports and re-renders the tree (default: true).
+         */
         addUnion(data, render = true) {
             var _a;
             const id = (_a = data.id) !== null && _a !== void 0 ? _a : `u${this.getRandomId()}`;
@@ -3958,6 +4191,12 @@
             if (render)
                 this.reimportData();
         }
+        /**
+         * Removes a union and all associated links from the family tree data.
+         * Optionally re-renders.
+         * @param id - The ID of the union to remove.
+         * @param render - If true, re-imports and re-renders the tree (default: true).
+         */
         deleteUnion(id, render = true) {
             delete this.data.unions[id];
             this.data.links = this.data.links.filter((l) => l[0] != id && l[1] != id // remove all links to/from this union
@@ -3965,11 +4204,25 @@
             if (render)
                 this.reimportData();
         }
+        /**
+         * Adds a new link (edge) between two nodes in the family tree data.
+         * Optionally re-renders.
+         * @param sourceId - The source node ID.
+         * @param targetId - The target node ID.
+         * @param render - If true, re-imports and re-renders the tree (default: true).
+         */
         addLink(sourceId, targetId, render = true) {
             this.data.links.push([sourceId, targetId]);
             if (render)
                 this.reimportData();
         }
+        /**
+         * Removes a link (edge) between two nodes in the family tree data.
+         * Optionally re-renders.
+         * @param sourceId - The source node ID.
+         * @param targetId - The target node ID.
+         * @param render - If true, re-imports and re-renders the tree (default: true).
+         */
         deleteLink(sourceId, targetId, render = true) {
             this.data.links = this.data.links.filter((l) => !(l[0] == sourceId && l[1] == targetId));
             if (render)

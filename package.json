@@ -12,7 +12,9 @@
   "scripts": {
     "test": "mocha",
     "watch": "rollup -c -w",
-    "prettier": "prettier --write ./src"
+    "build": "rollup -c",
+    "prettier": "prettier --write ./src",
+    "docs": "typedoc"
   },
   "repository": {
     "type": "git",
@@ -52,6 +54,8 @@
     "prettier": "^3.6.2",
     "rollup": "^4.40.1",
     "tsx": "^4.19.4",
+    "typedoc": "^0.28.13",
+    "typedoc-plugin-merge-modules": "^7.0.0",
     "typescript": "^5.8.3"
   },
   "types": "dist/types/index.d.ts"

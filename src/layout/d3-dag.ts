@@ -26,14 +26,26 @@ import type {
 } from './types';
 import type { LinkData } from '../import/types';
 
+/**
+ * Options for configuring the D3DAGLayoutCalculator.
+ * Extends the base LayoutCalculatorOpts and adds D3-DAG specific options.
+ */
 export interface D3DAGLayoutCalculatorOptions extends LayoutCalculatorOpts {
+  /** Function to determine the size of each node. */
   nodeSize: NodeSize<ClickableNode, LinkData>;
+  /** Layering algorithm for the layout. */
   layering: Layering<ClickableNode, LinkData>;
+  /** Decrossing algorithm to reduce edge crossings. */
   decross: Decross<ClickableNode, LinkData>;
+  /** Coordinate assignment algorithm for node placement. */
   coord: Coord<ClickableNode, LinkData>;
+  /** Orientation of the layout (horizontal or vertical). */
   orientation: Orientation;
 }
 
+/**
+ * Translates 'horizontal' and 'vertical' to whatever D3-DAG needs.
+ */
 function translateOrientationToTweak(orientation: Orientation) {
   if (orientation == Vertical) {
     return [];
@@ -44,6 +56,12 @@ function translateOrientationToTweak(orientation: Orientation) {
   }
 }
 
+/**
+ * Custom decrossing function for the Sugiyama layout.
+ * First applies the standard two-layer decrossing algorithm,
+ * then rearranges nodes to ensure that union partners are placed
+ * next to each other in the same layer.
+ */
 function customSugiyamaDecross(layers: SugiNode<ClickableNode>[][]): void {
   // apply two layer decrossing algorithm
   decrossTwoLayer()(layers);
@@ -74,7 +92,17 @@ function customSugiyamaDecross(layers: SugiNode<ClickableNode>[][]): void {
   }
 }
 
+/**
+ * Layout calculator using d3-dag's Sugiyama algorithm.
+ * Responsible for computing node and link positions for the
+ * family tree visualization.
+ */
 export class D3DAGLayoutCalculator implements LayoutCalculator {
+  /**
+   * Default options for configuring the layout algorithm.
+   * Can be overwritten by passing `opts` argument to the
+   * `D3DAGLayoutCalculator` constructor.
+   */
   public opts: D3DAGLayoutCalculatorOptions = {
     nodeSize: (node: GraphNode<ClickableNode>) => [50, 100] as [number, number],
     layering: layeringSimplex(),
@@ -87,6 +115,11 @@ export class D3DAGLayoutCalculator implements LayoutCalculator {
     this.opts = { ...this.opts, ...opts };
   }
 
+  /**
+   * Calculates the layout for the given nodes.
+   * Builds a temporary graph from the visible nodes, applies the Sugiyama layout,
+   * and writes the computed x/y coordinates back to the nodes.
+   */
   calculateLayout(nodes: ClickableNode[]): LayoutResult {
     // build a temporary graph from the visible nodes
     const builder = graphStratify()
