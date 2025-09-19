@@ -5,6 +5,7 @@ import type {
   SugiNode,
   NodeSize,
   GraphNode,
+  SugiNodeDatum,
 } from 'd3-dag';
 import {
   tweakFlip,
@@ -24,7 +25,7 @@ import type {
   LayoutedNode,
   LayoutedLink,
 } from './types';
-import type { LinkData } from '../import/types';
+import type { LinkData, PersonData } from '../import/types';
 
 /**
  * Options for configuring the D3DAGLayoutCalculator.
@@ -56,39 +57,116 @@ function translateOrientationToTweak(orientation: Orientation) {
   }
 }
 
+type PriorityObj = {
+  parentPos: number;
+  birthyear: number;
+  name: string;
+  partnerOffset: number;
+};
+type LayerNode = SugiNode<ClickableNode>;
+
 /**
  * Custom decrossing function for the Sugiyama layout.
- * First applies the standard two-layer decrossing algorithm,
- * then rearranges nodes to ensure that union partners are placed
- * next to each other in the same layer.
+ * 
+ * Sorting priorities for nodes within a layer are:
+ *   1. Parent position (sum of indices of visible parents in the previous layer)
+ *   2. Birth year (ascending)
+ *   3. Name (alphabetical)
+ *   4. Partner offset (places nodes without parents above/below their partner)
+ *
+ * This helps to keep partner nodes visually grouped and improves the readability
+ * of the family tree layout.
+ *
+ * @param layers - The array of layers, each containing SugiNode<ClickableNode> nodes.
  */
-function customSugiyamaDecross(layers: SugiNode<ClickableNode>[][]): void {
-  // apply two layer decrossing algorithm
-  decrossTwoLayer()(layers);
-  // then re-arrange to make sure that union partners are next to each other
-  for (let layer of layers) {
-    const layerBefore = [...layer];
-    for (let node of layerBefore) {
-      if (node.data.role === 'link' || node.data.node.data.isUnion) continue;
-      const clickableNode = node.data.node.data;
-      // nodes without visible parents are most likely someone's partner
-      if (clickableNode.visibleParents.length > 0) continue;
-      const partners = clickableNode.visiblePartners;
-      if (partners.length == 0) continue;
-      const partner = partners[0];
-      const nodePartner = layer.find(
-        (n) => n.data.role == 'node' && n.data.node.data == partner
-      );
-      if (!nodePartner) continue;
-      const nodePosition = layer.indexOf(node);
-      const partnerPosition = layer.indexOf(nodePartner);
-      // don't do anything if they are already next to each other
-      if (Math.abs(nodePosition - partnerPosition) == 1) continue;
-      // else remove node from current position
-      // and insert below partner
-      layer.splice(nodePosition, 1);
-      layer.splice(layer.indexOf(nodePartner) + 1, 0, node);
+function customSugiyamaDecross(layers: LayerNode[][]): void {
+  const priorities = new Map<LayerNode, PriorityObj>();
+  const clickableNodeToLayerNodeMap = new Map<ClickableNode, LayerNode>();
+  for (let layerIndex = 0; layerIndex < layers.length; layerIndex++) {
+    const layer = layers[layerIndex].filter((n) => n.data.role == 'node');
+    const previousLayer =
+      layerIndex > 0
+        ? layers[layerIndex - 1].filter((n) => n.data.role == 'node')
+        : null;
+    const nodesWithoutParents = new Set<LayerNode>();
+
+    // determine the priority of each node
+    for (let node of layer) {
+      const cnode = (node.data as SugiNodeDatum<ClickableNode>).node.data;
+      clickableNodeToLayerNodeMap.set(cnode, node);
+
+      // birth year e.g. 1990 or 60 for persons, otherwise 0
+      const yearWeight = cnode.isPerson
+        ? ((cnode.data as PersonData).birthyear ?? 0)
+        : 0;
+
+      // name for persons, otherwise ZZZZZZ
+      const nameWeight = cnode.isPerson
+        ? ((cnode.data as PersonData).name ?? 'ZZZZZZ')
+        : 'ZZZZZZ';
+
+      // sum of parent indices (layer positions) e.g. 1+2=3
+      let parentWeight = 0;
+      if (previousLayer) {
+        const parentIndices = cnode.visibleParents.map((p) =>
+          previousLayer.indexOf(clickableNodeToLayerNodeMap.get(p)!)
+        );
+        if (parentIndices.length > 0) {
+          parentWeight = parentIndices.reduce((a, b) => a + b);
+        } else {
+          // nodes without parents are processed separately below
+          nodesWithoutParents.add(node);
+        }
+      }
+
+      // save priority in map
+      priorities.set(node, {
+        parentPos: parentWeight,
+        birthyear: yearWeight,
+        name: nameWeight,
+        partnerOffset: 0,
+      });
     }
+
+    // nodes without parents copy the priority of their partner
+    const partnerCounter = new Map<ClickableNode, number>();
+    nodesWithoutParents.forEach((node) => {
+      const cnode = (node.data as SugiNodeDatum<ClickableNode>).node.data;
+      // find the partner node
+      const cpartner = cnode.visiblePartners[0];
+      const partner = clickableNodeToLayerNodeMap.get(cpartner);
+      if (!partner) return;
+      // assign same priority
+      const partnerPrio = priorities.get(partner);
+      if (!partnerPrio) return;
+      const nodePrio = { ...partnerPrio };
+      priorities.set(node, nodePrio);
+      // this part makes sure that parentless nodes are arranged
+      // alternately above and below their partners
+      let count = partnerCounter.get(cpartner) ?? 0;
+      partnerCounter.set(cpartner, count + 1);
+      nodePrio.partnerOffset = count % 2 ? -1 : 1;
+    });
+
+    // debugging
+    for (let node of layer) {
+      // @ts-ignore
+      node.data.node.data.data.priority = priorities.get(node);
+    }
+
+    // the actual sorting operation: re-arrange nodes based on their priority values
+    layers[layerIndex] = layer.sort((a, b) => {
+      const prioA = priorities.get(a);
+      const prioB = priorities.get(b);
+      if (!prioA || !prioB) return 0;
+      if (prioA.parentPos !== prioB.parentPos)
+        return prioA.parentPos - prioB.parentPos;
+      if (prioA.birthyear !== prioB.birthyear)
+        return prioA.birthyear - prioB.birthyear;
+      if (prioA.name !== prioB.name)
+        return prioA.name.localeCompare(prioB.name);
+      else return prioA.partnerOffset - prioB.partnerOffset;
+    });
   }
 }
 
