@@ -24,6 +24,12 @@ export class FamilyTreeDataV1Importer implements Importer {
    */
   import(data: FamilyTreeData): ClickableNode[] {
     let graph: Graph;
+    if (
+      (!data.persons || Object.keys(data.persons).length === 0) &&
+      (!data.links || data.links.length === 0)
+    ) {
+      return [];
+    }
     if (data.links && data.links.length > 0) {
       graph = this.buildGraphFromLinks(data);
     } else {

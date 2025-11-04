@@ -478,6 +478,7 @@ export class D3Renderer implements Renderer {
     // work-around because JSDOM+d3-zoom throws errors
     if (!this.isJSDOM) {
       const centerNode = newPosition ?? layoutResult.nodes[0];
+      if (!centerNode) return;
       this.zoom.translateTo(
         this.svg.transition().duration(this.opts.transitionDuration),
         centerNode.x,

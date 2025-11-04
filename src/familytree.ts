@@ -31,7 +31,7 @@ export class FamilyTree {
   /** The current array of nodes in the graph. */
   private _nodes: ClickableNode[];
   /** The current root node (starting point for rendering). */
-  private _root: ClickableNode;
+  private _root: ClickableNode | undefined;
 
   /** The importer instance used to convert raw data into nodes. */
   public importer: Importer;
@@ -51,7 +51,7 @@ export class FamilyTree {
     container: HTMLElement,
     opts?: Partial<FamilyTreeOptions>
   ) {
-    this.data = data;
+    this.data = this.fixData(data);
     this.importer = new FamilyTreeDataV1Importer();
     this.layouter = new D3DAGLayoutCalculator(opts);
     this.renderer = new D3Renderer(container, this, opts);
@@ -87,8 +87,29 @@ export class FamilyTree {
   }
 
   /** Sets the root node. (private) */
-  private set root(node: ClickableNode) {
+  private set root(node: ClickableNode | undefined) {
     this._root = node;
+  }
+
+  /**
+   * Ensures that the data object has all required fields initialized.
+   * @param data - The input family tree data.
+   * @returns The fixed family tree data with all necessary fields.
+   */
+  private fixData(data: any) {
+    if (!data) {
+      data = { start: '', persons: {}, unions: {}, links: [] };
+    }
+    if (!data.persons) {
+      data.persons = {};
+    }
+    if (!data.unions) {
+      data.unions = {};
+    }
+    if (!data.links) {
+      data.links = [];
+    }
+    return data;
   }
 
   /**
@@ -111,6 +132,9 @@ export class FamilyTree {
         result = recursiveVisibleNeighborCollector(n, result);
       }
       return result;
+    }
+    if (!this.root) {
+      return [];
     }
     return recursiveVisibleNeighborCollector(this.root);
   }
@@ -172,8 +196,8 @@ export class FamilyTree {
    */
   public addPerson(data: Person, render: boolean = true) {
     const id = data.id ?? `p${this.getRandomId()}`;
-    this.data.persons[id] = data;
     (data as PersonData).visible = true;
+    this.data.persons[id] = data;
     if (render) this.reimportData();
   }
 
@@ -199,8 +223,8 @@ export class FamilyTree {
    */
   public addUnion(data: Union, render: boolean = true) {
     const id = data.id ?? `u${this.getRandomId()}`;
-    this.data.unions[id] = data;
     (data as UnionData).visible = true;
+    this.data.unions[id] = data;
     if (render) this.reimportData();
   }
 
@@ -226,7 +250,8 @@ export class FamilyTree {
    * @param render - If true, re-imports and re-renders the tree (default: true).
    */
   public addLink(sourceId: string, targetId: string, render: boolean = true) {
-    this.data.links.push([sourceId, targetId]);
+    const link = [sourceId, targetId] as [string, string];
+    this.data.links.push(link);
     if (render) this.reimportData();
   }
 

@@ -18,7 +18,8 @@ describe('Add & remove nodes dynamically', () => {
     expect(ft.nodes.length).to.equal(1);
   });
   it('root is visible', () => {
-    expect(ft.root.data.visible).to.be.true;
+    expect(ft.root).to.not.be.undefined;
+    expect(ft.root!.data.visible).to.be.true;
   });
   it('adds a person node', () => {
     ft.addPerson({ id: 'p2', name: 'Person 2' });

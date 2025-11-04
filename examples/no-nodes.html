@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Family Tree Visualization</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+
+<body>
+  <div id="container">
+    <button id="addPerson1Btn">Add Person1</button>
+    <button id="addPerson2Btn">Add Person2</button>
+    <button id="removePerson1Btn">Remove Person1</button>
+    <button id="removePerson2Btn">Remove Person2</button>
+    <!-- The family tree visualization will be rendered here -->
+  </div>
+
+  <script src="../dist/js_family_tree.umd.js"></script>
+  <script>
+    function addPerson1(ft) {
+        ft.addPerson({ id: 'p1', name: 'p1' }, false);
+        // add link if p2 exists
+        if (ft.nodes.find(n => n.data.id === 'p2')) {
+            ft.addUnion({ id: 'u1' }, false);
+            ft.addLink('p1', 'u1', false);
+            ft.addLink('u1', 'p2', false);
+        }
+        ft.reimportData();
+    }
+    function addPerson2(ft) {
+        ft.addPerson({ id: 'p2', name: 'p2' }, false);
+        // add link if p1 exists
+        if (ft.nodes.find(n => n.data.id === 'p1')) {
+            ft.addUnion({ id: 'u1' }, false);
+            ft.addLink('p1', 'u1', false);
+            ft.addLink('u1', 'p2', false);
+        }
+        ft.reimportData();
+    }
+    function removePerson1(ft) {
+        ft.deletePerson('p1', true); // links are auto-deleted
+    }
+    function removePerson2(ft) {
+        ft.deletePerson('p2', true); // links are auto-deleted
+    }
+    const container = document.getElementById("container");
+    const familytree = new FT.FamilyTree({}, container);
+    document.getElementById('addPerson1Btn').onclick = () => addPerson1(familytree);
+    document.getElementById('addPerson2Btn').onclick = () => addPerson2(familytree);
+    document.getElementById('removePerson1Btn').onclick = () => removePerson1(familytree);
+    document.getElementById('removePerson2Btn').onclick = () => removePerson2(familytree);
+  </script>
+</body>
+
+</html>

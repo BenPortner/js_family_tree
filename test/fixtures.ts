@@ -34,3 +34,7 @@ export const SingleParentFamilyTree: FamilyTreeData = JSON.parse(fileContent);
 fixtureFile = join(__dirname, "../data/data_add-remove.js");
 fileContent = readFileSync(fixtureFile, "utf-8").replace("data = ", "");
 export const AddRemoveFamilyTree: FamilyTreeData = JSON.parse(fileContent);
+
+fixtureFile = join(__dirname, "../data/data_no-nodes.js");
+fileContent = readFileSync(fixtureFile, "utf-8").replace("data = ", "");
+export const NoNodesFamilyTree: FamilyTreeData = JSON.parse(fileContent);

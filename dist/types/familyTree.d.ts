@@ -42,9 +42,15 @@ export declare class FamilyTree {
     /** Sets the array of nodes. (private) */
     private set nodes(value);
     /** Returns the current root node. */
-    get root(): ClickableNode;
+    get root(): ClickableNode | undefined;
     /** Sets the root node. (private) */
     private set root(value);
+    /**
+     * Ensures that the data object has all required fields initialized.
+     * @param data - The input family tree data.
+     * @returns The fixed family tree data with all necessary fields.
+     */
+    private fixData;
     /**
      * Collects all nodes in the currently visible subgraph, starting from the root.
      * Uses a recursive depth-first search to gather all visible neighbors.

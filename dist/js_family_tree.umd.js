@@ -401,6 +401,10 @@
          */
         import(data) {
             let graph;
+            if ((!data.persons || Object.keys(data.persons).length === 0) &&
+                (!data.links || data.links.length === 0)) {
+                return [];
+            }
             if (data.links && data.links.length > 0) {
                 graph = this.buildGraphFromLinks(data);
             }
@@ -4094,6 +4098,8 @@
             // work-around because JSDOM+d3-zoom throws errors
             if (!this.isJSDOM) {
                 const centerNode = newPosition !== null && newPosition !== void 0 ? newPosition : layoutResult.nodes[0];
+                if (!centerNode)
+                    return;
                 this.zoom.translateTo(this.svg.transition().duration(this.opts.transitionDuration), centerNode.x, centerNode.y);
             }
         }
@@ -4118,7 +4124,7 @@
          */
         constructor(data, container, opts) {
             var _a;
-            this.data = data;
+            this.data = this.fixData(data);
             this.importer = new FamilyTreeDataV1Importer();
             this.layouter = new D3DAGLayoutCalculator(opts);
             this.renderer = new D3Renderer(container, this, opts);
@@ -4151,6 +4157,26 @@
             this._root = node;
         }
         /**
+         * Ensures that the data object has all required fields initialized.
+         * @param data - The input family tree data.
+         * @returns The fixed family tree data with all necessary fields.
+         */
+        fixData(data) {
+            if (!data) {
+                data = { start: '', persons: {}, unions: {}, links: [] };
+            }
+            if (!data.persons) {
+                data.persons = {};
+            }
+            if (!data.unions) {
+                data.unions = {};
+            }
+            if (!data.links) {
+                data.links = [];
+            }
+            return data;
+        }
+        /**
          * Collects all nodes in the currently visible subgraph, starting from the root.
          * Uses a recursive depth-first search to gather all visible neighbors.
          * @returns An array of visible ClickableNodes.
@@ -4165,6 +4191,9 @@
                     result = recursiveVisibleNeighborCollector(n, result);
                 }
                 return result;
+            }
+            if (!this.root) {
+                return [];
             }
             return recursiveVisibleNeighborCollector(this.root);
         }
@@ -4223,8 +4252,8 @@
         addPerson(data, render = true) {
             var _a;
             const id = (_a = data.id) !== null && _a !== void 0 ? _a : `p${this.getRandomId()}`;
-            this.data.persons[id] = data;
             data.visible = true;
+            this.data.persons[id] = data;
             if (render)
                 this.reimportData();
         }
@@ -4250,8 +4279,8 @@
         addUnion(data, render = true) {
             var _a;
             const id = (_a = data.id) !== null && _a !== void 0 ? _a : `u${this.getRandomId()}`;
-            this.data.unions[id] = data;
             data.visible = true;
+            this.data.unions[id] = data;
             if (render)
                 this.reimportData();
         }
@@ -4276,7 +4305,8 @@
          * @param render - If true, re-imports and re-renders the tree (default: true).
          */
         addLink(sourceId, targetId, render = true) {
-            this.data.links.push([sourceId, targetId]);
+            const link = [sourceId, targetId];
+            this.data.links.push(link);
             if (render)
                 this.reimportData();
         }
