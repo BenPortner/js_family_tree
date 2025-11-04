@@ -1,6 +1,6 @@
 {
   "name": "@benportner/js_family_tree",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An interactive family tree visualization using d3-dag",
   "main": "src/index.ts",
   "type": "module",
