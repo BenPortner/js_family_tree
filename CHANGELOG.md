@@ -1,3 +1,9 @@
+# v1.0.1
+
+- add html docs
+- improved intra-layer node sorting algorithm (decross) considers parent position, birth year, name and existence of partners
+- allow passing empty `data` object during `FamilyTree` initialization (issue #19)
+
 # v1.0.0
 
 The entire codebase was re-written in TypeScript (previously vanilla JavaScript UMD) to facilitate future development and better adoption by third-party libraries and apps. Care was taken to keep the user experience backward compatible. However, a lot of breaking changes were introduced for developers (see below).
