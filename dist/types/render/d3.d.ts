@@ -15,6 +15,8 @@ export interface D3RendererOptions {
     linkCSSClassFunction(link: LayoutedLink): string;
     /** Function to handle node click events. */
     nodeClickFunction(node: LayoutedNode, ft: FamilyTree): void;
+    /** Function to handle node right-click events. */
+    nodeRightClickFunction(node: LayoutedNode, ft: FamilyTree): void;
     /** Function to determine the CSS class for a node. */
     nodeCSSClassFunction(node: LayoutedNode): string;
     /** Function to generate the label (text displayed next to the node). */
@@ -76,6 +78,10 @@ export declare class D3Renderer implements Renderer {
      * Default node click handler: delegates to the FamilyTree's nodeClickHandler.
      */
     private static defaultNodeClickFunction;
+    /**
+     * Default node right-click handler: doesn't do anything.
+     */
+    private static defaultNodeRightClickFunction;
     /**
      * Default function to generate labels for a node.
      * Returns an array of strings containing name, birthyear and deathyear.

@@ -26,6 +26,8 @@ export interface D3RendererOptions {
   linkCSSClassFunction(link: LayoutedLink): string;
   /** Function to handle node click events. */
   nodeClickFunction(node: LayoutedNode, ft: FamilyTree): void;
+  /** Function to handle node right-click events. */
+  nodeRightClickFunction(node: LayoutedNode, ft: FamilyTree): void;
   /** Function to determine the CSS class for a node. */
   nodeCSSClassFunction(node: LayoutedNode): string;
   /** Function to generate the label (text displayed next to the node). */
@@ -71,6 +73,7 @@ export class D3Renderer implements Renderer {
     linkPathFunction: D3Renderer.defaultLinkPathFunction,
     linkCSSClassFunction: D3Renderer.defaultLinkCSSClassFunction,
     nodeClickFunction: D3Renderer.defaultNodeClickFunction,
+    nodeRightClickFunction: D3Renderer.defaultNodeRightClickFunction,
     nodeCSSClassFunction: D3Renderer.defaultNodeCSSClassFunction,
     nodeLabelFunction: D3Renderer.defaultNodeLabelFunction,
     nodeTooltipFunction: D3Renderer.defaultNodeTooltipFunction,
@@ -173,6 +176,13 @@ export class D3Renderer implements Renderer {
    */
   private static defaultNodeClickFunction(node: LayoutedNode, ft: FamilyTree) {
     ft.nodeClickHandler(node);
+  }
+
+  /**
+   * Default node right-click handler: doesn't do anything.
+   */
+  private static defaultNodeRightClickFunction(node: LayoutedNode, ft: FamilyTree) {
+    return;
   }
 
   /**
@@ -279,6 +289,7 @@ export class D3Renderer implements Renderer {
     enteringGroups
       .append('circle')
       .on('click', (event, d) => this.opts.nodeClickFunction(d, this.ft))
+      .on('contextmenu', (event, d) => this.opts.nodeRightClickFunction(d, this.ft))
       .transition()
       .duration(this.opts.transitionDuration)
       .attr('r', this.opts.nodeSizeFunction)

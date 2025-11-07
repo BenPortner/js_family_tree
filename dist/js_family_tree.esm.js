@@ -3761,6 +3761,7 @@ class D3Renderer {
             linkPathFunction: D3Renderer.defaultLinkPathFunction,
             linkCSSClassFunction: D3Renderer.defaultLinkCSSClassFunction,
             nodeClickFunction: D3Renderer.defaultNodeClickFunction,
+            nodeRightClickFunction: D3Renderer.defaultNodeRightClickFunction,
             nodeCSSClassFunction: D3Renderer.defaultNodeCSSClassFunction,
             nodeLabelFunction: D3Renderer.defaultNodeLabelFunction,
             nodeTooltipFunction: D3Renderer.defaultNodeTooltipFunction,
@@ -3835,6 +3836,12 @@ class D3Renderer {
      */
     static defaultNodeClickFunction(node, ft) {
         ft.nodeClickHandler(node);
+    }
+    /**
+     * Default node right-click handler: doesn't do anything.
+     */
+    static defaultNodeRightClickFunction(node, ft) {
+        return;
     }
     /**
      * Default function to generate labels for a node.
@@ -3928,6 +3935,7 @@ class D3Renderer {
         enteringGroups
             .append('circle')
             .on('click', (event, d) => this.opts.nodeClickFunction(d, this.ft))
+            .on('contextmenu', (event, d) => this.opts.nodeRightClickFunction(d, this.ft))
             .transition()
             .duration(this.opts.transitionDuration)
             .attr('r', this.opts.nodeSizeFunction)
