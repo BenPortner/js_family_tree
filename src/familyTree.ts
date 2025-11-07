@@ -9,6 +9,7 @@ import type { ClickableNode } from './clickableNode';
 import type { LayoutCalculator, LayoutedNode } from './layout/types';
 import type { Renderer } from './render/types';
 import type { Importer, PersonData, UnionData } from './import/types';
+import { warn } from 'console';
 
 /**
  * Options for configuring the FamilyTree.
@@ -252,8 +253,10 @@ export class FamilyTree {
   public addLink(sourceId: string, targetId: string, render: boolean = true) {
     const link = [sourceId, targetId] as [string, string];
     // prevent duplicates
-    if (this.data.links.some(([s, t]) => s === sourceId && t === targetId)) return;
-
+    if (this.data.links.some(([s, t]) => s === sourceId && t === targetId)) {
+      warn(`Link from ${sourceId} to ${targetId} already exists. Skipping add.`);
+      return;
+    }
     this.data.links.push(link);
     if (render) this.reimportData();
   }

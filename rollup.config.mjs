@@ -13,11 +13,19 @@ export default [
         name: "FT",
         file: pkg.browser,
         format: "umd",
-        sourcemap: true
+        sourcemap: true,
+        external: ["console"],
+        globals: {
+          console: "console",
+        },
       },
       {
         file: pkg.module,
         format: "es",
+        external: ["console"],
+        globals: {
+          console: "console",
+        }
       },
     ],
     plugins: [typescript(), nodeResolve({ preferBuiltins: false }), commonjs()],
