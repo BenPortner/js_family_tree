@@ -1,3 +1,8 @@
+# v1.0.2
+
+- add right-click handler for nodes (default handler doesn't do anything, see [example](examples/right-click-alert.html) for passing a custom handler)
+- `FamilyTree.addLink` detects and prevents duplicate links
+
 # v1.0.1
 
 - add html docs
