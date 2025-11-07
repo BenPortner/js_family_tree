@@ -4306,6 +4306,9 @@
          */
         addLink(sourceId, targetId, render = true) {
             const link = [sourceId, targetId];
+            // prevent duplicates
+            if (this.data.links.some(([s, t]) => s === sourceId && t === targetId))
+                return;
             this.data.links.push(link);
             if (render)
                 this.reimportData();
