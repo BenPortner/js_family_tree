@@ -47,6 +47,11 @@ describe('Add & remove nodes dynamically', () => {
     expect(u1?.visibleNeighbors).to.include(p1);
     expect(u1?.visibleNeighbors).to.include(p2);
   });
+  it('adds duplicate link (no effect)', () => {
+    ft.addLink('p1', 'u1');
+    ft.addLink('u1', 'p2');
+    expect(ft.nodes.length).to.equal(3);
+  });
   it('removes the union', () => {
     ft.deleteUnion('u1');
     expect(ft.nodes.length).to.equal(2);
