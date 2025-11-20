@@ -1,3 +1,7 @@
+# v1.0.3
+
+- update dependencies to latest versions
+
 # v1.0.2
 
 - add right-click handler for nodes (default handler doesn't do anything, see [example](examples/right-click-alert.html) for passing a custom handler)
