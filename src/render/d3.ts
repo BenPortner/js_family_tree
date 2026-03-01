@@ -13,6 +13,14 @@ import type { FamilyTree } from '../familyTree';
 import type { PersonData } from '../import/types';
 
 /**
+ * D3 selection type for a single node group (<g> element bound to a LayoutedNode).
+ * Parent generics are <null, undefined> because this is produced by select(element)
+ * directly on a DOM node, which creates a root-level selection with no parent context.
+ * This is the type received by nodeRenderFunction and nodeUpdateFunction.
+ */
+export type NodeGroupSelection = Selection<SVGGElement, LayoutedNode, null, undefined>;
+
+/**
  * Options for configuring the D3Renderer.
  * Allows customization of transitions, link and node rendering, labeling,
  * and tooltips.
@@ -39,6 +47,45 @@ export interface D3RendererOptions {
     node: LayoutedNode,
     missingData?: string
   ): string | undefined;
+  /**
+   * Function called once per *entering* node to render its visual content
+   * inside the positioned <g class="node-group"> element.
+   * Use this to replace the default circle with portraits, cards, icons, etc.
+   *
+   * @param group - D3 selection of the entering <g> (single node, already bound to data)
+   * @param node  - The LayoutedNode bound to this group
+   * @param opts  - Full renderer opts; use nodeSizeFunction, nodeCSSClassFunction, etc.
+   * @param ft    - The FamilyTree instance; pass to nodeClickFunction / nodeRightClickFunction
+   */
+  nodeRenderFunction(
+    group: NodeGroupSelection,
+    node: LayoutedNode,
+    opts: D3RendererOptions,
+    ft: FamilyTree
+  ): void;
+  /**
+   * Function called on every re-render for *already-present* nodes (the D3 update selection).
+   * Must keep visual state in sync with whatever nodeRenderFunction produced.
+   * The default implementation updates the CSS class on the circle.
+   *
+   * @param group - D3 selection of the existing <g> (single node, already bound to data)
+   * @param opts  - Full renderer opts
+   */
+  nodeUpdateFunction(
+    group: NodeGroupSelection,
+    opts: D3RendererOptions
+  ): void;
+  /**
+   * Function called per node to determine the horizontal offset (in SVG units)
+   * between the node centre and the start of its text label.
+   * Return a value large enough to clear whatever nodeRenderFunction draws —
+   * for the default circle that is just beyond the radius; for a portrait it
+   * should be at least the portrait radius + a small margin.
+   *
+   * @param node - The LayoutedNode being labelled
+   * @param opts - Full renderer opts (use nodeSizeFunction to derive the value)
+   */
+  nodeLabelOffsetFunction(node: LayoutedNode, opts: D3RendererOptions): number;
 }
 
 /**
@@ -78,6 +125,9 @@ export class D3Renderer implements Renderer {
     nodeLabelFunction: D3Renderer.defaultNodeLabelFunction,
     nodeTooltipFunction: D3Renderer.defaultNodeTooltipFunction,
     nodeSizeFunction: D3Renderer.defaultNodeSizeFunction,
+    nodeRenderFunction: D3Renderer.defaultNodeRenderFunction,
+    nodeUpdateFunction: D3Renderer.defaultNodeUpdateFunction,
+    nodeLabelOffsetFunction: D3Renderer.defaultNodeLabelOffsetFunction,
   };
 
   /**
@@ -253,6 +303,58 @@ export class D3Renderer implements Renderer {
   }
 
   /**
+   * Default function to render the visual content of an entering node.
+   * Appends a circle to the group, wired to click/contextmenu handlers,
+   * with radius from nodeSizeFunction and class from nodeCSSClassFunction.
+   * Override via opts.nodeRenderFunction to replace circles with portraits,
+   * cards, or any other SVG content.
+   */
+  private static defaultNodeRenderFunction(
+    group: NodeGroupSelection,
+    node: LayoutedNode,
+    opts: D3RendererOptions,
+    ft: FamilyTree
+  ) {
+    group
+      .append('circle')
+      .on('click', (event, d) => opts.nodeClickFunction(d, ft))
+      .on('contextmenu', (event, d) => opts.nodeRightClickFunction(d, ft))
+      .transition()
+      .duration(opts.transitionDuration)
+      .attr('r', opts.nodeSizeFunction)
+      .attr('class', (d) => opts.nodeCSSClassFunction(d));
+  }
+
+  /**
+   * Default function to update the visual content of an already-present node
+   * on re-renders (the D3 update selection).
+   * Mirrors what defaultNodeRenderFunction produced: refreshes the CSS class
+   * on the circle so extendable/non-extendable state stays in sync.
+   * Override via opts.nodeUpdateFunction whenever you override nodeRenderFunction.
+   */
+  private static defaultNodeUpdateFunction(
+    group: NodeGroupSelection,
+    opts: D3RendererOptions
+  ) {
+    group
+      .select<SVGCircleElement>('circle')
+      .attr('class', (d) => opts.nodeCSSClassFunction(d));
+  }
+
+  /**
+   * Default function to determine the horizontal label offset for a node.
+   * Returns nodeSizeFunction(node) + 3, placing the label just outside the
+   * default circle. Override when nodeRenderFunction draws something larger
+   * (e.g. a portrait with radius 28 → return 28 + 4 = 32).
+   */
+  private static defaultNodeLabelOffsetFunction(
+    node: LayoutedNode,
+    opts: D3RendererOptions
+  ): number {
+    return opts.nodeSizeFunction(node) + 3;
+  }
+
+  /**
    * Default function to determine the CSS class for a link.
    * Returns 'link' for all links.
    */
@@ -286,14 +388,15 @@ export class D3Renderer implements Renderer {
       .duration(this.opts.transitionDuration)
       .attr('class', 'node-group')
       .attr('transform', (d) => 'translate(' + d.x + ',' + d.y + ')');
-    enteringGroups
-      .append('circle')
-      .on('click', (event, d) => this.opts.nodeClickFunction(d, this.ft))
-      .on('contextmenu', (event, d) => this.opts.nodeRightClickFunction(d, this.ft))
-      .transition()
-      .duration(this.opts.transitionDuration)
-      .attr('r', this.opts.nodeSizeFunction)
-      .attr('class', (d) => this.opts.nodeCSSClassFunction(d));
+    // delegate visual rendering to the (overridable) nodeRenderFunction
+    enteringGroups.each((d, i, nodes) => {
+      this.opts.nodeRenderFunction(
+        select<SVGGElement, LayoutedNode>(nodes[i]),
+        d,
+        this.opts,
+        this.ft
+      );
+    });
     // exiting nodes move from current position to clicked node new position
     selection
       .exit<LayoutedNode>()
@@ -304,13 +407,17 @@ export class D3Renderer implements Renderer {
         return 'translate(' + transitionEnd.x + ',' + transitionEnd.y + ')';
       })
       .remove();
-    // update existing nodes
+    // update existing nodes — position via transition, visuals via nodeUpdateFunction
     selection
       .transition()
       .duration(this.opts.transitionDuration)
-      .attr('transform', (d) => 'translate(' + d.x + ',' + d.y + ')')
-      .select('circle')
-      .attr('class', (d) => this.opts.nodeCSSClassFunction(d));
+      .attr('transform', (d) => 'translate(' + d.x + ',' + d.y + ')');
+    selection.each((d, i, nodes) => {
+      this.opts.nodeUpdateFunction(
+        select<SVGGElement, LayoutedNode>(nodes[i]),
+        this.opts
+      );
+    });
     return enteringGroups;
   }
 
@@ -421,10 +528,11 @@ export class D3Renderer implements Renderer {
     enteringNodes: Selection<SVGGElement, LayoutedNode, SVGGElement, unknown>,
     cssClass: string = 'node-label',
     lineSep: number = 14,
-    xOffset: number = 13,
+    xOffset: number | ((node: LayoutedNode) => number) = 13,
     dominantBaseline: DominantBaseline = 'central'
   ) {
     const nodeLabelFunction = this.opts.nodeLabelFunction;
+    const resolveOffset = typeof xOffset === 'function' ? xOffset : () => xOffset;
     enteringNodes
       .append('text')
       .attr('class', cssClass)
@@ -435,13 +543,14 @@ export class D3Renderer implements Renderer {
         const yOffset = (-lineSep * (lines.length - 1)) / 2;
         return lines.map((line, i) => ({
           line,
+          node,
           dy: i === 0 ? yOffset : lineSep,
         }));
       })
       .enter()
       .append('tspan')
       .text((d) => d.line)
-      .attr('x', xOffset)
+      .attr('x', (d) => resolveOffset(d.node))
       .attr('dy', (d) => d.dy);
   }
 
@@ -484,7 +593,9 @@ export class D3Renderer implements Renderer {
     this.sortDomElements();
     // add tooltips and node labels
     this.setupTooltips(nodeSelect);
-    this.renderLabels(nodeSelect, 'node-label', 14, 13, 'central');
+    this.renderLabels(nodeSelect, 'node-label', 14,
+      (node) => this.opts.nodeLabelOffsetFunction(node, this.opts),
+      'central');
     // center view on clicked node
     // work-around because JSDOM+d3-zoom throws errors
     if (!this.isJSDOM) {
