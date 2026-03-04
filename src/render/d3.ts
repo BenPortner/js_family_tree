@@ -78,14 +78,23 @@ export interface D3RendererOptions {
   /**
    * Function called per node to determine the horizontal offset (in SVG units)
    * between the node centre and the start of its text label.
-   * Return a value large enough to clear whatever nodeRenderFunction draws —
-   * for the default circle that is just beyond the radius; for a portrait it
-   * should be at least the portrait radius + a small margin.
+   * Used in horizontal orientation — return a value large enough to clear
+   * whatever nodeRenderFunction draws (for the default circle: radius + margin).
    *
    * @param node - The LayoutedNode being labelled
    * @param opts - Full renderer opts (use nodeSizeFunction to derive the value)
    */
   nodeLabelOffsetFunction(node: LayoutedNode, opts: D3RendererOptions): number;
+  /**
+   * Function called per node to determine the vertical offset (in SVG units)
+   * between the node centre and the baseline of its text label.
+   * Used in vertical orientation, where the label is placed below the node
+   * and centred horizontally.
+   *
+   * @param node - The LayoutedNode being labelled
+   * @param opts - Full renderer opts (use nodeSizeFunction to derive the value)
+   */
+  nodeLabelVerticalOffsetFunction(node: LayoutedNode, opts: D3RendererOptions): number;
 }
 
 /**
@@ -128,6 +137,7 @@ export class D3Renderer implements Renderer {
     nodeRenderFunction: D3Renderer.defaultNodeRenderFunction,
     nodeUpdateFunction: D3Renderer.defaultNodeUpdateFunction,
     nodeLabelOffsetFunction: D3Renderer.defaultNodeLabelOffsetFunction,
+    nodeLabelVerticalOffsetFunction: D3Renderer.defaultNodeLabelVerticalOffsetFunction,
   };
 
   /**
@@ -355,6 +365,18 @@ export class D3Renderer implements Renderer {
   }
 
   /**
+   * Default function to determine the vertical label offset for a node in
+   * vertical orientation. Returns nodeSizeFunction(node) + 5, placing the
+   * label just below the default circle, centred horizontally.
+   */
+  private static defaultNodeLabelVerticalOffsetFunction(
+    node: LayoutedNode,
+    opts: D3RendererOptions
+  ): number {
+    return opts.nodeSizeFunction(node) + 5;
+  }
+
+  /**
    * Default function to determine the CSS class for a link.
    * Returns 'link' for all links.
    */
@@ -518,40 +540,63 @@ export class D3Renderer implements Renderer {
   /**
    * Renders multi-line labels for entering nodes.
    * Each line is rendered as a separate <tspan> element.
+   *
+   * In **horizontal** orientation the label sits to the right of the node:
+   *   - `x` is set to `xOffset` (positive = right of centre)
+   *   - `text-anchor` is `start`
+   *
+   * In **vertical** orientation the label sits below the node, centred:
+   *   - The first tspan's `dy` is `yOffset` (vertical clearance from centre)
+   *   - `x` is 0 and `text-anchor` is `middle`
+   *
    * @param enteringNodes - The selection of entering nodes.
+   * @param orientation - Layout orientation ('horizontal' | 'vertical').
    * @param cssClass - CSS class for the text element.
    * @param lineSep - Vertical separation between lines.
-   * @param xOffset - Horizontal offset for the text.
+   * @param xOffset - Horizontal offset used in horizontal orientation.
+   * @param yOffset - Vertical offset used in vertical orientation.
    * @param dominantBaseline - SVG dominant-baseline attribute value.
    */
   private renderLabels(
     enteringNodes: Selection<SVGGElement, LayoutedNode, SVGGElement, unknown>,
+    orientation: Orientation = Vertical,
     cssClass: string = 'node-label',
     lineSep: number = 14,
     xOffset: number | ((node: LayoutedNode) => number) = 13,
+    yOffset: number | ((node: LayoutedNode) => number) = 15,
     dominantBaseline: DominantBaseline = 'central'
   ) {
     const nodeLabelFunction = this.opts.nodeLabelFunction;
-    const resolveOffset = typeof xOffset === 'function' ? xOffset : () => xOffset;
-    enteringNodes
+    const resolveXOffset = typeof xOffset === 'function' ? xOffset : () => xOffset as number;
+    const resolveYOffset = typeof yOffset === 'function' ? yOffset : () => yOffset as number;
+    const isVertical = orientation === Vertical;
+
+    const textSel = enteringNodes
       .append('text')
       .attr('class', cssClass)
       .attr('dominant-baseline', dominantBaseline)
+      .attr('text-anchor', isVertical ? 'middle' : 'start');
+
+    textSel
       .selectAll('tspan')
       .data((node) => {
         const lines = nodeLabelFunction(node);
-        const yOffset = (-lineSep * (lines.length - 1)) / 2;
-        return lines.map((line, i) => ({
-          line,
-          node,
-          dy: i === 0 ? yOffset : lineSep,
-        }));
+        return lines.map((line, i) => ({ line, node, i, total: lines.length }));
       })
       .enter()
       .append('tspan')
       .text((d) => d.line)
-      .attr('x', (d) => resolveOffset(d.node))
-      .attr('dy', (d) => d.dy);
+      .attr('x', (d) => isVertical ? 0 : resolveXOffset(d.node))
+      .attr('dy', (d) => {
+        if (isVertical) {
+          // first line: drop below node; subsequent lines: line separation
+          return d.i === 0 ? resolveYOffset(d.node) : lineSep;
+        } else {
+          // original horizontal behaviour: vertically centre the block
+          const yOff = (-lineSep * (d.total - 1)) / 2;
+          return d.i === 0 ? yOff : lineSep;
+        }
+      });
   }
 
   /**
@@ -593,9 +638,15 @@ export class D3Renderer implements Renderer {
     this.sortDomElements();
     // add tooltips and node labels
     this.setupTooltips(nodeSelect);
-    this.renderLabels(nodeSelect, 'node-label', 14,
+    this.renderLabels(
+      nodeSelect,
+      layoutResult.orientation,
+      'node-label',
+      14,
       (node) => this.opts.nodeLabelOffsetFunction(node, this.opts),
-      'central');
+      (node) => this.opts.nodeLabelVerticalOffsetFunction(node, this.opts),
+      'central'
+    );
     // center view on clicked node
     // work-around because JSDOM+d3-zoom throws errors
     if (!this.isJSDOM) {
