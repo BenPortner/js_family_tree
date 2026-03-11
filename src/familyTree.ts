@@ -17,7 +17,7 @@ import { warn } from 'console';
  */
 export interface FamilyTreeOptions
   extends D3DAGLayoutCalculatorOptions,
-    D3RendererOptions {
+  D3RendererOptions {
   /** If true, all nodes are set to visible on initialization. */
   showAll: boolean;
 }
@@ -278,4 +278,149 @@ export class FamilyTree {
     );
     if (render) this.reimportData();
   }
+
+
+  /**
+ * Deletes a person and all of their descendants (unions + persons) from the tree.
+ *
+ * Expected link semantics (as used by this library examples):
+ * - [personId, unionId]  => person is a partner in that union (an "own union")
+ * - [unionId, personId]  => person is a child of that union (a "parent union")
+ *
+ * Start handling:
+ * - If the deleted person is `data.start`, try to promote a parent (a partner of one of the person's parent unions).
+ * - If no parent can be found, fall back to any remaining person (or '' if none remain).
+ *
+ * @param id - The person ID to delete (together with their descendant tree).
+ * @param render - If true, re-import and re-render the tree (default: true).
+ */
+  public deletePersonWithTree(id: string, render: boolean = true) {
+    // 0) Guard: if the person doesn't exist, do nothing.
+    if (!(id in this.data.persons)) return;
+
+    // 1) Build fast directed adjacency maps from the `links` array.
+    //
+    // We want to quickly answer:
+    // - outgoing neighbors of a node: out.get(a) => all b such that [a, b] exists
+    // - incoming neighbors of a node: inn.get(b) => all a such that [a, b] exists
+    //
+    // Using Maps+Sets makes traversal O(E) instead of repeatedly scanning links (O(E) each time).
+    const out = new Map<string, Set<string>>();
+    const inn = new Map<string, Set<string>>();
+
+    const add = (m: Map<string, Set<string>>, a: string, b: string) => {
+      if (!m.has(a)) m.set(a, new Set());
+      m.get(a)!.add(b);
+    };
+
+    for (const [a, b] of this.data.links) {
+      add(out, a, b); // a -> b
+      add(inn, b, a); // b <- a
+    }
+
+    // 2) Helpers to recognize node IDs (persons vs unions).
+    // This avoids accidentally following edges to missing/invalid nodes.
+    const isPerson = (x: string) => x in this.data.persons;
+    const isUnion = (x: string) => x in this.data.unions;
+
+    // 3) We'll collect everything to delete in two sets:
+    // - personsToDelete: the person + all descendants (children, grandchildren, ...)
+    // - unionsToDelete: unions belonging to the deleted line (their "own unions")
+    const personsToDelete = new Set<string>();
+    const unionsToDelete = new Set<string>();
+
+    // 4) Traverse ONLY the descendant direction:
+    //
+    // person -> (outgoing unions where they're a partner) -> (children of those unions) -> (their unions) -> ...
+    //
+    // This avoids deleting ancestors/spouses not in the descendant branch.
+    const personQueue: string[] = [id];
+
+    while (personQueue.length) {
+      // Take one person to process.
+      const pid = personQueue.pop()!;
+
+      // Skip if already handled.
+      if (personsToDelete.has(pid)) continue;
+
+      // Mark this person to be deleted.
+      personsToDelete.add(pid);
+
+      // 4a) Find this person's "own unions":
+      // partner edge is [person, union] so we look at outgoing edges from the person.
+      for (const uid of out.get(pid) ?? []) {
+        // Only follow if it’s truly a union ID.
+        if (!isUnion(uid)) continue;
+
+        // Mark the union for deletion (it belongs to the removed subtree).
+        unionsToDelete.add(uid);
+
+        // 4b) For that union, find its children:
+        // child edge is [union, childPerson], so we look at outgoing edges from the union.
+        for (const childId of out.get(uid) ?? []) {
+          if (!isPerson(childId)) continue;
+
+          // Queue the child person for processing (descend recursively).
+          if (!personsToDelete.has(childId)) personQueue.push(childId);
+        }
+      }
+    }
+
+    // 5) If the deleted person was the start of the tree, we must choose a new start,
+    // otherwise the rendering/import will break or show an unexpected root.
+    if (this.data.start === id) {
+      let newStart: string | undefined;
+
+      // 5a) Identify the person's "parent unions" (the union(s) where this person is a child).
+      //
+      // child edge is [union, person], so these are *incoming* neighbors of `id` that are unions.
+      const parentUnions = Array.from(inn.get(id) ?? []).filter(isUnion);
+
+      // 5b) For each parent union, try to pick one partner as the new start.
+      //
+      // partner edge is [partnerPerson, union], so partners are *incoming* neighbors of the union that are persons.
+      // We also ensure we do NOT pick someone who is being deleted (rare but possible with malformed data).
+      for (const pu of parentUnions) {
+        const partners = Array.from(inn.get(pu) ?? []).filter(
+          (p) => isPerson(p) && !personsToDelete.has(p)
+        );
+        if (partners.length) {
+          newStart = partners[0];
+          break;
+        }
+      }
+
+      // 5c) If we couldn't promote a parent, fall back to any remaining person in the dataset.
+      if (!newStart) {
+        newStart = Object.keys(this.data.persons).find(
+          (p) => !personsToDelete.has(p)
+        );
+      }
+
+      // 5d) If the tree becomes empty, start becomes '' (or you could set it to undefined if your type allows it).
+      this.data.start = newStart ?? '';
+    }
+
+    // 6) Remove all links that touch anything we are deleting.
+    //
+    // This prevents dangling edges that point to missing nodes.
+    this.data.links = this.data.links.filter(([a, b]) => {
+      return (
+        !personsToDelete.has(a) &&
+        !personsToDelete.has(b) &&
+        !unionsToDelete.has(a) &&
+        !unionsToDelete.has(b)
+      );
+    });
+
+    // 7) Delete unions and persons from their dictionaries.
+    //
+    // We delete unions first just for neatness (either order is fine after links are filtered).
+    for (const uid of unionsToDelete) delete this.data.unions[uid];
+    for (const pid of personsToDelete) delete this.data.persons[pid];
+
+    // 8) Re-import/re-render if requested (this matches the behavior of your other mutation methods).
+    if (render) this.reimportData();
+  }
+
 }
