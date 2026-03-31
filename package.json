@@ -40,7 +40,7 @@
     "tslib": "^2.8.1"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^29.0.0",
+    "@rollup/plugin-commonjs": "^29.0.2",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-typescript": "^12.3.0",
     "@types/chai": "^5.2.3",
@@ -58,5 +58,9 @@
     "typedoc-plugin-merge-modules": "^7.0.0",
     "typescript": "^5.9.3"
   },
-  "types": "dist/types/index.d.ts"
+  "types": "dist/types/index.d.ts",
+  "overrides": {
+    "serialize-javascript": "7.0.5",
+    "diff": "8.0.4"
+  }
 }
