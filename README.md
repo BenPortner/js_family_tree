@@ -9,7 +9,7 @@ Features:
 - move around the tree by zooming and panning
 - uses [d3-dag](https://github.com/erikbrinkman/d3-dag) for layout calculation and [d3](https://d3js.org/) for rendering
 
-[Live example here.](https://html-preview.github.io/?url=https://github.com/BenPortner/js_family_tree/blob/typescript/examples/simple-tree.html)
+[Live example here.](https://html-preview.github.io/?url=https://github.com/BenPortner/js_family_tree/blob/master/examples/simple-tree.html)
 
 [JSFiddle here.](https://jsfiddle.net/BenPortner/6mnt1wy4/)
 
