@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>FamilyTree - deletePersonWithTree() test</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+            margin: 0;
+            padding: 16px;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 16px;
+            align-items: start;
+        }
+
+        .panel h2 {
+            margin: 0 0 8px;
+            font-size: 16px;
+        }
+
+        .controls {
+            display: grid;
+            gap: 8px;
+        }
+
+        button {
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background: #fafafa;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #f2f2f2;
+        }
+
+        code,
+        pre {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        pre {
+            background: #0b1020;
+            color: #e7eaf3;
+            padding: 10px;
+            border-radius: 10px;
+            overflow: auto;
+            max-height: 320px;
+        }
+
+
+        .hint {
+            font-size: 12px;
+            color: #555;
+            line-height: 1.35;
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .row button {
+            flex: 1 1 auto;
+        }
+
+        /* --- FIX: contain the absolute .svg-container inside the tree area --- */
+        #tree {
+            position: relative;
+            /* key: becomes the positioning context */
+            height: calc(100vh - 180px);
+            /* give it real height so the SVG can fit */
+            min-height: 520px;
+            /* avoid tiny viewport issues */
+            overflow: auto;
+            /* allow pan/zoom content without overlaying UI */
+            border: 1px solid #eee;
+            border-radius: 10px;
+            background: #fff;
+        }
+
+        /* Optional but recommended: ensure panels behave nicely in a tall layout */
+        .panel {
+            position: relative;
+            /* helps with stacking/containment */
+        }
+
+        /* Optional: if you still see bleed, force the svg container to fill #tree */
+        #tree .svg-container {
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 style="margin:0 0 12px;">FamilyTree manual test: <code>deletePersonWithTree()</code></h1>
+
+    <div class="layout">
+        <div class="panel">
+            <h2>Controls</h2>
+            <div class="controls">
+                <div class="hint">
+                    Open DevTools console to see before/after snapshots of <code>persons</code>, <code>unions</code>,
+                    <code>links</code>, and <code>start</code>.
+                </div>
+
+                <div class="row">
+                    <button id="btnRender">Render / Reset sample</button>
+                    <button id="btnDump">Dump current data</button>
+                </div>
+
+                <hr style="border:none;border-top:1px solid #eee;margin:8px 0;" />
+
+                <div class="hint"><b>Scenario A:</b> delete a non-start ancestor. Should delete descendants & their
+                    unions, without leaving dangling links.</div>
+                <button id="btnDeleteA">deletePersonWithTree("pA") (Alice)</button>
+
+                <div class="hint"><b>Scenario B:</b> delete the <code>start</code> person. Should promote a parent if
+                    available, else fallback to remaining person.</div>
+                <button id="btnDeleteStart">deletePersonWithTree("pC") (Charlie - START)</button>
+
+                <div class="hint"><b>Scenario C:</b> delete the child of the start person. Should remove the linked
+                    children.</div>
+                <button id="btnDeleteE">deletePersonWithTree("pE") (Eva - child of START)</button>
+
+                <div class="hint"><b>Comparison:</b> old deletePerson (may leave dangling unions/children)</div>
+                <button id="btnOldDelete">deletePerson("pA") (old)</button>
+
+                <hr style="border:none;border-top:1px solid #eee;margin:8px 0;" />
+
+                <div class="hint"><b>Quick sanity:</b> call and re-render is expected to happen automatically if your
+                    method calls <code>reimportData()</code>.</div>
+            </div>
+
+            <h2 style="margin-top:12px;">Data snapshot</h2>
+            <pre id="snapshot">{}</pre>
+        </div>
+
+        <div class="panel">
+            <h2>Rendered tree</h2>
+            <div id="tree"></div>
+            <div class="hint" style="margin-top:8px;">
+                If you don’t see anything, check the bundle path in the HTML and make sure you built the UMD bundle
+                (global <code>FT</code>).
+            </div>
+        </div>
+    </div>
+
+    <!-- 1) Load your built bundle (UMD) -->
+    <!-- IMPORTANT: adjust this path to your real build output -->
+    <!-- Example candidates: ./dist/js_family_tree.umd.js or ./dist/family-tree.umd.js -->
+    <script src="../dist/js_family_tree.umd.js"></script>
+
+    <script>
+        // 2) Helpers
+        const $ = (id) => document.getElementById(id);
+
+        // 3) Sample data that follows the library convention:
+        // - [personId, unionId] = partner edge
+        // - [unionId, personId] = child edge
+        //
+        // We set START to Charlie (pC) so we can test "start promotion".
+        function makeSampleData() {
+            return {
+                start: "pC",
+                persons: {
+                    // Generation 0
+                    pA: { name: "Alice (pA)" },
+                    pB: { name: "Bob (pB)" },
+
+                    // Their child
+                    pC: { name: "Charlie (pC) [START]" },
+
+                    // Charlie's partner + child
+                    pD: { name: "Diana (pD)" },
+                    pE: { name: "Eva (pE)" },
+
+                    // Eva's partner + child (grandchild of Alice/Bob)
+                    pF: { name: "Frank (pF)" },
+                    pG: { name: "Gina (pG)" }
+                },
+                unions: {
+                    // Alice + Bob => Charlie
+                    uAB: { name: "Union uAB (Alice+Bob)" },
+
+                    // Charlie + Diana => Eva
+                    uCD: { name: "Union uCD (Charlie+Diana)" },
+
+                    // Eva + Frank => Gina
+                    uEF: { name: "Union uEF (Eva+Frank)" }
+                },
+                links: [
+                    // Partners
+                    ["pA", "uAB"],
+                    ["pB", "uAB"],
+
+                    ["pC", "uCD"],
+                    ["pD", "uCD"],
+
+                    ["pE", "uEF"],
+                    ["pF", "uEF"],
+
+                    // Children
+                    ["uAB", "pC"],
+                    ["uCD", "pE"],
+                    ["uEF", "pG"]
+                ]
+            };
+        }
+
+        // 4) Create and render tree
+        let tree = null;
+        let data = null;
+
+        function renderReset() {
+            // Clear container
+            const container = $("tree");
+            container.innerHTML = "";
+
+            // Fresh data each time
+            data = makeSampleData();
+
+            // Expect global FT from UMD build
+            if (!window.FT || !window.FT.FamilyTree) {
+                console.error("FT.FamilyTree not found. Check the UMD bundle path.");
+                alert("FT.FamilyTree not found. Fix <script src=...> to point to your UMD build.");
+                return;
+            }
+
+            // Instantiate
+            // NOTE: constructor signature may differ in your lib.
+            // Common patterns: new FT.FamilyTree(container, data, options) OR new FT.FamilyTree(data, container, options)
+            // Adjust if needed.
+            tree = new window.FT.FamilyTree(data, container);
+
+            // Some libs auto-render in constructor; some need explicit render.
+            // If you have tree.render(), uncomment:
+            // tree.render();
+
+            dump("After reset/render");
+        }
+
+        function dump(label) {
+            if (!tree || !tree.data) {
+                $("snapshot").textContent = JSON.stringify({ label, note: "tree not initialized or tree.data missing" }, null, 2);
+                return;
+            }
+
+            const snapshot = {
+                label,
+                start: tree.data.start,
+                persons: Object.keys(tree.data.persons),
+                unions: Object.keys(tree.data.unions),
+                links: tree.data.links.slice()
+            };
+
+            console.log("[SNAPSHOT]", label, snapshot);
+            $("snapshot").textContent = JSON.stringify(snapshot, null, 2);
+        }
+
+        // 5) Wire buttons
+        $("btnRender").addEventListener("click", renderReset);
+        $("btnDump").addEventListener("click", () => dump("Manual dump"));
+
+        $("btnDeleteA").addEventListener("click", () => {
+            if (!tree) return;
+            console.log(">>> deletePersonWithTree('pA')");
+            dump("Before deletePersonWithTree(pA)");
+            tree.deletePersonWithTree("pA", true); // render=true
+            dump("After deletePersonWithTree(pA)");
+        });
+
+        $("btnDeleteStart").addEventListener("click", () => {
+            if (!tree) return;
+            console.log(">>> deletePersonWithTree('pC') [START]");
+            dump("Before deletePersonWithTree(pC)");
+            tree.deletePersonWithTree("pC", true);
+            dump("After deletePersonWithTree(pC)");
+        });
+
+        $("btnDeleteE").addEventListener("click", () => {
+            if (!tree) return;
+            console.log(">>> deletePersonWithTree('pE') [Eva - child of START]");
+            dump("Before deletePersonWithTree(pE)");
+            tree.deletePersonWithTree("pE", true);
+            dump("After deletePersonWithTree(pE)");
+        });
+
+        $("btnOldDelete").addEventListener("click", () => {
+            if (!tree) return;
+            if (typeof tree.deletePerson !== "function") {
+                alert("tree.deletePerson() not found in this build.");
+                return;
+            }
+            console.log(">>> deletePerson('pA') [old]");
+            dump("Before deletePerson(pA)");
+            tree.deletePerson("pA", true);
+            dump("After deletePerson(pA)");
+        });
+
+        // 6) Auto-run once
+        renderReset();
+    </script>
+</body>
+
+</html>
