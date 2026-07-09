@@ -42,6 +42,14 @@ export interface D3DAGLayoutCalculatorOptions extends LayoutCalculatorOpts {
   coord: Coord<ClickableNode, LinkData>;
   /** Orientation of the layout (horizontal or vertical). */
   orientation: Orientation;
+  /**
+   * Distance between sibling nodes (in layout units).
+   * Controls horizontal spacing in horizontal orientation and vertical spacing
+   * in vertical orientation. Defaults to 50.
+   * Note: this is only used by the default nodeSize function.
+   * When providing a custom nodeSize, set spacing there directly.
+   */
+  siblingDistance: number;
 }
 
 /**
@@ -187,10 +195,17 @@ export class D3DAGLayoutCalculator implements LayoutCalculator {
     decross: customSugiyamaDecross,
     coord: coordQuad(),
     orientation: Horizontal,
+    siblingDistance: 50,
   };
 
   constructor(opts?: Partial<D3DAGLayoutCalculatorOptions>) {
     this.opts = { ...this.opts, ...opts };
+    // If siblingDistance was provided but nodeSize was not customised,
+    // rebuild the default nodeSize with the requested spacing.
+    if (opts?.siblingDistance !== undefined && opts?.nodeSize === undefined) {
+      const d = this.opts.siblingDistance;
+      this.opts.nodeSize = () => [d, 100] as [number, number];
+    }
   }
 
   /**

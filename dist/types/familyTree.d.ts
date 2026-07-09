@@ -122,4 +122,19 @@ export declare class FamilyTree {
      * @param render - If true, re-imports and re-renders the tree (default: true).
      */
     deleteLink(sourceId: string, targetId: string, render?: boolean): void;
+    /**
+   * Deletes a person and all of their descendants (unions + persons) from the tree.
+   *
+   * Expected link semantics (as used by this library examples):
+   * - [personId, unionId]  => person is a partner in that union (an "own union")
+   * - [unionId, personId]  => person is a child of that union (a "parent union")
+   *
+   * Start handling:
+   * - If the deleted person is `data.start`, try to promote a parent (a partner of one of the person's parent unions).
+   * - If no parent can be found, fall back to any remaining person (or '' if none remain).
+   *
+   * @param id - The person ID to delete (together with their descendant tree).
+   * @param render - If true, re-import and re-render the tree (default: true).
+   */
+    deletePersonWithTree(id: string, render?: boolean): void;
 }
