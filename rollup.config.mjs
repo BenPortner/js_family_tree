@@ -8,13 +8,13 @@ const pkg = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), 
 export default [
   {
     input: "src/index.ts",
+    external: ["console"],
     output: [
       {
         name: "FT",
         file: pkg.browser,
         format: "umd",
         sourcemap: true,
-        external: ["console"],
         globals: {
           console: "console",
         },
@@ -22,10 +22,6 @@ export default [
       {
         file: pkg.module,
         format: "es",
-        external: ["console"],
-        globals: {
-          console: "console",
-        }
       },
     ],
     plugins: [typescript(), nodeResolve({ preferBuiltins: false }), commonjs()],

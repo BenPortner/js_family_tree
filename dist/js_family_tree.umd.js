@@ -132,7 +132,7 @@
 	            const partnerPrio = priorities.get(partner);
 	            if (!partnerPrio)
 	                return;
-	            const nodePrio = Object.assign({}, partnerPrio);
+	            const nodePrio = { ...partnerPrio };
 	            priorities.set(node, nodePrio);
 	            // this part makes sure that parentless nodes are arranged
 	            // alternately above and below their partners
@@ -181,7 +181,7 @@
 	            coord: n7(),
 	            orientation: Horizontal,
 	        };
-	        this.opts = Object.assign(Object.assign({}, this.opts), opts);
+	        this.opts = { ...this.opts, ...opts };
 	    }
 	    /**
 	     * Calculates the layout for the given nodes.
@@ -457,7 +457,13 @@
 	            }
 	            else if (id in data.unions) {
 	                const union = data.unions[id];
-	                Object.assign(union, Object.assign(Object.assign({}, data.unions[id]), { id: id, type: CUnion, visible: (_c = union.visible) !== null && _c !== void 0 ? _c : false, insertedBy: (_d = union.insertedBy) !== null && _d !== void 0 ? _d : null }));
+	                Object.assign(union, {
+	                    ...data.unions[id],
+	                    id: id,
+	                    type: CUnion,
+	                    visible: (_c = union.visible) !== null && _c !== void 0 ? _c : false,
+	                    insertedBy: (_d = union.insertedBy) !== null && _d !== void 0 ? _d : null,
+	                });
 	                return union;
 	            }
 	            else {
@@ -3794,7 +3800,7 @@
 	            nodeSizeFunction: D3Renderer.defaultNodeSizeFunction,
 	        };
 	        this.ft = ft;
-	        this.opts = Object.assign(Object.assign({}, this.opts), opts);
+	        this.opts = { ...this.opts, ...opts };
 	        this.container = container;
 	    }
 	    /** Gets the current container element. */
